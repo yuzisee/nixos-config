@@ -10,6 +10,6 @@ X1Nano1340/etc_nixos
 
 X1Nano1340/joseph
 
-    cd /home/joseph
-    ln -s /opt/nixos-config/X1Nano1340/joseph .nixpkgs
-    file ~/.nixpkgs/config.nix
+    cd /home/joseph/.config
+    ln -s /opt/nixos-config/X1Nano1340/joseph nixpkgs
+    file ~/.config/nixpkgs/config.nix
