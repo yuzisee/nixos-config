@@ -46,7 +46,7 @@
   users.users.joseph = {
     isNormalUser = true;
     description = "Hello there";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "video" ];
     packages = with pkgs; [
       firefox
       rxvt-unicode
@@ -93,6 +93,9 @@
   #   enableSSHSupport = true;
   # };
   programs.sway.enable = true;
+  # https://nixos.wiki/wiki/Sway
+  # Added extraGroups = [ "video" ]; to joseph above
+  programs.light.enable = true;
 
   # List services that you want to enable:
 
@@ -112,5 +115,12 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "22.05"; # Did you read the comment?
+
+  # https://nixos.org/manual/nixos/stable/index.html#sec-upgrading
+  # https://nixos.org/manual/nixos/stable/index.html#sec-nix-gc
+  # STANDARD OPERATIONS
+  # >>> nixos-rebuild switch --upgrade
+  # >>> nix-collect-garbage  # -d if you are ready to remove old configurations
+  # >>> nix-store --optimise
 
 }
