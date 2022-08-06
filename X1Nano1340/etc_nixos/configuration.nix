@@ -93,6 +93,7 @@
   #   enableSSHSupport = true;
   # };
   programs.sway.enable = true;
+  environment.etc."sway/config".source = lib.mkForce (pkgs.callPackage ./etc_conf/build-sway-config.nix {pkgs.writeText});
   # https://nixos.wiki/wiki/Sway
   # Added extraGroups = [ "video" ]; to joseph above
   programs.light.enable = true;
