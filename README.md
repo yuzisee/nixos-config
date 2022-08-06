@@ -11,12 +11,16 @@ X1Nano1340/etc_nixos
 X1Nano1340/joseph
 
     cd /home/joseph/.config
-    ln -s /opt/nixos-config/X1Nano1340/dotfiles/nixpkgs nixpkgs
+    ln -s /opt/nixos-config/X1Nano1340/dotfiles/nixpkgs
     file ~/.config/nixpkgs/config.nix
 
-    mkdir -p /home/joseph/.config
-    ln -s /opt/nixos-config/X1Nano1340/dotfiles/sway sway
+    cd /home/joseph/.config
+    ln -s /opt/nixos-config/X1Nano1340/dotfiles/sway
     file ~/.config/sway/config
+
+    cd /home/joseph/.config
+    ln -s /opt/nixos-config/X1Nano1340/dotfiles/i3status-rust
+    file ~/.config/i3status-rust/config.toml
 
 
 # General "Getting started" advice

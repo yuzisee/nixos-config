@@ -218,12 +218,25 @@ bar {
 
     # When the status_command prints a new line to stdout, swaybar updates.
     # The default just shows the current date and time.
-    status_command while date +'%Y-%m-%d %I:%M:%S %p'; do sleep 1; done
+    #status_command while date +'%Y-%m-%d %I:%M:%S %p'; do sleep 1; done
+    status_command /etc/profiles/per-user/joseph/bin/i3status-rs /home/joseph/.config/i3status-rust/config.toml
+    # https://raw.githubusercontent.com/greshake/i3status-rust/master/examples/config.toml
+    # https://nixos.org/manual/nix/stable/package-management/profiles.html
+#    font pango:DejaVu Sans Mono, FontAwesome 12
 
     colors {
         statusline #ffffff
         background #323232
         inactive_workspace #32323200 #32323200 #5c5c5c
+        # background #222222
+        # statusline #dddddd
+        # inactive_workspace #333333 #333333 #888888
+        # https://github.com/greshake/i3status-rust
+        focused_workspace #0088CC #0088CC #ffffff
+        active_workspace #333333 #333333 #ffffff
+        urgent_workspace #2f343a #900000 #ffffff
+
+        separator #666666
     }
 }
 

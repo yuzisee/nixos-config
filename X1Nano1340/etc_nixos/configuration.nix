@@ -49,6 +49,7 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" ];
     packages = with pkgs; [
+      i3status-rust
       speedcrunch
       epiphany
       librewolf-wayland
