@@ -50,6 +50,7 @@
     extraGroups = [ "networkmanager" "wheel" "video" ];
     packages = with pkgs; [
       firefox
+      speedcrunch
       rxvt-unicode
       gh
     ];
