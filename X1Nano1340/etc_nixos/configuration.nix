@@ -23,6 +23,7 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
+  # This is enough to use `nmcli radio wifi` and `sudo dev wifi connect ...`
   networking.networkmanager.enable = true;
 
   # Set your time zone.
@@ -80,10 +81,13 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     vimHugeX
+    git
+    wlr-randr
     wget
     curl
-    git
+    file
   ];
+  # https://gist.github.com/mschwaig/195fe93ed85dea7aaceaf8e1fc6c0e99
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
