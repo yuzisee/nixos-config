@@ -49,12 +49,15 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" ];
     packages = with pkgs; [
-      firefox
+      firefox-wayland
+      librewolf-wayland
+      epiphany
       speedcrunch
       rxvt-unicode
       gh
     ];
   };
+  # https://nixos.wiki/wiki/Firefox
 
   # Enable automatic login for the user.
   services.getty.autologinUser = "joseph";
@@ -75,6 +78,9 @@
       libvdpau-va-gl
     ];
   };
+  # How to test:
+  #  https://discourse.ubuntu.com/t/enabling-accelerated-video-decoding-in-firefox-on-ubuntu-21-04/22081
+  #  https://mastransky.wordpress.com/2021/01/10/firefox-were-finally-getting-hw-acceleration-on-linux/
 
   # nixos.wiki/wiki/Vim
   # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
