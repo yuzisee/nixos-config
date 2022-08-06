@@ -49,10 +49,10 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" ];
     packages = with pkgs; [
-      firefox-wayland
-      librewolf-wayland
-      epiphany
       speedcrunch
+      epiphany
+      librewolf-wayland
+      firefox-wayland
       rxvt-unicode
       gh
     ];

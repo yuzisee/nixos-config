@@ -11,8 +11,12 @@ X1Nano1340/etc_nixos
 X1Nano1340/joseph
 
     cd /home/joseph/.config
-    ln -s /opt/nixos-config/X1Nano1340/joseph nixpkgs
+    ln -s /opt/nixos-config/X1Nano1340/dotfiles/nixpkgs nixpkgs
     file ~/.config/nixpkgs/config.nix
+
+    mkdir -p /home/joseph/.config
+    ln -s /opt/nixos-config/X1Nano1340/dotfiles/sway sway
+    file ~/.config/sway/config
 
 
 # General "Getting started" advice
