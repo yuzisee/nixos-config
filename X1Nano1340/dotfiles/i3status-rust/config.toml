@@ -1,5 +1,7 @@
 [theme]
 name = "solarized-dark"
+# separator = "."
+# https://github.com/greshake/i3status-rust/issues/466
 [theme.overrides]
 idle_bg = "#123456"
 idle_fg = "#abcdef"

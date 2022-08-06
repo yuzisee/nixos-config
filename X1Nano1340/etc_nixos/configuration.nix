@@ -111,6 +111,14 @@
   # Added extraGroups = [ "video" ]; to joseph above
   programs.light.enable = true;
 
+  # https://nixos.wiki/wiki/Fonts
+  # https://ld.reddit.com/r/NixOS/comments/lf6de0/some_config_questions/gmlzirz/
+  # https://git.sr.ht/~cyplo/dotfiles/tree/83ddcc09dc68389b129d598722eca9e90a6dff33/item/nixos/i3/i3.nix
+  fonts.fonts = with pkgs; [
+    powerline-fonts
+    font-awesome
+  ];
+
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.

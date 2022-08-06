@@ -222,7 +222,7 @@ bar {
     status_command /etc/profiles/per-user/joseph/bin/i3status-rs /home/joseph/.config/i3status-rust/config.toml
     # https://raw.githubusercontent.com/greshake/i3status-rust/master/examples/config.toml
     # https://nixos.org/manual/nix/stable/package-management/profiles.html
-#    font pango:DejaVu Sans Mono, FontAwesome 12
+    font pango:DejaVu Sans Mono, Font Awesome 6 Free 12
 
     colors {
         statusline #ffffff
