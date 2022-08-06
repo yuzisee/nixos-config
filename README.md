@@ -22,8 +22,14 @@ X1Nano1340/joseph
     ln -s /opt/nixos-config/X1Nano1340/dotfiles/i3status-rust
     file ~/.config/i3status-rust/config.toml
 
+# TODO
+https://github.com/purenix-org/purenix/blob/main/docs/quick-start.md
 
-# General "Getting started" advice
+# Analogies to other package managers
+"Derivations" are like "package specs"
+https://nixos.org/guides/nix-pills/our-first-derivation.html
+
+## General "Getting started" advice
 
 nmcli radio wifi
 sudo nmcli dev wifi connect 0000000000000000000000000000005A password "firesheep"

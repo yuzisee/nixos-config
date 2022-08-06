@@ -106,6 +106,8 @@
   #   enableSSHSupport = true;
   # };
   programs.sway.enable = true;
+  # https://discourse.nixos.org/t/where-is-callpackage-defined-exactly-part-2/12524/6
+  # https://nixos.org/guides/nix-pills/callpackage-design-pattern.html
   # environment.etc."sway/config".source = lib.mkForce (pkgs.callPackage ./etc_conf/build-sway-config.nix {pkgs.writeText});
   # https://nixos.wiki/wiki/Sway
   # Added extraGroups = [ "video" ]; to joseph above
