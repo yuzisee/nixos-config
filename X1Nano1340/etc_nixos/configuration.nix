@@ -61,6 +61,8 @@
       gh
     ];
   };
+  # Prefer https://github.com/MaxVerevkin/wl-gammarelay-rs over wlsunset (fewer dependencies, I think)
+  # HOWEVER, we have to wait until it has a nixpkg and i3status-rust upgrades to 0.22
   # https://nixos.wiki/wiki/Firefox
 
   # Enable automatic login for the user.
