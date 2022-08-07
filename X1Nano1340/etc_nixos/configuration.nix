@@ -59,6 +59,9 @@
     ];
   };
   # https://nixos.wiki/wiki/Firefox
+  # NOTE: foot is installed by default (along with sway I assume), since it's a Wayland-native terminal
+    # https://mikejmoffitt.com/articles/0037-term-compare.html
+    # https://lwn.net/Articles/751763/
 
   # Enable automatic login for the user.
   services.getty.autologinUser = "joseph";

@@ -23,11 +23,15 @@ X1Nano1340/joseph
     file ~/.config/i3status-rust/config.toml
 
 # TODO
-https://github.com/purenix-org/purenix/blob/main/docs/quick-start.md
+Transpiling (type safety / better error messages) - https://github.com/purenix-org/purenix/blob/main/docs/quick-start.md
+Configuration files (superset of homemanager / simpler to get started) - https://github.com/nix-community/impermanence
 
 # Analogies to other package managers
 "Derivations" are like "package specs"
 https://nixos.org/guides/nix-pills/our-first-derivation.html
+
+Some configuration is available here but others not...
+https://nixos.org/manual/nixos/stable/options.html
 
 ## General "Getting started" advice
 

@@ -23,3 +23,4 @@
 # https://git.sr.ht/~jshholland/nixos-configs/tree/master/home/sway.nix
 # https://www.reddit.com/r/unixporn/comments/lepmss/comment/gmkkdjr/
 # https://github.com/nix-community/home-manager/blob/0e2f7876d2f2ae98a67d89a8bef8c49332aae5af/modules/services/window-managers/i3-sway/lib/options.nix
+# https://discourse.nixos.org/t/sway-from-home-manager/8703
