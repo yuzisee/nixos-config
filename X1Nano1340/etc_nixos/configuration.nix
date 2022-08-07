@@ -54,6 +54,7 @@
       wlsunset
       i3status-rust
       speedcrunch
+      ungoogled-chromium
       epiphany
       librewolf-wayland
       firefox-wayland

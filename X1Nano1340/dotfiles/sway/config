@@ -102,15 +102,18 @@ input "type:keyboard" {
 # `light -G` shows 0.005156 turns off the screen, whereas 0.005157 has it at basically the lowest brightness
 # Can't use `light -U` by itself, we could potentially try `light -N 0.005157` but this is simpler for now
 # bindsym XF86MonBrightnessUp exec light -U 10
-bindsym XF86MonBrightnessDown exec light -S 0.005157
+bindsym XF86MonBrightnessDown exec light -S 0.0664
+# It seems 0.0664 and 0.005157 have no discernable difference on the LEDs themselves
+# bindsym XF86MonBrightnessDown exec light -S 0.005157
 
 # bindsym XF86MonBrightnessUp exec light -A 10
-bindsym XF86MonBrightnessUp exec light -T 2.0
+bindsym XF86MonBrightnessUp exec light -T 1.5
 
 # Volume
-bindsym XF86AudioRaiseVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ +3%'
-bindsym XF86AudioLowerVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ -3%'
+bindsym XF86AudioRaiseVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ +7%'
+bindsym XF86AudioLowerVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ -7%'
 bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
+bindsym XF86NotificationCenter exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
 
 # TODO XF86PickupPhone and XF86HangupPhone maybe can be used as Back/Forward for web browsing?
 
@@ -144,10 +147,13 @@ bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
     #bindsym $mod+Shift+Up move up
     #bindsym $mod+Shift+Right move right
 
-    bindsym $mod+Shift+Left move container to workspace prev
-    bindsym $mod+Shift+Right move container to workspace next
+    bindsym $mod+Shift+Left move container to workspace prev; workspace prev
+    bindsym $mod+Shift+Right move container to workspace next; workspace next
     #bindsym $mod+Shift+Left move container to workspace prev_on_output
     #bindsym $mod+Shift+Right move container to workspace next_on_output
+
+# https://i3wm.org/docs/userguide.html#workspace_auto_back_and_forth
+workspace_auto_back_and_forth yes
 
 #
 # Workspaces:
@@ -177,11 +183,14 @@ bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
     # Note: workspaces can have any name you want, not just numbers.
     # We just use 1-10 as the default.
 
-    assign [app_id="^URxvt$"] workspace number 1
+    # https://i3wm.org/docs/userguide.html#list_of_commands
+    assign [class="^URxvt$"] workspace number 1
     assign [app_id="^foot$"] workspace number 1
     assign [app_id="^firefox$"] workspace number 2
+    #assign [class="(?i)^Chromium-browser$"] workspace number 3
+    assign [app_id="^librewolf$"] workspace number 3
+    # swaymsg -t get_tree | grep -e '"app_id"' -e '"class"' -e window_role
     # https://ld.reddit.com/r/swaywm/comments/czyiu9/automatically_launch_applications_on_specific/
-    # swaymsg -t get_tree | grep -e '"app_id"' -e '"class"'
     exec firefox
     exec urxvt
     exec foot
@@ -247,9 +256,9 @@ mode "resize" {
     # Return to default mode
     bindsym Return mode "default"
     bindsym Escape mode "default"
+    # ^ NOTE: it seems like [Esc] leaves "resize mode"
 }
 bindsym $mod+r mode "resize"
-# NOTE: it seems like [Esc] leaves "resize mode"
 
 #
 # Status Bar:
