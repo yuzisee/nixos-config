@@ -49,6 +49,9 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" ];
     packages = with pkgs; [
+      wev
+      maestral
+      wlsunset
       i3status-rust
       speedcrunch
       epiphany

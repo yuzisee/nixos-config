@@ -97,6 +97,23 @@ input "type:keyboard" {
     # Exit sway (logs you out of your Wayland session)
     bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit' -s '╳'
     # https://en.wikipedia.org/wiki/X_mark
+
+# Brightness
+# `light -G` shows 0.005156 turns off the screen, whereas 0.005157 has it at basically the lowest brightness
+# Can't use `light -U` by itself, we could potentially try `light -N 0.005157` but this is simpler for now
+# bindsym XF86MonBrightnessUp exec light -U 10
+bindsym XF86MonBrightnessDown exec light -S 0.005157
+
+# bindsym XF86MonBrightnessUp exec light -A 10
+bindsym XF86MonBrightnessUp exec light -T 2.0
+
+# Volume
+bindsym XF86AudioRaiseVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ +3%'
+bindsym XF86AudioLowerVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ -3%'
+bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
+
+# TODO XF86PickupPhone and XF86HangupPhone maybe can be used as Back/Forward for web browsing?
+
 #
 # Moving around:
 #
@@ -148,6 +165,11 @@ input "type:keyboard" {
     bindsym $mod+Shift+0 move container to workspace number 10
     # Note: workspaces can have any name you want, not just numbers.
     # We just use 1-10 as the default.
+
+    assign [app_id="firefox"] workspace number 2
+    # https://ld.reddit.com/r/swaywm/comments/czyiu9/automatically_launch_applications_on_specific/
+    # swaymsg -t get_tree | grep -e '"app_id"' -e '"class"'
+
 #
 # Layout stuff:
 #
@@ -155,6 +177,7 @@ input "type:keyboard" {
     # $mod+b or $mod+v, for horizontal and vertical splits
     # respectively.
     bindsym $mod+b splith
+    # AHA: If you choose hjkl for directions, then splith becomes b instead of h
     bindsym $mod+v splitv
 
     # Switch the current container between different layout styles
@@ -209,6 +232,7 @@ mode "resize" {
     bindsym Escape mode "default"
 }
 bindsym $mod+r mode "resize"
+# NOTE: it seems like [Esc] leaves "resize mode"
 
 #
 # Status Bar:

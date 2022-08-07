@@ -51,6 +51,11 @@ invert_icons = true
 [[block]]
 block = "sound"
 
+# Waiting for v0.22.0 (currently we are v0.21.10)
+#[[block]]
+#block = "hueshift"
+#hue_shifter = "wlsunset"
+
 # https://github.com/greshake/i3status-rust/blob/v0.21.10/doc/blocks.md#net
 [[block]]
 block = "net"
