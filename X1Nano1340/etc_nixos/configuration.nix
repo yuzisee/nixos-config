@@ -64,6 +64,9 @@
   # Prefer https://github.com/MaxVerevkin/wl-gammarelay-rs over wlsunset (fewer dependencies, I think)
   # HOWEVER, we have to wait until it has a nixpkg and i3status-rust upgrades to 0.22
   # https://nixos.wiki/wiki/Firefox
+  # NOTE: foot is installed by default (along with sway I assume), since it's a Wayland-native terminal
+    # https://mikejmoffitt.com/articles/0037-term-compare.html
+    # https://lwn.net/Articles/751763/
 
   # Enable automatic login for the user.
   services.getty.autologinUser = "joseph";
@@ -111,6 +114,8 @@
   #   enableSSHSupport = true;
   # };
   programs.sway.enable = true;
+  # https://discourse.nixos.org/t/where-is-callpackage-defined-exactly-part-2/12524/6
+  # https://nixos.org/guides/nix-pills/callpackage-design-pattern.html
   # environment.etc."sway/config".source = lib.mkForce (pkgs.callPackage ./etc_conf/build-sway-config.nix {pkgs.writeText});
   # https://nixos.wiki/wiki/Sway
   # Added extraGroups = [ "video" ]; to joseph above
