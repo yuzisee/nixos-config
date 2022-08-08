@@ -49,6 +49,7 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" ];
     packages = with pkgs; [
+      mpv
       wev
       maestral
       wlsunset

@@ -22,6 +22,10 @@ X1Nano1340/joseph
     ln -s /opt/nixos-config/X1Nano1340/dotfiles/i3status-rust
     file ~/.config/i3status-rust/config.toml
 
+    cd /home/joseph/.config
+    ln -s /opt/nixos-config/X1Nano1340/dotfiles/mpv
+    file ~/.config/mpv/{mpv,input,script-opts/osc}.conf
+
 # TODO
 Transpiling (type safety / better error messages) - https://github.com/purenix-org/purenix/blob/main/docs/quick-start.md
 Configuration files (superset of homemanager / simpler to get started) - https://github.com/nix-community/impermanence
