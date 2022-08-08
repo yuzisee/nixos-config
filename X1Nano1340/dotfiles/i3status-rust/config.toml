@@ -77,5 +77,4 @@ device_format = "{ap}"
 
 [[block]]
 block = "time"
-interval = 5
-format = "%a %d/%m %R"
+format = "%a %b %d, %R"

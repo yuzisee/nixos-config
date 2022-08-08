@@ -20,6 +20,8 @@ set $term urxvt
 # on the original workspace that the command was run on.
 set $menu dmenu_path | dmenu | xargs swaymsg exec --
 
+set $container_next_or_create swaymsg -p -t get_workspaces | sed -n -e 's/Workspace \(.*\) (focused)/\1/p' | awk '{ print $1 + 1 }' | xargs -I @ swaymsg -t command move container to workspace @\; workspace next
+
 ### Output configuration
 #
 # Default wallpaper (more resolutions are available in /run/current-system/sw/share/backgrounds/sway/)
@@ -131,6 +133,8 @@ bindsym XF86NotificationCenter exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
     #bindsym $mod+Up focus up
     #bindsym $mod+Right focus right
 
+    bindsym $mod+Up focus child
+    bindsym $mod+Down focus parent
     bindsym $mod+Left workspace prev
     bindsym $mod+Right workspace next
     #bindsym $mod+Left workspace prev_on_output
@@ -148,7 +152,7 @@ bindsym XF86NotificationCenter exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
     #bindsym $mod+Shift+Right move right
 
     bindsym $mod+Shift+Left move container to workspace prev; workspace prev
-    bindsym $mod+Shift+Right move container to workspace next; workspace next
+    bindsym $mod+Shift+Right exec $container_next_or_create
     #bindsym $mod+Shift+Left move container to workspace prev_on_output
     #bindsym $mod+Shift+Right move container to workspace next_on_output
 
