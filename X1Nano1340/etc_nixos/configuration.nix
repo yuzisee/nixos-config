@@ -50,6 +50,7 @@
     extraGroups = [ "networkmanager" "wheel" "video" ];
     packages = with pkgs; [
       mpv
+      remmina
       wev
       maestral
       wlsunset
@@ -63,6 +64,7 @@
       gh
     ];
   };
+  # https://askubuntu.com/questions/222392/remmina-problem-a-valid-certificate-for-the-wrong-name
   # Prefer https://github.com/MaxVerevkin/wl-gammarelay-rs over wlsunset (fewer dependencies, I think)
   # HOWEVER, we have to wait until it has a nixpkg and i3status-rust upgrades to 0.22
   # https://nixos.wiki/wiki/Firefox
