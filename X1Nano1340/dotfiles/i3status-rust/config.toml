@@ -48,9 +48,6 @@ invert_icons = true
 # https://sr.ht/~kennylevinsen/wlsunset/
 # Choose whichever has the fewest dependencies I suppose
 
-[[block]]
-block = "sound"
-
 # Waiting for v0.22.0 (currently we are v0.21.10)
 #[[block]]
 #block = "hueshift"
@@ -78,3 +75,6 @@ device_format = "{ap}"
 [[block]]
 block = "time"
 format = "%a %b %d, %R"
+
+[[block]]
+block = "sound"

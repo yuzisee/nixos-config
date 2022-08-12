@@ -108,8 +108,8 @@ bindsym XF86MonBrightnessDown exec light -S 0.0664
 # It seems 0.0664 and 0.005157 have no discernable difference on the LEDs themselves
 # bindsym XF86MonBrightnessDown exec light -S 0.005157
 
-# bindsym XF86MonBrightnessUp exec light -A 10
-bindsym XF86MonBrightnessUp exec light -T 1.5
+bindsym XF86MonBrightnessUp exec light -A 50
+# bindsym XF86MonBrightnessUp exec light -T 1.5
 
 # Volume
 bindsym XF86AudioRaiseVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ +7%'
