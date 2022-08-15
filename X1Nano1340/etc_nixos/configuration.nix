@@ -113,6 +113,29 @@
     file
   ];
   # https://gist.github.com/mschwaig/195fe93ed85dea7aaceaf8e1fc6c0e99
+  # https://unix.stackexchange.com/questions/500025/how-to-add-a-file-to-etc-in-nixos
+  # environment.etc."".source = lib.mkForce (pkgs.callPackage ./write-libinput-gestures.nix {pkgs.writeText});
+  # https://discourse.nixos.org/t/what-does-mkdefault-do-exactly/9028
+  environment.etc = {
+    # Creates /etc/libinput-gestures.conf
+    "libinput-gestures.conf" = {
+      text = ''
+# https://github.com/bulletmark/libinput-gestures/blob/master/libinput-gestures.conf
+swipe left 4 swaymsg t command workspace next_on_output
+swipe left 3 swaymsg t command workspace next_on_output
+swipe right 4 swaymsg t command workspace next_on_output
+swipe right 3 swaymsg t command workspace next_on_output
+
+swipe up 4 swaymsg t command focus prev
+swipe up 3 swaymsg t command focus prev
+swipe down 4 swaymsg t command focus next
+swipe down 3 swaymsg t command focus next
+'';
+
+       # The UNIX file mode bits
+       mode = "0444";
+    };
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
