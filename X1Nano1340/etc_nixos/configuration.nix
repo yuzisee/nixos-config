@@ -101,8 +101,8 @@
   # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   # List packages installed in system profile. To search, run:
   # $ nix search wget
+  # libinput-gestures
   environment.systemPackages = with pkgs; [
-    libinput-gestures
     usbutils
     intel-gpu-tools
     vimHugeX
@@ -114,7 +114,10 @@
   ];
   # https://gist.github.com/mschwaig/195fe93ed85dea7aaceaf8e1fc6c0e99
   # https://unix.stackexchange.com/questions/500025/how-to-add-a-file-to-etc-in-nixos
-  # environment.etc."".source = lib.mkForce (pkgs.callPackage ./write-libinput-gestures.nix {pkgs.writeText});
+  # https://unix.stackexchange.com/questions/541551/how-can-i-reference-the-store-path-of-a-nix-package
+  # https://www.reddit.com/r/NixOS/comments/tcm9lg/configuring_neovim_through_configurationnix/
+  # https://stackoverflow.com/questions/41007258/how-do-we-refer-to-etc-package-from-nixos-configuration
+  pkgs.libinput-gestures."/etc/libinput-gestures.conf".source = (pkgs.callPackage ./etc_conf/write-libinput-gestures-conf.nix {writeText = writeText;});
   # https://discourse.nixos.org/t/what-does-mkdefault-do-exactly/9028
   environment.etc = {
     # Creates /etc/libinput-gestures.conf
