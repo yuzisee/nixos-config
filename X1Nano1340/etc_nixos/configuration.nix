@@ -49,6 +49,8 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" ];
     packages = with pkgs; [
+      geeqie
+      zoom-us
       mpv
       remmina
       wev
@@ -101,6 +103,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     libinput-gestures
+    usbutils
     intel-gpu-tools
     vimHugeX
     git

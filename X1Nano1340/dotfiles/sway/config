@@ -4,6 +4,18 @@
 #
 # Read `man 5 sway` for a complete reference.
 
+# NOTE
+# https://stackoverflow.com/questions/39713096/nix-can-an-installed-package-set-a-user-environment-variable
+# https://discourse.nixos.org/t/defining-environment-variables-declaratively/9039/6
+# https://github.com/NixOS/nixpkgs/blob/nixos-22.05/nixos/modules/config/system-environment.nix
+# https://github.com/NixOS/nixpkgs/blob/nixos-22.05/nixos/modules/config/shells-environment.nix
+# https://askubuntu.com/questions/866161/setting-path-variable-in-etc-environment-vs-profile
+# https://gist.github.com/themattchan/55d21a524955111913afd7e1e22ce811
+# https://nixos.wiki/wiki/Environment_variables
+# https://www.mankier.com/1/sway
+# https://ld.reddit.com/r/swaywm/comments/qq74gv/how_do_i_set_correctly_the_cursor_theme/
+# Somehow we have to set XCURSOR_SIZE most likely through ~/.profile
+
 ### Variables
 #
 # Logo key. Use Mod1 for Alt.
