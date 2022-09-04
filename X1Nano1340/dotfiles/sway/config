@@ -120,14 +120,19 @@ bindsym XF86MonBrightnessDown exec light -S 0.0664
 # It seems 0.0664 and 0.005157 have no discernable difference on the LEDs themselves
 # bindsym XF86MonBrightnessDown exec light -S 0.005157
 
-bindsym XF86MonBrightnessUp exec light -A 50
+# bindsym XF86MonBrightnessUp exec light -A 50
 # bindsym XF86MonBrightnessUp exec light -T 1.5
+# Put us at roughly 37% on first press, and 100% at second press
+# This _feels_ like half of the brightness of the next
+bindsym XF86MonBrightnessUp exec 'light -A 15; light -T 2.5'
+bindsym XF86Favorites exec light -S 0
 
 # Volume
 bindsym XF86AudioRaiseVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ +7%'
 bindsym XF86AudioLowerVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ -7%'
 bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
 bindsym XF86NotificationCenter exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
+
 
 # TODO XF86PickupPhone and XF86HangupPhone maybe can be used as Back/Forward for web browsing?
 
