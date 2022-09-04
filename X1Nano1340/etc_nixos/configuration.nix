@@ -50,7 +50,7 @@
   users.users.joseph = {
     isNormalUser = true;
     description = "Hello there";
-    extraGroups = [ "networkmanager" "wheel" "video" ];
+    extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
       geeqie
       zoom-us
@@ -104,8 +104,8 @@
   # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  # libinput-gestures
   environment.systemPackages = with pkgs; [
+    libinput-gestures
     usbutils
     intel-gpu-tools
     vimHugeX
@@ -120,22 +120,26 @@
   # https://unix.stackexchange.com/questions/541551/how-can-i-reference-the-store-path-of-a-nix-package
   # https://www.reddit.com/r/NixOS/comments/tcm9lg/configuring_neovim_through_configurationnix/
   # https://stackoverflow.com/questions/41007258/how-do-we-refer-to-etc-package-from-nixos-configuration
-  pkgs.libinput-gestures."/etc/libinput-gestures.conf".source = (pkgs.callPackage ./etc_conf/write-libinput-gestures-conf.nix {writeText = writeText;});
+  # https://ld.reddit.com/r/NixOS/comments/rsddxp/is_there_a_way_to_add_a_symlink_in_specific/
+  # https://discourse.nixos.org/t/override-postinstall-for-emacsoverlay/14270
+  # pkgs.libinput-gestures."/etc/libinput-gestures.conf".source = (pkgs.callPackage ./etc_conf/write-libinput-gestures-conf.nix {writeText = writeText;});
   # https://discourse.nixos.org/t/what-does-mkdefault-do-exactly/9028
+
   environment.etc = {
     # Creates /etc/libinput-gestures.conf
+    # Added extraGroups = [ "input" ]; to joseph above
     "libinput-gestures.conf" = {
       text = ''
 # https://github.com/bulletmark/libinput-gestures/blob/master/libinput-gestures.conf
-swipe left 4 swaymsg t command workspace next_on_output
-swipe left 3 swaymsg t command workspace next_on_output
-swipe right 4 swaymsg t command workspace next_on_output
-swipe right 3 swaymsg t command workspace next_on_output
+gesture swipe left 4 swaymsg -t command workspace next_on_output
+gesture swipe left 3 swaymsg -t command workspace next_on_output
+gesture swipe right 4 swaymsg -t command workspace next_on_output
+gesture swipe right 3 swaymsg -t command workspace next_on_output
 
-swipe up 4 swaymsg t command focus prev
-swipe up 3 swaymsg t command focus prev
-swipe down 4 swaymsg t command focus next
-swipe down 3 swaymsg t command focus next
+gesture swipe up 4 swaymsg -t command focus prev
+gesture swipe up 3 swaymsg -t command focus prev
+gesture swipe down 4 swaymsg -t command focus next
+gesture swipe down 3 swaymsg -t command focus next
 '';
 
        # The UNIX file mode bits
