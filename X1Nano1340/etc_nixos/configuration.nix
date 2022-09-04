@@ -44,6 +44,9 @@
   hardware.pulseaudio.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  # NOTE: Waiting for next NixOS release we can also:
+  #  1. link wlsunset to i3status-rust
+  #  1. add doublecmd
   users.users.joseph = {
     isNormalUser = true;
     description = "Hello there";
@@ -139,7 +142,6 @@ swipe down 3 swaymsg t command focus next
        mode = "0444";
     };
   };
-
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
