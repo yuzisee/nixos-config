@@ -131,8 +131,8 @@
     "libinput-gestures.conf" = {
       text = ''
 # https://github.com/bulletmark/libinput-gestures/blob/master/libinput-gestures.conf
-gesture swipe left 4 swaymsg -t command workspace next_on_output
-gesture swipe left 3 swaymsg -t command workspace next_on_output
+gesture swipe left 4 swaymsg -t command workspace prev_on_output
+gesture swipe left 3 swaymsg -t command workspace prev_on_output
 gesture swipe right 4 swaymsg -t command workspace next_on_output
 gesture swipe right 3 swaymsg -t command workspace next_on_output
 
