@@ -67,6 +67,12 @@ output eDP-1 scale 1
 # your displays after another 300 seconds, and turn your screens back on when
 # resumed. It will also lock your screen before your computer goes to sleep.
 
+
+# https://github.com/swaywm/sway/issues/5499
+# https://wiki.archlinux.org/title/sway#Change_cursor_theme_and_size
+#seat seat0 xcursor_theme default 96
+# ^ DOESN'T SEEM TO INCREASE CURSOR SIZE
+
 ### Input configuration
 #
 # Example configuration:
@@ -77,6 +83,13 @@ output eDP-1 scale 1
 #       natural_scroll enabled
 #       middle_emulation enabled
 #   }
+
+# https://man.archlinux.org/man/sway-input.5.en
+# https://www.mankier.com/5/sway-input
+input "1267:12624:ELAN0670:00_04F3:3150_Touchpad" {
+  click_method none
+}
+
 
 # https://unix.stackexchange.com/questions/504698/caps-lock-behavior-under-sway-wayland
 input "type:keyboard" {
@@ -215,7 +228,7 @@ workspace_auto_back_and_forth yes
     exec firefox
     exec urxvt
     exec foot
-    exec meastral start
+    exec maestral start
     exec libinput-gestures -c /etc/libinput-gestures.conf
 
 #

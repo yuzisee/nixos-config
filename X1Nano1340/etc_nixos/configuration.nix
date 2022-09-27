@@ -44,7 +44,7 @@
   hardware.pulseaudio.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  # NOTE: Waiting for next NixOS release we can also:
+  # TODO: Waiting for next NixOS release we can also:
   #  1. link wlsunset to i3status-rust
   #  1. add doublecmd
   users.users.joseph = {
