@@ -70,8 +70,8 @@ output eDP-1 scale 1
 
 # https://github.com/swaywm/sway/issues/5499
 # https://wiki.archlinux.org/title/sway#Change_cursor_theme_and_size
-#seat seat0 xcursor_theme default 96
-# ^ DOESN'T SEEM TO INCREASE CURSOR SIZE
+# seat seat0 xcursor_theme default 96
+#  ^ STILL DOESN'T INCREASE CURSOR SIZE
 
 ### Input configuration
 #
@@ -225,11 +225,12 @@ workspace_auto_back_and_forth yes
     assign [app_id="^librewolf$"] workspace number 3
     # swaymsg -t get_tree | grep -e '"app_id"' -e '"class"' -e window_role
     # https://ld.reddit.com/r/swaywm/comments/czyiu9/automatically_launch_applications_on_specific/
+    exec mako
+    exec libinput-gestures -c /etc/libinput-gestures.conf
     exec firefox
     exec urxvt
     exec foot
     exec maestral start
-    exec libinput-gestures -c /etc/libinput-gestures.conf
 
 #
 # Layout stuff:

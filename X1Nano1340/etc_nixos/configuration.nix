@@ -44,20 +44,24 @@
   hardware.pulseaudio.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  # NOTE: chessx doesn't work on wayland right now
   # TODO: Waiting for next NixOS release we can also:
   #  1. link wlsunset to i3status-rust
   #  1. add doublecmd
+  # Q: https://gitlab.com/snakedye/salut/-/wikis/Home might be better than mako
   users.users.joseph = {
     isNormalUser = true;
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      scid-vs-pc
       geeqie
       zoom-us
       mpv
       remmina
       wev
       maestral
+      mako
       wlsunset
       i3status-rust
       speedcrunch
