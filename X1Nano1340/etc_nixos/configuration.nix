@@ -54,6 +54,7 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      doublecmd
       scid-vs-pc
       geeqie
       zoom-us

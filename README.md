@@ -37,6 +37,9 @@ https://nixos.org/guides/nix-pills/our-first-derivation.html
 Some configuration is available here but others not...
 https://nixos.org/manual/nixos/stable/options.html
 
+## Upgrading
+https://www.reddit.com/r/NixOS/comments/izq3nm/nix_channels_differ_for_nixos_global_and_nix_user/
+
 ## General "Getting started" advice
 
 nmcli radio wifi
