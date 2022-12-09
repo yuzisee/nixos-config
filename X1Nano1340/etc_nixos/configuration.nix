@@ -54,6 +54,11 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      # netsurf.browser
+      # https://www.ekioh.com/flow-browser/
+      # libsForQt5.konqueror
+      qutebrowser-qt6
+      epiphany
       doublecmd
       scid-vs-pc
       geeqie
@@ -67,7 +72,6 @@
       i3status-rust
       speedcrunch
       ungoogled-chromium
-      epiphany
       librewolf-wayland
       firefox-wayland
       rxvt-unicode
