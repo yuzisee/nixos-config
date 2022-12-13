@@ -26,6 +26,11 @@ X1Nano1340/joseph
     ln -s /opt/nixos-config/X1Nano1340/dotfiles/mpv
     file ~/.config/mpv/{mpv,input,script-opts/osc}.conf
 
+    mkdir -p /home/joseph/.config/qutebrowser
+    cd /home/joseph/.config/qutebrowser
+    ln -s /opt/nixos-config/X1Nano1340/dotfiles/qutebrowser/autoconfig.yml
+    file ~/.config/qutebrowser/autoconfig.yml
+
 # TODO
 Transpiling (type safety / better error messages) - https://github.com/purenix-org/purenix/blob/main/docs/quick-start.md
 Configuration files (superset of homemanager / simpler to get started) - https://github.com/nix-community/impermanence

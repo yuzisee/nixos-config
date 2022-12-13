@@ -1,0 +1,13 @@
+
+Firefox ESR + SimpleTabGroups  ==  Main work
+duckduckgo for mac  == Slack
+
+Firefox Developer  ==  Time Tracker (jh_internal) + Calendar/Gmail
+
+
+*Brave  ==  startx.com (jdhuang)  +  LinkedIn
+Librewolf + *SimpleTabGroup  == Github/Monday.com/Helpscout + localhost
+
+*Waterfox ==  josephhuang@alumni
+Safari == yuzisee + Google Voice
+*Opera  ==  ???

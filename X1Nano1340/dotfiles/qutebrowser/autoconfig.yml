@@ -10,11 +10,24 @@ settings:
     global: webkit
   content.autoplay:
     global: false
+  scrolling.bar:
+    global: always
+  search.ignore_case:
+    global: always
+  statusbar.position:
+    global: top
+  tabs.position:
+    global: top
+  tabs.show:
+    global: always
+  url.default_page:
+    global: https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png
+  url.searchengines:
+    global:
+      DEFAULT: https://google.com/search?q={}
   url.start_pages:
     global:
     - https://github.com/pulls?q=is%3Aopen+is%3Apr+archived%3Afalse+user%3AStartXstaff+sort%3Aupdated-desc+
     - https://startxhq.monday.com/boards/1388811889/activity_log
     - https://docs.google.com/spreadsheets/d/1wLOHEuPpsezfE-Lm4oIu-n-oGe8RV9RqTEHUR_35aTc/edit
     - https://groups.google.com/a/startx.com/g/website-crash-report-readers
-    - https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png
-    - qute://settings/

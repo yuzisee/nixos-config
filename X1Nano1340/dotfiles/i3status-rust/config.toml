@@ -45,7 +45,8 @@ invert_icons = true
 # https://github.com/greshake/i3status-rust/blob/v0.21.10/doc/blocks.md#net
 [[block]]
 block = "net"
-on_click = "swaynag -m 'Edit Wi-Fi Connections' -z 'click to open nmtui' 'urxvt -e nmtui' -s 'run nmcli yourself'"
+#on_click = "swaynag -m 'Edit Wi-Fi Connections' -z 'click to open nmtui' 'urxvt -e nmtui' -s 'run nmcli yourself'"
+on_click = "waynag -m 'Edit Wi-Fi Connections' -z 'click to open nmtui' 'urxvt -e nmtui' -z 'turn on wifi' 'nmcli radio wifi on' -s 'run nmcli yourself'"
 device = "wlp0s20f3"
 # format = "{speed_down;K*b} {speed_up;K*b}"
 format = "{frequency;G*Hz} {signal_strength}"
