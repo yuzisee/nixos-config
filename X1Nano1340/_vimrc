@@ -1,0 +1,5 @@
+set guifont=Anonymous\ Pro\ for\ Powerline\ 10
+
+" https://superuser.com/questions/731962/why-is-there-a-difference-in-the-popup-dialog-from-gvimrc-and-command-line
+" https://ld.reddit.com/r/vim/comments/pwhqph/focused_gvim_window_becomes_unresponsive_on/
+autocmd VimEnter * promptrepl
