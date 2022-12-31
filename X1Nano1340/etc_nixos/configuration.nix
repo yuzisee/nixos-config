@@ -51,7 +51,10 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
-      # netsurf.browser
+      nomachine-client  # use nxplayer command after install
+      # x2goclient # TERRIBLE
+      # dillo
+      netsurf.browser
       # https://www.ekioh.com/flow-browser/
       # libsForQt5.konqueror
       qutebrowser-qt6
@@ -85,6 +88,11 @@
 
   # Enable automatic login for the user.
   services.getty.autologinUser = "joseph";
+
+  nixpkgs.config.chromium = {
+    enableWideVine = true;
+  };
+  # https://github.com/NixOS/nixpkgs/issues/54723
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;

@@ -1,13 +1,12 @@
-Ungoogled Chromium + tab groups  ==  Main work
+*Ungoogled Chromium + tab groups  ==  Main work
 Firefox ESR  == Main work (dashboards?)
-Edge  ==  Slack
+*Edge  ==  Slack
 
-(Min Browser) == Time Tracker (jh_internal)
-*Firefox Developer  ==  Calendar/Email
+*Min Browser == Time Tracker (jh_internal)
+Firefox Developer  ==  Calendar/Email
 
-Brave  ==  startx.com (jdhuang)  +  LinkedIn
+*Brave  ==  startx.com (jdhuang)  +  LinkedIn
 Librewolf + *SimpleTabGroup  == Github/Monday.com/Helpscout + localhost
 
 Waterfox  ==  josephhuang@alumni
-(Vivaldi)  ==  ??? == yuzisee + Google Voice
-*Opera  ==  
+*Vivaldi  ==  ??? == yuzisee + Google Voice

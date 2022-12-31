@@ -148,6 +148,8 @@ bindsym XF86NotificationCenter exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
 
 
 # TODO XF86PickupPhone and XF86HangupPhone maybe can be used as Back/Forward for web browsing?
+bindsym XF86HangupPhone workspace next_on_output
+# Okay, we're going with next_on_output because you could get stuck in a full-screen app that redirects all modifier keys (such as a crashed x2go), and in those cases your media keys may still work.
 
 #
 # Moving around:
@@ -223,6 +225,8 @@ workspace_auto_back_and_forth yes
     assign [app_id="^firefox$"] workspace number 2
     assign [app_id="^librewolf$"] workspace number 3
     assign [class="(?i)^Chromium-browser$"] workspace number 5
+    assign [class="Nxplayer.bin"] workspace number 5
+    assign [app_id="org.remmina.Remmina"] workspace number 5
     assign [app_id="^epiphany$"] workspace number 6
     assign [app_id="^org.qutebrowser.qutebrowser$"] workspace number 6
     # swaymsg -t get_tree | grep -e '"app_id"' -e '"class"' -e window_role
