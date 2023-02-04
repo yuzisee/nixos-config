@@ -94,6 +94,16 @@
   # Enable automatic login for the user.
   services.getty.autologinUser = "joseph";
 
+  # [REASONING]
+  #   we don't want it to start at startup, an certainly not without `-c` providing a custom /etc/libinput-gestures.conf
+  # [SOLVED]
+  #   at the time of writing this: running at startup without -c would add bindings for super+s and Alt+Right, Alt+Left, etc. which we don't want
+  # [SEE ALSO]
+  #   under `environment.etc` much further below we write out own etc/libinput-gestures.conf and we'll invoke it ourselves from ^X1Nano1340/dotfiles/sway/config using `libinput-gestures -c /etc/libinput-gestures.conf`
+
+  # https://nixos.org/manual/nixos/stable/options.html#opt-systemd.services._name_.enable
+  systemd.services.libinput-gestures.enable = false;
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
