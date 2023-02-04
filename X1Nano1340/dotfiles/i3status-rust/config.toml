@@ -72,10 +72,9 @@ format = "{frequency;G*Hz} {signal_strength}"
 # https://sr.ht/~kennylevinsen/wlsunset/
 # Choose whichever has the fewest dependencies I suppose
 
-# Waiting for v0.22.0 (currently we are v0.21.10)
-#[[block]]
-#block = "hueshift"
-#hue_shifter = "wlsunset"
+# [[block]]
+# block = "hueshift"
+# hue_shifter = "wlsunset"
 # Manual run for now:
 # >>> wlsunset -l 37.40289347787221 -L -122.0818236182056
 # https://git.sr.ht/~kennylevinsen/wlsunset/tree/master/item/main.c

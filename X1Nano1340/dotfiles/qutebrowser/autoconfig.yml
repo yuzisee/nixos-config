@@ -8,6 +8,10 @@ config_version: 2
 settings:
   backend:
     global: webkit
+  colors.statusbar.insert.bg:
+    global: white
+  colors.statusbar.insert.fg:
+    global: darkgreen
   content.autoplay:
     global: false
   scrolling.bar:
@@ -31,3 +35,4 @@ settings:
     - https://startxhq.monday.com/boards/1388811889/activity_log
     - https://docs.google.com/spreadsheets/d/1wLOHEuPpsezfE-Lm4oIu-n-oGe8RV9RqTEHUR_35aTc/edit
     - https://groups.google.com/a/startx.com/g/website-crash-report-readers
+    - https://startx.com/techdataschedule
