@@ -38,6 +38,10 @@ Configuration files (superset of homemanager / simpler to get started) - https:/
 # Analogies to other package managers
 "Derivations" are like "package specs"
 https://nixos.org/guides/nix-pills/our-first-derivation.html
+## Terminology
+https://ianthehenry.com/posts/how-to-learn-nix/glossary/
+https://stephank.nl/p/2020-06-01-a-nix-primer-by-a-newcomer.html
+https://zero-to-nix.com/concepts
 
 Some configuration is available here but others not...
 https://nixos.org/manual/nixos/stable/options.html

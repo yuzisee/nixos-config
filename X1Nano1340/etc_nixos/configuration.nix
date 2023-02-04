@@ -136,7 +136,8 @@
   # https://stackoverflow.com/questions/41007258/how-do-we-refer-to-etc-package-from-nixos-configuration
   # https://ld.reddit.com/r/NixOS/comments/rsddxp/is_there_a_way_to_add_a_symlink_in_specific/
   # https://discourse.nixos.org/t/override-postinstall-for-emacsoverlay/14270
-  # pkgs.libinput-gestures."/etc/libinput-gestures.conf".source = (pkgs.callPackage ./etc_conf/write-libinput-gestures-conf.nix {writeText = writeText;});
+  # sudo nix-env -qa libinput-gestures --json
+    # pkgs.libinput-gestures."/etc/libinput-gestures.conf".source = (pkgs.callPackage ./etc_conf/write-libinput-gestures-conf.nix {writeText = writeText;});
   # https://discourse.nixos.org/t/what-does-mkdefault-do-exactly/9028
 
   environment.etc = {

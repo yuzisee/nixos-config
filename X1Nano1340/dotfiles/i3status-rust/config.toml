@@ -3,6 +3,12 @@ icons = "awesome"
 
 [[block]]
 block = "disk_space"
+path = "/"
+unit = "B"
+format = "{icon} {available}"
+
+[[block]]
+block = "disk_space"
 path = "/nix"
 info_type = "available"
 unit = "GB"
