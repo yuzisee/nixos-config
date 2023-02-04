@@ -90,6 +90,7 @@
   # https://ld.reddit.com/r/linux/comments/zwar52/haha_suck_on_dat_windows_finally_got_idle_power/
   # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/hardware/tlp.nix
   # https://www.linuxuprising.com/2020/01/auto-cpufreq-is-new-cpu-speed-and-power.html
+  services.auto-cpufreq.enable = true;
   # Enable automatic login for the user.
   services.getty.autologinUser = "joseph";
 
