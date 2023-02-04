@@ -86,6 +86,10 @@
     # https://mikejmoffitt.com/articles/0037-term-compare.html
     # https://lwn.net/Articles/751763/
 
+  # https://nixos.org/manual/nixos/stable/options.html#opt-services.auto-cpufreq.enable
+  # https://ld.reddit.com/r/linux/comments/zwar52/haha_suck_on_dat_windows_finally_got_idle_power/
+  # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/hardware/tlp.nix
+  # https://www.linuxuprising.com/2020/01/auto-cpufreq-is-new-cpu-speed-and-power.html
   # Enable automatic login for the user.
   services.getty.autologinUser = "joseph";
 
@@ -93,6 +97,9 @@
     enableWideVine = true;
   };
   # https://github.com/NixOS/nixpkgs/issues/54723
+
+  # https://stackoverflow.com/questions/36000514/how-to-override-2-two-packages-in-nixos-configuration-nix
+    # https://github.com/NixOS/nixpkgs/issues/54723
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
