@@ -94,19 +94,17 @@
   # Enable automatic login for the user.
   services.getty.autologinUser = "joseph";
 
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
   nixpkgs.config.chromium = {
     enableWideVine = true;
   };
   # https://github.com/NixOS/nixpkgs/issues/54723
 
   # https://stackoverflow.com/questions/36000514/how-to-override-2-two-packages-in-nixos-configuration-nix
-    # https://github.com/NixOS/nixpkgs/issues/54723
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
-  # https://nixos.wiki/wiki/Accelerated_Video_Playback
   nixpkgs.config.packageOverrides = pkgs: {
+    # https://nixos.wiki/wiki/Accelerated_Video_Playback
     vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
   };
   hardware.opengl = {
