@@ -130,11 +130,17 @@
   #  https://discourse.ubuntu.com/t/enabling-accelerated-video-decoding-in-firefox-on-ubuntu-21-04/22081
   #  https://mastransky.wordpress.com/2021/01/10/firefox-were-finally-getting-hw-acceleration-on-linux/
 
+  # https://nixos.org/manual/nixos/stable/release-notes.html#sec-release-22.11-notable-changes
+  services.udisks2.enable = true;
+
   # nixos.wiki/wiki/Vim
   # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    bashmount
+    # https://unix.stackexchange.com/questions/213137/how-to-auto-mount-permanently-mount-external-devices-on-nixos
+    # udisks
     libinput-gestures
     usbutils
     intel-gpu-tools
