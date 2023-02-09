@@ -51,6 +51,7 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      gmailctl
       nomachine-client  # use nxplayer command after install
       # x2goclient # TERRIBLE
       # dillo
