@@ -52,6 +52,7 @@
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
       gmailctl
+      filezilla
       nomachine-client  # use nxplayer command after install
       # x2goclient # TERRIBLE
       # dillo
@@ -59,7 +60,8 @@
       # https://www.ekioh.com/flow-browser/
       # libsForQt5.konqueror
       qutebrowser-qt6
-      epiphany
+      # Wayland epiphany has some serious memory leaks (like 7GiB+), it's essentially unusuable
+      # epiphany
       doublecmd
       scid-vs-pc
       geeqie

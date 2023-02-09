@@ -45,7 +45,7 @@ block = "backlight"
 minimum = 0
 maximum = 100
 step_width = 1
-cycle = [100, 0]
+cycle = [62, 6]
 invert_icons = true
 
 # https://github.com/greshake/i3status-rust/blob/v0.21.10/doc/blocks.md#net
