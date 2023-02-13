@@ -64,6 +64,7 @@
       # epiphany
       doublecmd
       scid-vs-pc
+      mupdf
       geeqie
       zoom-us
       mpv
