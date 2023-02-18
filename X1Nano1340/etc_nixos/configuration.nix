@@ -137,11 +137,15 @@
   # https://nixos.org/manual/nixos/stable/release-notes.html#sec-release-22.11-notable-changes
   services.udisks2.enable = true;
 
+  # https://nixos.wiki/wiki/Scanners
+  hardware.sane.enable = true;
+
   # nixos.wiki/wiki/Vim
   # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    xsane
     bashmount
     # https://unix.stackexchange.com/questions/213137/how-to-auto-mount-permanently-mount-external-devices-on-nixos
     # udisks
