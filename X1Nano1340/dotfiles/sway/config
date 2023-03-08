@@ -224,6 +224,8 @@ workspace_auto_back_and_forth yes
     assign [app_id="^foot$"] workspace number 1
     assign [app_id="^firefox$"] workspace number 2
     assign [app_id="^librewolf$"] workspace number 3
+    assign [app_id="^doublecmd$"] workspace number 5
+    # assign [name="^Mozilla Firefox Private Browsing$"] workspace number 4
     assign [class="(?i)^Chromium-browser$"] workspace number 5
     assign [class="Nxplayer.bin"] workspace number 5
     assign [app_id="org.remmina.Remmina"] workspace number 5
@@ -237,6 +239,8 @@ workspace_auto_back_and_forth yes
     exec urxvt
     exec foot
     exec maestral start
+    # Espanso waiting for https://github.com/NixOS/nixpkgs/pull/208949
+    # exec espanso daemon
 
 #
 # Layout stuff:

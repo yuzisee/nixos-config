@@ -52,6 +52,7 @@
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
       gmailctl
+      # espanso  # Waiting for https://github.com/NixOS/nixpkgs/pull/208949
       filezilla
       nomachine-client  # use nxplayer command after install
       # x2goclient # TERRIBLE
