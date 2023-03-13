@@ -216,6 +216,8 @@ gesture swipe down 3 swaymsg -t command focus next
   ];
 
   # List services that you want to enable:
+  services.upower.enable = true;
+  services.upower.criticalPowerAction = "Hibernate";
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
