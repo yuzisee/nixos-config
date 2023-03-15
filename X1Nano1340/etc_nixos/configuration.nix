@@ -123,10 +123,17 @@
   # https://github.com/NixOS/nixpkgs/issues/54723
 
   # https://stackoverflow.com/questions/36000514/how-to-override-2-two-packages-in-nixos-configuration-nix
-  nixpkgs.config.packageOverrides = pkgs: {
-    # https://nixos.wiki/wiki/Accelerated_Video_Playback
-    vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+
+  # https://github.com/NixOS/nixos-hardware/blob/556101ff85bd6e20900ec73ee525b935154bc8ea/common/gpu/intel/default.nix
+  environment.variables = {
+    VDPAU_DRIVER = lib.mkIf config.hardware.opengl.enable (lib.mkDefault "va_gl");
   };
+  # https://github.com/intel/intel-hybrid-driver is discontinued
+  # nixpkgs.config.packageOverrides = pkgs: {
+    # # https://nixos.wiki/wiki/Accelerated_Video_Playback
+    # vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+  # };
+
   hardware.opengl = {
     enable = true;
     extraPackages = with pkgs; [
