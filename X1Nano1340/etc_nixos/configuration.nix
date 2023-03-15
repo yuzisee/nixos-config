@@ -125,9 +125,11 @@
   # https://stackoverflow.com/questions/36000514/how-to-override-2-two-packages-in-nixos-configuration-nix
 
   # https://github.com/NixOS/nixos-hardware/blob/556101ff85bd6e20900ec73ee525b935154bc8ea/common/gpu/intel/default.nix
-  environment.variables = {
-    VDPAU_DRIVER = lib.mkIf config.hardware.opengl.enable (lib.mkDefault "va_gl");
-  };
+  # environment.variables = {
+    # VDPAU_DRIVER = lib.mkIf config.hardware.opengl.enable (lib.mkDefault "va_gl");
+    # https://amigotechnotes.wordpress.com/2022/07/20/enable-firefox-hardware-video-acceleration-on-ubuntu/
+    # MOZ_ENABLE_WAYLAND = "1";
+  # };
   # https://github.com/intel/intel-hybrid-driver is discontinued
   # nixpkgs.config.packageOverrides = pkgs: {
     # # https://nixos.wiki/wiki/Accelerated_Video_Playback
