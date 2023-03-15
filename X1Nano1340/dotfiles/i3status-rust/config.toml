@@ -33,7 +33,12 @@ interval = 1
 
 [[block]]
 block = "battery"
-if_command = "test -e /sys/class/power_supply/BAT0"
+# if_command = "test -e /sys/class/power_supply/BAT0"
+driver = "upower"
+# https://github.com/greshake/i3status-rust/issues/305
+format = "{percentage} ({time})"
+# https://github.com/greshake/i3status-rust/blob/v0.22.0/doc/blocks.md#battery
+
 
 # === DESIGN CHOICE: Put all "read-only" blocks before this line ===
 # === DESIGN CHOICE: Put all "interactive" blocks after this line ===

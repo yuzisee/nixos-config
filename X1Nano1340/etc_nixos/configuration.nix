@@ -52,6 +52,7 @@
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
       gmailctl
+      kdiff3
       # espanso  # Waiting for https://github.com/NixOS/nixpkgs/pull/208949
       filezilla
       nomachine-client  # use nxplayer command after install
@@ -108,6 +109,10 @@
 
   # https://nixos.org/manual/nixos/stable/options.html#opt-systemd.services._name_.enable
   systemd.services.libinput-gestures.enable = false;
+
+      # https://ld.reddit.com/r/NixOS/comments/cxzku1/overlaypackageoverride_to_change_installphase/
+#
+# https://stackoverflow.com/questions/58243712/how-to-install-systemd-service-on-nixos
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
