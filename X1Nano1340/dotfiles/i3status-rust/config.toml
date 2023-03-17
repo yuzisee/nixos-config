@@ -15,6 +15,15 @@ unit = "GB"
 interval = 20
 warning = 20.0
 alert = 10.0
+# format = "✇ {available}"
+# format = "⚝ {available}"
+format = "❃ {available}"
+# ✡
+# ✱✲✶✽
+# ❄❅❆❃
+# ❇
+# ⛮
+# ¤⚛
 
 [[block]]
 block = "memory"
