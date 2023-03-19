@@ -68,6 +68,7 @@
       scid-vs-pc
       mupdf
       geeqie
+      duc
       zoom-us
       mpv
       remmina
@@ -135,6 +136,13 @@
     # # https://nixos.wiki/wiki/Accelerated_Video_Playback
     # vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
   # };
+
+  # Additional hardware acceleration
+  # https://youtu.be/VuESAFgsOvg?t=612
+  # about:config
+  #  + media.ffmpeg.vaapi.enabled
+  #  + layers.acceleration.force-enabled
+  #  + gfx.webrender.all
 
   hardware.opengl = {
     enable = true;
