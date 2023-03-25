@@ -31,6 +31,4 @@ done
 sleep 1.5
 # Remap Caps Lock to CTRL
 # https://serverfault.com/questions/10437/how-do-you-swap-the-caps-lock-to-control-in-xfce
-pactl set-default-sink 'alsa_output.pci-0000_00_1f.3.hdmi-stereo-extra1'
-
-
+setxkbmap -option "ctrl:nocaps" 
