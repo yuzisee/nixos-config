@@ -1,7 +1,10 @@
 [theme]
 theme = "solarized-dark"
+[theme.overrides]
+separator_fg = '#000000'
+separator = " \ue0b2"
 [icons]
-icons = "awesome4"
+icons = "awesome5"
 
 # https://github.com/greshake/i3status-rust/blob/a5d58997a7f40d92fffe032ea4ef697f8f1c8380/NEWS.md#i3status-rust-0300
 
@@ -29,8 +32,8 @@ format = "❃$available.eng(prefix:G)"
 
 [[block]]
 block = "memory"
-format = "$icon$mem_total_used_percents.eng(w:2) "
-format_alt = "$icon_swap$swap_used_percents.eng(w:2) "
+format = "  $icon $mem_total_used_percents.eng(w:2)"
+# format_alt =   "$icon_swap$swap_used_percents.eng(w:2)"
 
 [[block]]
 block = "cpu"
@@ -46,8 +49,13 @@ block = "battery"
 # if_command = "test -e /sys/class/power_supply/BAT0"
 driver = "upower"
 # https://github.com/greshake/i3status-rust/issues/305
-format = "$icon$percentage ($time)"
+format = " $icon $percentage ($time)"
+full_format = "$icon"
+full_threshold = 99
+info = 79
 # https://github.com/greshake/i3status-rust/blob/v0.22.0/doc/blocks.md#battery
+[block.theme_overrides]
+idle_fg = '#ffffff'
 
 
 # === DESIGN CHOICE: Put all "read-only" blocks before this line ===
@@ -69,7 +77,7 @@ block = "net"
 device = "wlp0s20f3"
 # format = "{speed_down;K*b} {speed_up;K*b}"
 # format = "{frequency;G*Hz} {signal_strength}"
-format = "$icon$frequency.eng(prefix:G,w:5) $signal_strength"
+format = "  $icon$frequency.eng(prefix:G,w:5) $signal_strength"
 [[block.click]]
 button = "left"
 #on_click = "swaynag -m 'Edit Wi-Fi Connections' -z 'click to open nmtui' 'urxvt -e nmtui' -s 'run nmcli yourself'"
@@ -101,7 +109,7 @@ cmd = "swaynag -m 'Edit Wi-Fi Connections' -z 'click to open nmtui' 'urxvt -e nm
 [[block]]
 block = "time"
 # format = "%a %b %d, %R"
-format = "$icon $timestamp.datetime(f:'%a %b %d, %R')"
+format = " $icon $timestamp.datetime(f:'%a %b %d, %R')"
 
 [[block]]
 block = "sound"

@@ -143,8 +143,13 @@ bindsym XF86Favorites exec light -S 0
 # Volume
 bindsym XF86AudioRaiseVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ +7%'
 bindsym XF86AudioLowerVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ -7%'
+# bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
+# wev says there is now XF86AudioMute and XF86AudioMicMute
+bindsym XF86AudioMicMute exec 'pactl set-source-mute @DEFAULT_SOURCE@ toggle'
 bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
-bindsym XF86NotificationCenter exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
+bindsym XF86Messenger exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
+# bindsym XF86NotificationCenter exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
+# wev says this is now called XF86Messenger
 
 
 # TODO XF86PickupPhone and XF86HangupPhone maybe can be used as Back/Forward for web browsing?
