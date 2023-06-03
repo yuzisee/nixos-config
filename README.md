@@ -55,6 +55,7 @@ nmcli radio wifi
 sudo nmcli dev wifi connect 0000000000000000000000000000005A password "firesheep"
 nmcli dev wifi list
 
+nix-collect-garbage -d
 sudo nixos-rebuild switch --upgrade
-nix-collect-garbage # -d
+nix-collect-garbage
 nix-store --optimize

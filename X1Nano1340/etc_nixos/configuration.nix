@@ -51,6 +51,8 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      # ffmpeg-headless
+      inkscape
       gmailctl
       kdiff3
       # espanso  # Waiting for https://github.com/NixOS/nixpkgs/pull/208949
@@ -75,6 +77,7 @@
       wev
       maestral
       mako
+      shotman
       wlsunset
       i3status-rust
       speedcrunch
@@ -113,7 +116,30 @@
 
       # https://ld.reddit.com/r/NixOS/comments/cxzku1/overlaypackageoverride_to_change_installphase/
 #
+# >>> sudo nix-env -qa libinput-gestures --json
+# {
+#   "nixos.libinput-gestures": {
+#     "name": "libinput-gestures-2.73",
+#     "pname": "libinput-gestures",
+#     "version": "2.73",
+#     "system": "x86_64-linux",
+#     "outputName": "out",
+#     "outputs": {
+#       "out": null
+#     }
+#   }
+# }
+        # https://github.com/NixOS/nixpkgs/blob/524b2a65251dad3018f168af2049f5a29b7d5da8/lib/strings.nix#L131
+        # https://github.com/NixOS/nixpkgs/blob/524b2a65251dad3018f168af2049f5a29b7d5da8/lib/strings.nix#L537
+        # https://nixos.org/manual/nix/stable/language/values.html
+        # https://github.com/NixOS/nixpkgs/blob/524b2a65251dad3018f168af2049f5a29b7d5da8/lib/lists.nix#L143
+  # [OBJECTIVE]
+  #   remove the "... libinput-gestures-setup -d ... line from pkgs.libinput-gestures.installPhase
+  # packageOverrides = pkgs: {
+#       libinput-gestures = pkgs.libinput-gestures.override { installPhase = builtins.concatStringsSep "\n" (builtins.filter (xstep: builtins.hasInfix " libinput-gestures-setup -d " xstep) (builtins.splitString "\n" pkgs.libinput-gestures.installPhase)); };
+        # https://github.com/ryantm/nixpkgs/blob/master/pkgs/tools/inputmethods/libinput-gestures/default.nix
 # https://stackoverflow.com/questions/58243712/how-to-install-systemd-service-on-nixos
+
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
