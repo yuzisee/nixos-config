@@ -11,7 +11,9 @@ icons = "awesome5"
 [[block]]
 block = "disk_space"
 path = "/"
-format = "$icon$available.eng(prefix:G)"
+info_type = "available"
+format = "(not GiB) $icon$available.eng(prefix:G)"
+# format = "$icon total = $total.eng(prefix:G) available = $available.eng(prefix:G) free = $free.eng(prefix:G) used = $used.eng(prefix:G)"
 
 [[block]]
 block = "disk_space"
