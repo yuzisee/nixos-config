@@ -51,6 +51,7 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      inkscape
       gmailctl
       kdiff3
       # espanso  # Waiting for https://github.com/NixOS/nixpkgs/pull/208949
@@ -75,6 +76,7 @@
       wev
       maestral
       mako
+      shotman
       wlsunset
       i3status-rust
       speedcrunch
