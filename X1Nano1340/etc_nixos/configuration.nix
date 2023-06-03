@@ -183,6 +183,16 @@
   #  https://discourse.ubuntu.com/t/enabling-accelerated-video-decoding-in-firefox-on-ubuntu-21-04/22081
   #  https://mastransky.wordpress.com/2021/01/10/firefox-were-finally-getting-hw-acceleration-on-linux/
 
+  # https://nixos.org/manual/nixos/stable/release-notes.html
+  # 23.05
+  #  The catch-all hardware.video.hidpi.enable option was removed. Users on high density displays may want to:
+  #  * Set services.xserver.upscaleDefaultCursor to upscale the default X11 cursor for higher resolutions
+  #  * Adjust settings under fonts.fontconfig according to preference
+  #  * Adjust console.font according to preference, though the kernel will generally choose a reasonably sized font
+  # https://github.com/NixOS/nixpkgs/issues/34603
+  # https://github.com/NixOS/nixpkgs/issues/57602
+  # services.xserver.dpi
+
   # https://nixos.org/manual/nixos/stable/release-notes.html#sec-release-22.11-notable-changes
   services.udisks2.enable = true;
 
