@@ -1,0 +1,11 @@
+set hlsearch
+set nowrap
+
+let g:ale_linters = {'rust': ['analyzer']}
+let g:ale_rust_analyzer_config = { 'checkOnSave': { 'command': 'clippy', 'enable': v:true } }
+
+" https://github.com/dense-analysis/ale/issues/1403
+let g:ale_ruby_rubocop_executable = 'docker compose run --rm web rubocop'
+
+" MacVim
+set guifont=Inconsolata-Regular:h13
