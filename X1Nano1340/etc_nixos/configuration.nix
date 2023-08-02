@@ -51,6 +51,8 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      libarchive # for bsdtar command (as long as allowUnfree is also enabled)
+      pdfsam-basic
       # ffmpeg-headless
       inkscape
       gmailctl

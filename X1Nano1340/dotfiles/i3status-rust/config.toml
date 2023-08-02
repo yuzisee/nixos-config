@@ -12,8 +12,13 @@ icons = "awesome5"
 block = "disk_space"
 path = "/"
 info_type = "available"
-format = "(not GiB) $icon$available.eng(prefix:G)"
+format = "$icon$available.eng(prefix:G)"
+# format = "(not GiB) $icon$available.eng(prefix:G)"
 # format = "$icon total = $total.eng(prefix:G) available = $available.eng(prefix:G) free = $free.eng(prefix:G) used = $used.eng(prefix:G)"
+[[block.click]]
+button = 'left'
+cmd = 'swaynag --type warning --message "GB, not GiB" --background "#268bd2" --button-background "#ffffff" --border "#000000" --border-bottom-size 0'
+# https://github.com/greshake/i3status-rust/blob/da03dfc43d7d820caa93549d883d43c64d05b50d/files/themes/solarized-dark.toml#L3
 
 [[block]]
 block = "disk_space"
@@ -34,7 +39,8 @@ format = "❃$available.eng(prefix:G)"
 
 [[block]]
 block = "memory"
-format = "  $icon $mem_total_used_percents.eng(w:2)"
+format = "  $icon $mem_used_percents.eng(w:2)"
+# format = "  $icon $mem_total_used_percents.eng(w:2)"
 # format_alt =   "$icon_swap$swap_used_percents.eng(w:2)"
 
 [[block]]
