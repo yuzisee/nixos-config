@@ -206,6 +206,8 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    # cifs-utils
+    samba # Hopefully this provides libsmbclient for doublecmd to use
     xsane
     bashmount
     # https://unix.stackexchange.com/questions/213137/how-to-auto-mount-permanently-mount-external-devices-on-nixos
