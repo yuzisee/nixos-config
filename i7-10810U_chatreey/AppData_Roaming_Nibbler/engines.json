@@ -1,0 +1,13 @@
+{
+	"D:\\Setup\\lc0-onnx-dml\\lc0.exe": {
+		"args": [],
+		"options": {
+			"SyzygyPath": "D:\\Setup\\stockfish\\syzygy",
+			"WeightsFile": "D:\\Setup\\lc0-onnx-dml\\t1-256x10-distilled-swa-2432500.pb",
+			"NNCacheSize": "9000000"
+		},
+		"search_nodes": null,
+		"search_nodes_special": 10000,
+		"limit_by_time": false
+	}
+}
