@@ -207,7 +207,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     # cifs-utils
-    samba # Hopefully this provides libsmbclient for doublecmd to use
+    samba # Doesn't provide libsmbclient for doublecmd to use, but these work: smbclient --list 192.168.10.110 && smbclient //192.168.10.110/joseph (and then: cd "Public/Drop Box")
     xsane
     bashmount
     # https://unix.stackexchange.com/questions/213137/how-to-auto-mount-permanently-mount-external-devices-on-nixos

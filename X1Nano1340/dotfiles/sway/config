@@ -228,9 +228,10 @@ workspace_auto_back_and_forth yes
     assign [class="^URxvt$"] workspace number 1
     assign [app_id="^foot$"] workspace number 1
     assign [app_id="^firefox$"] workspace number 2
+    # Wayland-native Firefox uses javscript to dynamically set its title. All windows start with "Mozilla Firefox" as the title when first spawned.
+    for_window [app_id="^firefox$" title="Mozilla Firefox Private Browsing$"] move to workspace number 4
     assign [app_id="^librewolf$"] workspace number 3
     assign [app_id="^doublecmd$"] workspace number 5
-    # assign [name="^Mozilla Firefox Private Browsing$"] workspace number 4
     assign [class="(?i)^Chromium-browser$"] workspace number 5
     assign [class="Nxplayer.bin"] workspace number 5
     assign [app_id="org.remmina.Remmina"] workspace number 5
