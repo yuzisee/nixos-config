@@ -1,11 +1,16 @@
+set guifont=Inconsolata-Regular:h13
 set hlsearch
 set nowrap
 
-let g:ale_linters = {'rust': ['analyzer']}
+" python3 -m pip install --upgrade pip
+" python3 -m pip install ruff
+let g:ale_linters = {'rust': ['analyzer'], 'python': ['ruff']}
 let g:ale_rust_analyzer_config = { 'checkOnSave': { 'command': 'clippy', 'enable': v:true } }
 
 " https://github.com/dense-analysis/ale/issues/1403
-let g:ale_ruby_rubocop_executable = 'docker compose run --rm web rubocop'
+let g:ale_ruby_rubocop_executable = 'docker'
+let g:ale_ruby_rubocop_options = 'compose run --rm web rubocop'
 
-" MacVim
-set guifont=Inconsolata-Regular:h13
+" https://github.com/dense-analysis/ale/blob/14350dbb0d265ef87d1c7d420d89fb4165a2b131/doc/ale-python.txt#L1275C3-L1275C29
+let g:ale_python_ruff_executable = 'python3'
+let g:ale_python_ruff_options = '-m ruff check'
