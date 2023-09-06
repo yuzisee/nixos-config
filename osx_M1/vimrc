@@ -13,4 +13,5 @@ let g:ale_ruby_rubocop_options = 'compose run --rm web rubocop'
 
 " https://github.com/dense-analysis/ale/blob/14350dbb0d265ef87d1c7d420d89fb4165a2b131/doc/ale-python.txt#L1275C3-L1275C29
 let g:ale_python_ruff_executable = 'python3'
-let g:ale_python_ruff_options = '-m ruff check'
+let g:ale_python_ruff_options = '-m ruff check --ignore E501'
+" E501 is "line too long"
