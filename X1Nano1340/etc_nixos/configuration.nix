@@ -51,6 +51,7 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      microsoft-edge
       libarchive # for bsdtar command (as long as allowUnfree is also enabled)
       pdfsam-basic
       # ffmpeg-headless
