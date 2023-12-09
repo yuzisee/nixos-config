@@ -6,6 +6,7 @@ separator = " \ue0b2"
 [icons]
 icons = "awesome5"
 
+# NOTE We are now on https://docs.rs/i3status-rs/0.32.2/i3status_rs/blocks/index.html
 # https://github.com/greshake/i3status-rust/blob/a5d58997a7f40d92fffe032ea4ef697f8f1c8380/NEWS.md#i3status-rust-0300
 
 [[block]]

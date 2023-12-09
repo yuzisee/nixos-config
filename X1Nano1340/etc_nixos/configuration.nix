@@ -66,7 +66,7 @@
       netsurf.browser
       # https://www.ekioh.com/flow-browser/
       # libsForQt5.konqueror
-      qutebrowser-qt6
+      qutebrowser
       # Wayland epiphany has some serious memory leaks (like 7GiB+), it's essentially unusuable
       # epiphany
       doublecmd
@@ -273,7 +273,7 @@ gesture swipe down 3 swaymsg -t command focus next
   # https://nixos.wiki/wiki/Fonts
   # https://ld.reddit.com/r/NixOS/comments/lf6de0/some_config_questions/gmlzirz/
   # https://git.sr.ht/~cyplo/dotfiles/tree/83ddcc09dc68389b129d598722eca9e90a6dff33/item/nixos/i3/i3.nix
-  fonts.fonts = with pkgs; [
+  fonts.packages = with pkgs; [
     powerline-fonts
     font-awesome
   ];
