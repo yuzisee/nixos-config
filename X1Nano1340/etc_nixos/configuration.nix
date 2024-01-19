@@ -66,7 +66,8 @@
       netsurf.browser
       # https://www.ekioh.com/flow-browser/
       # libsForQt5.konqueror
-      qutebrowser
+      midori-unwrapped
+      # qutebrowser
       # Wayland epiphany has some serious memory leaks (like 7GiB+), it's essentially unusuable
       # epiphany
       doublecmd
