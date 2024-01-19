@@ -29,19 +29,9 @@
   # Set your time zone.
   time.timeZone = "America/Los_Angeles";
 
-  # Select internationalisation properties.
-  # i18n.defaultLocale = "en_US.utf8";
 
-  xdg.portal.wlr.enable = true;
 
-  # Configure keymap in X11
-  # services.xserver = {
-  #   layout = "us";
-  #   xkbVariant = "";
-  # };
 
-  sound.enable = true;
-  hardware.pulseaudio.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   # NOTE: chessx doesn't work on wayland right now
@@ -235,6 +225,9 @@
     # pkgs.libinput-gestures."/etc/libinput-gestures.conf".source = (pkgs.callPackage ./etc_conf/write-libinput-gestures-conf.nix {writeText = writeText;});
   # https://discourse.nixos.org/t/what-does-mkdefault-do-exactly/9028
 
+  # Select internationalisation properties.
+  # i18n.defaultLocale = "en_US.utf8";
+
   environment.etc = {
     # Creates /etc/libinput-gestures.conf
     # Added extraGroups = [ "input" ]; to joseph above
@@ -256,6 +249,15 @@ gesture swipe down 3 swaymsg -t command focus next
        mode = "0444";
     };
   };
+
+  # Configure keymap in X11
+  # services.xserver = {
+  #   layout = "us";
+  #   xkbVariant = "";
+  # };
+
+  xdg.portal.wlr.enable = true;
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
