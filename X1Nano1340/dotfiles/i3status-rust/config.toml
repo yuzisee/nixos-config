@@ -122,6 +122,7 @@ format = " $icon $timestamp.datetime(f:'%a %b %d, %R')"
 
 [[block]]
 block = "sound"
+max_vol = 123
 
 # [[block]]
 # block = "bluetooth"
