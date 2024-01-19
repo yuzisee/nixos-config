@@ -244,6 +244,7 @@ workspace_auto_back_and_forth yes
     # https://i3wm.org/docs/userguide.html#list_of_commands
     assign [class="^URxvt$"] workspace number 1
     assign [app_id="^foot$"] workspace number 1
+    assign [app_id="^.blueman-manager-wrapped"] workspace number 1
     assign [app_id="^firefox$"] workspace number 2
     # Wayland-native Firefox uses javscript to dynamically set its title. All windows start with "Mozilla Firefox" as the title when first spawned.
     for_window [app_id="^firefox$" title="Mozilla Firefox Private Browsing$"] move to workspace number 4
@@ -264,6 +265,8 @@ workspace_auto_back_and_forth yes
     exec urxvt
     exec foot
     exec maestral start
+    # https://github.com/blueman-project/blueman/issues/949
+    exec blueman-applet
     # Espanso waiting for https://github.com/NixOS/nixpkgs/pull/208949
     # exec espanso daemon
 
