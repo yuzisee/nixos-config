@@ -140,16 +140,33 @@ bindsym XF86MonBrightnessDown exec light -S 0.0664
 bindsym XF86MonBrightnessUp exec 'light -A 15; light -T 2.5'
 bindsym XF86Favorites exec light -S 0
 
-# Volume
-bindsym XF86AudioRaiseVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ +7%'
-bindsym XF86AudioLowerVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ -7%'
+# Volume (PULSEAUDIO)
+
+#bindsym XF86AudioRaiseVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ +7%'
+#bindsym XF86AudioLowerVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ -7%'
+
 # bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
 # wev says there is now XF86AudioMute and XF86AudioMicMute
-bindsym XF86AudioMicMute exec 'pactl set-source-mute @DEFAULT_SOURCE@ toggle'
-bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
-bindsym XF86Messenger exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
+#bindsym XF86AudioMicMute exec 'pactl set-source-mute @DEFAULT_SOURCE@ toggle'
+#bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
+
 # bindsym XF86NotificationCenter exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
 # wev says this is now called XF86Messenger
+#bindsym XF86Messenger exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
+
+# Volume (PIPEWIRE + WIREPLUMBER)
+# (NOTE https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/2973 if switching to pipewire... or consider https://old.reddit.com/r/linuxaudio/comments/ldgk5u/change_volume_command_in_pipewire/ instead)
+
+bindsym XF86AudioRaiseVolume exec 'wpctl set-volume -l 1.52 @DEFAULT_AUDIO_SINK@ 7%+'
+#http://www.sengpielaudio.com/calculator-levelchange.htm says '1.52 times' or '1.23 times'
+bindsym XF86AudioLowerVolume exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 7%-'
+
+bindsym XF86AudioMicMute exec 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle'
+bindsym XF86AudioMute exec 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'
+
+bindsym XF86Messenger exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 100%'
+
+# NOTE: https://old.reddit.com/r/swaywm/comments/15460e5/should_i_use_amixer_or_pactl_to_control_the/
 
 
 # TODO XF86PickupPhone and XF86HangupPhone maybe can be used as Back/Forward for web browsing?

@@ -29,9 +29,38 @@
   # Set your time zone.
   time.timeZone = "America/Los_Angeles";
 
+  # CONFIGURE AUDIO [start]
 
+  # OPTION (1 of 2): PulseAudio
 
+  # sound.enable = true;
+  # hardware.pulseaudio.enable = true;
 
+  # OPTION (2 of 2): Pipewire
+
+  # Pipewire benefits from realtime priority access
+  # https://nixos.wiki/wiki/PipeWire
+  security.rtkit.enable = true;
+  # https://ld.reddit.com/r/linux4noobs/comments/43iden/what_is_rtkitdaemon_in_ubuntu_processes/
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+
+    # …presumably otherwise we only get 16-bit audio and 24-bit audio? (not sure)
+    alsa.support32Bit = true;
+
+    # Continue to provide things like `pactl`
+    # https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Config-PulseAudio
+    pulse.enable = true;
+  };
+
+  # CONFIGURE AUDIO [end]
+
+  # https://nixos.wiki/wiki/Bluetooth
+  hardware.bluetooth.enable = true; # enables support for Bluetooth
+  hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
+  # https://discourse.nixos.org/t/bluetooth-devices-via-a-gui/20599/2
+  services.blueman.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   # NOTE: chessx doesn't work on wayland right now
