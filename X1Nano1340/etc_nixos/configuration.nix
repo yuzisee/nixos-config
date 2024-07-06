@@ -70,6 +70,8 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      # Can't use python3Minimal because I need SSL for urllib I think? https://github.com/NixOS/nixpkgs/pull/66762#issuecomment-522463717
+      python3 # urllib.error.URLError: <urlopen error unknown url type: https>
       microsoft-edge
       libarchive # for bsdtar command (as long as allowUnfree is also enabled)
       pdfsam-basic
@@ -93,13 +95,13 @@
       scid-vs-pc
       mupdf
       geeqie
-      duc
+      duc # disk usage visualizer
       zoom-us
       mpv
       remmina
       wev
       maestral
-      mako
+      mako # notifications daemon
       shotman
       wlsunset
       i3status-rust
@@ -227,6 +229,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    wl-clipboard
     # cifs-utils
     samba # Doesn't provide libsmbclient for doublecmd to use, but these work: smbclient --list 192.168.10.110 && smbclient //192.168.10.110/joseph (and then: cd "Public/Drop Box")
     xsane

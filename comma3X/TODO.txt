@@ -1,0 +1,45 @@
+# https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules
+git clone --depth 1 --single-branch --branch secretgoodopenpilot20hz --recurse-submodules https://github.com/commaai/openpilot.git 
+# https://stackoverflow.com/questions/75726125/using-filter-blobnone-when-cloning-doesnt-seem-to-be-having-an-effect-have
+# Current AGNOS (on July 5, 2024) has Git version 2.25.1 but --also-filter-submodules requires 2.36 https://stackoverflow.com/questions/49917616/what-is-the-git-clone-filter-options-syntax
+# --filter=blob:none --also-filter-submodules
+cd openpilot
+
+# ======================================================================================
+
+# https://stackoverflow.com/questions/67996540/git-single-branch-how-to-checkout-a-new-remote-branch-from-a-single-branch
+git fetch origin secretgoodopenpilot20hz:secretgoodopenpilot20hz --depth 1
+
+# https://stackoverflow.com/questions/1030169/pull-latest-changes-for-all-git-submodules
+git submodule update --init --recursive
+git submodule update --recursive
+
+# https://stackoverflow.com/questions/15124430/how-to-checkout-old-git-commit-including-all-submodules-recursively
+git checkout --recurse-submodules secretgoodopenpilot20hz
+
+# https://github.com/commaai/openpilot/blob/secretgoodopenpilot20hz/tools/README.md
+git lfs pull
+# ? tools/ubuntu_setup.sh
+# ? sudo bash tools/install_python_dependencies.sh # ran out of space on /tmp (??)
+
+# https://documen.tician.de/pyopencl/misc.html#installation
+# sudo apt-get install ocl-icd-opencl-dev
+
+# poetry shell
+# # https://stackoverflow.com/questions/19623267/importerror-no-module-named-crypto-cipher
+# pip3 install pycryptodome
+# pip3 install numpy
+# pip3 install capnp
+# pip3 install casadi
+# pip3 install pyopencl # ran out of space on /tmp (??)
+
+scons -u -j$(nproc)
+…
+reboot
+# https://www.youtube.com/watch?v=5zoDSgRWhB8&t=306s
+
+# ======== ALTERNATIVE ==========
+installer.comma.ai/commaai/secretgoodopenpilot20hz
+# https://discord.com/channels/469524606043160576/616456819027607567/1257346161111732284
+https://smiskol.com/fork/commaai/secretgoodopenpilot20hz
+# https://discord.com/channels/469524606043160576/616456819027607567/1258870660692705371

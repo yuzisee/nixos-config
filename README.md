@@ -49,6 +49,9 @@ https://nixos.org/manual/nixos/stable/options.html
 ## Upgrading
 https://www.reddit.com/r/NixOS/comments/izq3nm/nix_channels_differ_for_nixos_global_and_nix_user/
 
+## Tools
+sleep 4.0 ; shotman -c region
+
 ## General "Getting started" advice
 
 nmcli radio wifi
