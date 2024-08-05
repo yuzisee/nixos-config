@@ -43,3 +43,7 @@ installer.comma.ai/commaai/secretgoodopenpilot20hz
 # https://discord.com/channels/469524606043160576/616456819027607567/1257346161111732284
 https://smiskol.com/fork/commaai/secretgoodopenpilot20hz
 # https://discord.com/channels/469524606043160576/616456819027607567/1258870660692705371
+
+# https://stackoverflow.com/questions/46809742/how-do-fetch-remote-branch-after-i-cloned-repo-with-git-clone-depth-1
+# https://stackoverflow.com/questions/38378914/how-to-fix-git-error-rpc-failed-curl-56-gnutls
+>>> git fetch --depth=1 origin FrogPilot
