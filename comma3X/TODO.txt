@@ -46,4 +46,9 @@ https://smiskol.com/fork/commaai/secretgoodopenpilot20hz
 
 # https://stackoverflow.com/questions/46809742/how-do-fetch-remote-branch-after-i-cloned-repo-with-git-clone-depth-1
 # https://stackoverflow.com/questions/38378914/how-to-fix-git-error-rpc-failed-curl-56-gnutls
+# https://stackoverflow.com/questions/6842687/the-remote-end-hung-up-unexpectedly-while-git-cloning/6849424#comment113682102_6849424
+>>> git config --global http.postBuffer 50000000
+>>> git config --global http.postBuffer 50000000
+# https://stackoverflow.com/questions/32137388/how-to-check-post-buffer-size-before-clone-git-repository
 >>> git fetch --depth=1 origin FrogPilot
+# https://stackoverflow.com/questions/11941175/git-fetch-pull-clone-hangs-on-receiving-objects
