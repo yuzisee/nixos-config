@@ -52,3 +52,6 @@ https://smiskol.com/fork/commaai/secretgoodopenpilot20hz
 # https://stackoverflow.com/questions/32137388/how-to-check-post-buffer-size-before-clone-git-repository  
 >>> git fetch --depth=1 origin FrogPilot
 # https://stackoverflow.com/questions/11941175/git-fetch-pull-clone-hangs-on-receiving-objects
+# https://stackoverflow.com/questions/59282476/error-rpc-failed-curl-92-http-2-stream-0-was-not-closed-cleanly-protocol-erro
+>>> git config --global http.lowSpeedLimit 0      # Disable low speed limit
+>>> git config --global http.lowSpeedTime 999999  # Set low speed time limit to a large value
