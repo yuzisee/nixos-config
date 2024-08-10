@@ -8,11 +8,12 @@ Automatically Update FrogPilot (No?)
 
 Always on Lateral = No
 Conditional Experimental Mode
- * Below 44mph | w/Lead 55mph
+ (offline navigation) Below 49mph | w/Lead 55mph
+ (MapBox navigation) Below 44mph | w/Lead 55mph
  * Curve Detected Ahead = No  # because we use "Map Turn Speed Control" that combines both Model & Map (but is that better than experimental mode?)
  * Lead Detected Ahead = No
  * Navigation Based = Intersections / Turns  # Hmm... does that mean Comma Connect makes it perform better on off-ramps? (But I'm having speed issues on the off-ramps and those aren't necessarily turns...???)
- * Stop Lights and Stop Signs = No
+ * Stop Lights and Stop Signs = Yes(?)
  * Turn Signal When Below Highway Speeds = Yes
  * Hide the Status Bar = Yes
 Device Management = No
