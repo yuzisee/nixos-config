@@ -53,7 +53,7 @@ Speed Limit Controller
    - Confirm New Speed Limits = No
    - Force MPH From Dashboard Readings = No
    - Prepare for Higher Speed Limits: 8 seconds
-   - Prepare for Lower Speed Limits 15 seconds
+   - Prepare for Lower Speed Limits 30 seconds
  * Visuals Settings
    - Show Speed Limit Offset = Yes (do not Control Via UI)
    - Speed Limit Changed Alert = No
