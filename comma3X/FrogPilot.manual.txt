@@ -1,0 +1,99 @@
+Driving Personality: Aggressive
+Show Map on Left Side of UI: Yes
+
+Automatically Update FrogPilot (No?)
+
+
+=== Controls ===
+
+Always on Lateral = No
+Conditional Experimental Mode
+ (offline navigation) Below 49mph | w/Lead 55mph
+ (MapBox navigation) Below 44mph | w/Lead 55mph
+ * Curve Detected Ahead = No  # because we use "Map Turn Speed Control" that combines both Model & Map (but is that better than experimental mode?)
+ * Lead Detected Ahead = No
+ * Navigation Based = Intersections / Turns  # Hmm... does that mean Comma Connect makes it perform better on off-ramps? (But I'm having speed issues on the off-ramps and those aren't necessarily turns...???)
+ * Stop Lights and Stop Signs = Yes(?)
+ * Turn Signal When Below Highway Speeds = Yes
+ * Hide the Status Bar = Yes
+Device Management = No
+Driving Personalities = No
+Experimental Mode Activation
+ * Double Click LKAS = No
+ * Double Tap the UI = No
+ * Long Press Distance = Yes
+Lane Change Customizations = No
+Lateral Tuning
+ * NNFF = No
+ * Steer Ratio (default)
+ * Taco Tune = No
+ * Use Turn Desires = Yes
+Longitudinal Tuning
+ * Acceleration Profile = Sport+
+ * Deceleration Profile = Sport
+ * Increase Acceleration Behind Lead = Yes
+ * Increase Stop Distance Behind Lead = 0
+ * Lead Detection Threadhold (default = 35%?)
+ * Smoother Braking = Yes
+ * Traffic Mode = No
+Map Turn Speed Control
+ * Disable MTSC UI Smoothing = Yes
+ * Model Curvation Detection Failsafe = Yes
+ * Turn Speed Aggressiveness (default = 100%?)
+Model Selector
+ * Los Angeles
+Quality of Life = No
+Speed Limit Controller
+ * Controls Settings
+   - Speed Limit Offset 6mph, 8mph, 9mph, 11mph
+   - Fallback Method: Experimental Mode
+   - Override Method: None
+   - Priority Order: Navigation, Offline Maps, Dashboard
+ * Quality of Life Settings
+   - Confirm New Speed Limits = No
+   - Force MPH From Dashboard Readings = No
+   - Prepare for Higher Speed Limits: 8 seconds
+   - Prepare for Lower Speed Limits 30 seconds
+ * Visuals Settings
+   - Show Speed Limit Offset = Yes (do not Control Via UI)
+   - Speed Limit Changed Alert = No
+   - Use Vienna Speed Limit Signs = No
+Vision Turn Speed Controller = No
+
+
+=== Vehicles ===
+
+Automatically Lock/Unlock Doors: Lock & Unlock
+Toyota Tune = DragonPilot
+Cluster Offset: (default = 1.015x?)
+
+
+=== Visuals ===
+
+Alert Volume Controller
+ * Disengage Volume (50%)
+ * Engage Volume (50%)
+Custom Alerts
+ * Green Light Alert = Yes
+ * Lead Departing Alert = No
+Custom Onroad UI
+ * Compass = Yes
+ * Paths: Acceleration=yes Adjacent=no BlindSpot=yes Metrics=no
+ * Pedals Being Pressed = No
+ * Road Name = Yes
+ * Steering Wheel Icon: Live Rotation = no | None
+ * Stopping Points: yes (show distance = no)
+Custom Themes = No
+Developer UI = No
+Model UI = No
+Quality of Life
+ * Big Map = No
+ * Camera View = Auto
+ * Driver Camera On Reverse = No
+ * Hide Speed = No
+ * Map Style (default = mike854's Satellite Hybrid)
+ * Stopped Timer = No
+ * Use Wheel Speed = Yes
+Screen Management
+ * Hide UI Elements (Map Icon) ← if we aren't using Comma Connect
+ **everything else off**
