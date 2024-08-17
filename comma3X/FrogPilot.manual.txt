@@ -1,7 +1,7 @@
 Driving Personality: Aggressive
 Show Map on Left Side of UI: Yes
 
-Automatically Update FrogPilot (No?)
+Automatically Update FrogPilot (Yes -- make sure you're on 5GHz Wi-Fi)=
 
 
 === Controls ===
@@ -29,7 +29,7 @@ Map Turn Speed Control
  * Model Curvation Detection Failsafe = Yes
  * Turn Speed Aggressiveness (default = 100%?)
 Model Selector
- * Los Angeles
+ * North Dakota
 Quality of Life = No
 Speed Limit Controller
  * Controls Settings
