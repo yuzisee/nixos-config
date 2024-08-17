@@ -7,15 +7,7 @@ Automatically Update FrogPilot (No?)
 === Controls ===
 
 Always on Lateral = No
-Conditional Experimental Mode
- (offline navigation) Below 49mph | w/Lead 55mph
- (MapBox navigation) Below 44mph | w/Lead 55mph
- * Curve Detected Ahead = No  # because we use "Map Turn Speed Control" that combines both Model & Map (but is that better than experimental mode?)
- * Lead Detected Ahead = No
- * Navigation Based = Intersections / Turns  # Hmm... does that mean Comma Connect makes it perform better on off-ramps? (But I'm having speed issues on the off-ramps and those aren't necessarily turns...???)
- * Stop Lights and Stop Signs = Yes(?)
- * Turn Signal When Below Highway Speeds = Yes
- * Hide the Status Bar = Yes
+Conditional Experimental Mode = No
 Device Management = No
 Driving Personalities = No
 Experimental Mode Activation
@@ -23,11 +15,7 @@ Experimental Mode Activation
  * Double Tap the UI = No
  * Long Press Distance = Yes
 Lane Change Customizations = No
-Lateral Tuning
- * NNFF = No
- * Steer Ratio (default)
- * Taco Tune = No
- * Use Turn Desires = Yes
+Lateral Tuning = No
 Longitudinal Tuning
  * Acceleration Profile = Sport+
  * Deceleration Profile = Sport
