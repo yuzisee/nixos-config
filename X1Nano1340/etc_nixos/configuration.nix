@@ -77,14 +77,14 @@
       pdfsam-basic
       # ffmpeg-headless
       inkscape
-      gmailctl
+      # gmailctl
       kdiff3
       # espanso  # Waiting for https://github.com/NixOS/nixpkgs/pull/208949
       filezilla
       nomachine-client  # use nxplayer command after install
       # x2goclient # TERRIBLE
       # dillo
-      netsurf.browser
+      # netsurf.browser
       # https://www.ekioh.com/flow-browser/
       # libsForQt5.konqueror
       midori-unwrapped
@@ -229,7 +229,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    wl-clipboard
+    wl-clipboard # for `wl-copy` and `wl-paste` etc.
     # cifs-utils
     samba # Doesn't provide libsmbclient for doublecmd to use, but these work: smbclient --list 192.168.10.110 && smbclient //192.168.10.110/joseph (and then: cd "Public/Drop Box")
     xsane
