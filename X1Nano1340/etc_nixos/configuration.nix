@@ -70,6 +70,9 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      freetube
+      # ladybird # Executable is 'Ladybird'
+      floorp
       # Can't use python3Minimal because I need SSL for urllib I think? https://github.com/NixOS/nixpkgs/pull/66762#issuecomment-522463717
       python3 # urllib.error.URLError: <urlopen error unknown url type: https>
       microsoft-edge
@@ -106,11 +109,15 @@
       wlsunset
       i3status-rust
       speedcrunch
-      ungoogled-chromium
+      # https://wiki.nixos.org/wiki/Chromium
+      (ungoogled-chromium.override { enableWideVine = true; })
+      # ungoogled-chromium
       librewolf-wayland
       firefox-wayland
       rxvt-unicode
       gh
+      # https://github.com/swaywm/sway/issues/8361
+      dmenu
     ];
   };
   # https://askubuntu.com/questions/222392/remmina-problem-a-valid-certificate-for-the-wrong-name
@@ -178,7 +185,7 @@
 
   # https://github.com/NixOS/nixos-hardware/blob/556101ff85bd6e20900ec73ee525b935154bc8ea/common/gpu/intel/default.nix
   # environment.variables = {
-    # VDPAU_DRIVER = lib.mkIf config.hardware.opengl.enable (lib.mkDefault "va_gl");
+    # VDPAU_DRIVER = lib.mkIf config.hardware.graphics.enable (lib.mkDefault "va_gl");
     # https://amigotechnotes.wordpress.com/2022/07/20/enable-firefox-hardware-video-acceleration-on-ubuntu/
     # MOZ_ENABLE_WAYLAND = "1";
   # };
@@ -195,7 +202,7 @@
   #  + layers.acceleration.force-enabled
   #  + gfx.webrender.all
 
-  hardware.opengl = {
+  hardware.graphics = {
     enable = true;
     extraPackages = with pkgs; [
       intel-media-driver # LIBVA_DRIVER_NAME=iHD

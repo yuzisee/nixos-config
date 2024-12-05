@@ -62,3 +62,11 @@ nix-collect-garbage -d
 sudo nixos-rebuild switch --upgrade
 nix-collect-garbage
 nix-store --optimize
+
+# System is good, delete old generations
+sudo nix-collect-garbage -d
+# https://old.reddit.com/r/NixOS/comments/10107km/how_to_delete_old_generations_on_nixos/
+sudo nixos-rebuild boot
+
+# New Release
+sudo nix-channel --add https://nixos.org/channels/nixos-24.11 nixos
