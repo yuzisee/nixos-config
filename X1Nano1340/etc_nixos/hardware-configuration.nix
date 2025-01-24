@@ -13,21 +13,25 @@
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
+  # nvme0n1p7
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/b9efe261-c832-4c8e-b501-3516388b4e8a";
       fsType = "ext4";
     };
 
+  # nvme0n1p6
   fileSystems."/nix" =
     { device = "/dev/disk/by-uuid/61961f2f-4891-443a-b7e9-69df637bca41";
       fsType = "xfs";
     };
 
+  # /boot is nvme0n1p5 and /boot/efi is nvme0n1p1
   fileSystems."/boot/efi" =
     { device = "/dev/disk/by-uuid/D88C-FB29";
       fsType = "vfat";
     };
 
+  # nvme0n1p3
   swapDevices =
     [ { device = "/dev/disk/by-uuid/1668c950-4482-4183-a614-4bb655d92e87"; }
     ];

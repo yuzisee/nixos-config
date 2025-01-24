@@ -62,6 +62,9 @@
   # https://discourse.nixos.org/t/bluetooth-devices-via-a-gui/20599/2
   services.blueman.enable = true;
 
+  # Needed because https://github.com/NixOS/nixpkgs/issues/350266
+  # programs.ladybird.enable = true;
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   # NOTE: chessx doesn't work on wayland right now
   # Q: https://gitlab.com/snakedye/salut/-/wikis/Home might be better than mako
@@ -71,7 +74,6 @@
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
       freetube
-      # ladybird # Executable is 'Ladybird'
       floorp
       # Can't use python3Minimal because I need SSL for urllib I think? https://github.com/NixOS/nixpkgs/pull/66762#issuecomment-522463717
       python3 # urllib.error.URLError: <urlopen error unknown url type: https>
@@ -90,8 +92,10 @@
       # netsurf.browser
       # https://www.ekioh.com/flow-browser/
       # libsForQt5.konqueror
-      midori-unwrapped
-      # qutebrowser
+      kdePackages.konqueror
+      # midori
+      # ladybird # Executable is 'Ladybird'
+      # qutebrowser # This is the "vim-like" one with keyboard navigation
       # Wayland epiphany has some serious memory leaks (like 7GiB+), it's essentially unusuable
       # epiphany
       doublecmd
