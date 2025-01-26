@@ -13,6 +13,9 @@
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
+  # suspend to RAM (e.g. S3 sleep) rather than s2idle (e.g. "suspend-to-idle")
+  boot.kernelParams = [ "mem_sleep_default=deep" ];
+
   # nvme0n1p7
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/b9efe261-c832-4c8e-b501-3516388b4e8a";

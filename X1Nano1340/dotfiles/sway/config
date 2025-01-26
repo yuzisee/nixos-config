@@ -125,6 +125,9 @@ input "type:keyboard" {
     bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit' -s '╳'
     # https://en.wikipedia.org/wiki/X_mark
 
+# PrtSc button
+bindsym Print exec shotman -c region
+
 # Brightness
 # `light -G` shows 0.005156 turns off the screen, whereas 0.005157 has it at basically the lowest brightness
 # Can't use `light -U` by itself, we could potentially try `light -N 0.005157` but this is simpler for now
