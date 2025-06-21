@@ -1,0 +1,147 @@
+Driving Personality: Aggressive
+Show Map on Left Side of UI: Yes
+
+Automatically Update FrogPilot (No -- still, make sure you're on 5GHz Wi-Fi)
+
+=== Alerts and Sounds ===
+Alert Volume Controller
+ * Disengage Volume: 9%
+ * Engage Volume: 9%
+ * Prompt Volume: 20%
+Custom Alerts
+ * Goat Scream = No
+ * Green Light Alert = Yes
+ * Lead Departing = No
+ * Speed Limit Changed Alert = Yes
+
+=== Driving Controls ===
+
+[Driving Model]
+  Automatically Update and Download Models = Yes
+  ...
+  Select Model = North Dakota
+
+[Gas/Brake]
+
+  Conditional Experimental Mode
+   * Below 12 mph, With Lead 50 mph
+   * Curve Detected Ahead: (not with lead) Yes
+   * Lead Detected Ahead: (not slower lead) (Stopped Lead) Yes
+   * Navigation Data: (Intersection) (Turns) (not with lead) Yes
+   * openpilot Wants to Stop In: 10sec
+   * Turn Signal Below: (not only for detected lanes) 80 mph
+
+  <Curve Speed Control> OFF
+  
+  Customize Driving Personalities
+   * Traffic Personality
+     - Following Distance = 0.50 seconds
+     - Acceleration Sensitivity = 1%
+     - Deceleration Sensitivity = 160%
+     - Safety Distance Sensitivity = 26%
+     - Speed Increase Responsiveness = 4%
+     - Speed Decrease Responsiveness = 185%
+  
+  Experimental Mode Activation
+   * Click the LKAS Button: Yes (but doesn't work, fyi)
+   * Double Tap the Screen: No
+   * Long Press the Distance Button: Yes
+  
+  Longitudinal Tuning
+   * Acceleration Profile = Sport+
+   * Deceleration Profile = Eco
+   * Human-Like Acceleration: No
+   * Human-Like Approach Behind Leads: Yes
+   * Lead Detection Threadhold (default = 35%?)
+   * Maximum Acceleration Rate (default = 4.0m/s?)
+   * 'Taco Bell Run' Turn Speed Hack = No
+
+  <Quality of Life Improvements> OFF
+  
+  Speed Limit Controller
+   * Fallback Method = Experimental Mode
+   * Override Method = Set With Gas Pedal
+   * Quality of Life Improvements
+     - Confirm New Speed Limits = No
+     - Force MPH Readers fron Dashboard = No
+     - Prepare for Higher Speed Limits = 8 seconds
+     - Prepare for Lower Speed Limits = 30 seconds
+   * Speed Limit Source Priority Order = ????
+   * Speed Limit Offset 4mph,  8mph, 10mph, 11mph
+                          (0–34) (35–54) (55–64) (65+)
+   * Visuals
+     - Show Speed Limit Offset = Yes
+     - Show Speed Limit Sources = Yes
+
+[Steering]
+
+  <Advance Lateral Tuning> OFF
+
+  Always on Lateral
+   * Enable with Cruise Control = Yes
+   * Pause on Brake Below = 17 mph
+
+  <Lane Change Settings> OFF
+
+  Lateral Tuning
+   * Force Turn Desires Below Lane Change Speed = No
+   * Neural Network Feedbacforward (NNFF) = Yes
+
+  <Quality of Life Improvements> OFF
+
+=== Navigation ===
+
+[Map Data]
+  Automatically Update Maps = Weekly
+  ...
+[Primeless Navigation]
+  Destination Search Provider = Google
+  ...
+
+=== System Management > Device Controls ===
+
+Device Settings
+ * Device Shutdown Timer = 2 hours
+ * Disable Internet Requirement = Yes
+
+
+=== Theme and Appearance ===
+
+[Appearance]
+
+  <Accessibility> OFF
+
+  Advanced UI Controls
+   * Hide Current Speed = No
+   * Hide Lead Marker = No
+   * Hide Map Icon = Yes
+   * Hide Max Speed = No
+   * Hide Non-Critical Alerts = No
+   * Hide Speed Limits = No
+   * Use Wheel Speed = Yes
+
+  Developer UI
+   * Developer Metrics > Numerical Temperature Gauge = Yes
+   * Developer Widgets > 'Conditional Experimental Mode' Status = Yes
+
+  <Model UI> OFF
+
+  Navigation Widgets
+   * Larger Map Display = No
+   * Map Style = mike854's (Satellite hybrid) ?default
+   * Road Name = Yes
+   * Use Vienna-Style Speed Signs = No
+
+  Onroad Screen Widgets
+   * Acceleration Path = Yes
+   * Adjacent Lanes = No
+   * Compass = Yes
+   * Gas / Brake Pedal Indicators = No
+   * Rotating Steering Wheel = No
+
+=== Vehicle Controls > Toyota/Lexus Toggles ===
+
+Automatically Lock/Unlock Doors: Lock & Unlock
+Cluster Offset: (default = 1.015x?)
+Enable FrogsGoMoo's Personal Tweaks = Yes
+

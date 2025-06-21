@@ -73,6 +73,9 @@
     description = "Hello there";
     extraGroups = [ "networkmanager" "wheel" "video" "input" ];
     packages = with pkgs; [
+      inetutils # for telnet
+      # https://github.com/NixOS/nixpkgs/blob/324404fe2c77aec2c7379e672b6081367b15e527/pkgs/top-level/all-packages.nix#L15761-L15763
+      yt-dlp-light # excludes: atomicparsley ffmpeg-headless rtmpdump
       freetube
       floorp
       # Can't use python3Minimal because I need SSL for urllib I think? https://github.com/NixOS/nixpkgs/pull/66762#issuecomment-522463717
@@ -91,13 +94,17 @@
       # dillo
       # netsurf.browser
       # https://www.ekioh.com/flow-browser/
-      # libsForQt5.konqueror
+      # palemoon-bin
+      # libsForQt5.konqueror # if you need an older version (for compatibility reasons or whatever)
       kdePackages.konqueror
+      # libsForQt5.falkon # if you need an older version (for compatibility reasons or whatever)
+      # kdePackages.falkon
+      # servo
       # midori
       # ladybird # Executable is 'Ladybird'
       # qutebrowser # This is the "vim-like" one with keyboard navigation
       # Wayland epiphany has some serious memory leaks (like 7GiB+), it's essentially unusuable
-      # epiphany
+      epiphany
       doublecmd
       scid-vs-pc
       mupdf
@@ -137,6 +144,8 @@
   # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/hardware/tlp.nix
   # https://www.linuxuprising.com/2020/01/auto-cpufreq-is-new-cpu-speed-and-power.html
   services.auto-cpufreq.enable = true;
+  # https://github.com/AdnanHodzic/auto-cpufreq/blob/4cee388c1bbea3adc333b597717d5d8d12375705/README.md?plain=1#L86
+  services.thermald.enable = true;
   # Enable automatic login for the user.
   services.getty.autologinUser = "joseph";
 
@@ -327,6 +336,15 @@ gesture swipe down 3 swaymsg -t command focus next
   # List services that you want to enable:
   services.upower.enable = true;
   services.upower.criticalPowerAction = "Hibernate";
+
+  # https://www.freedesktop.org/software/systemd/man/latest/systemd-sleep.conf.html#suspend-then-hibernate
+  # https://www.freedesktop.org/software/systemd/man/latest/logind.conf.html
+  services.logind.lidSwitchExternalPower = "hybrid-sleep";
+  # https://github.com/systemd/systemd/issues/25269
+  services.logind.lidSwitch = "suspend-then-hibernate";
+  # https://nixos.wiki/wiki/Power_Management
+  # https://search.nixos.org/options?show=services.logind.lidSwitchExternalPower
+  # https://search.nixos.org/options?show=services.logind.lidSwitch
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;

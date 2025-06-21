@@ -1,4 +1,4 @@
-[NO NAVIGATION]
+[NO NAVIGATION, manual enable & disable Chill/Experimental Mode]
 
 Driving Personality: Aggressive
 Show Map on Left Side of UI: Yes
