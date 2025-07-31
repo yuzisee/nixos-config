@@ -123,8 +123,11 @@
       # https://wiki.nixos.org/wiki/Chromium
       (ungoogled-chromium.override { enableWideVine = true; })
       # ungoogled-chromium
-      librewolf-wayland
-      firefox-wayland
+      librewolf
+      firefox
+      # librewolf-wayland
+      # firefox-wayland
+      # https://nixos.org/manual/nixos/stable/release-notes#sec-release-22.11-notable-changes
       rxvt-unicode
       gh
       # https://github.com/swaywm/sway/issues/8361
