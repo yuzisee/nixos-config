@@ -1,0 +1,13 @@
+## Hardware
+I only ever use between 50~75GB for the NixOS partition (mounted as XFS at `/nix`)
+The rest you could use (currently 280GB but we can easily delete some stuff) mounted as EXT4 at `/`)
+
+Device              Start        End    Sectors   Size Type
+/dev/nvme0n1p1       2048     534527     532480   260M EFI System
+/dev/nvme0n1p2     534528     567295      32768    16M Microsoft reserved
+/dev/nvme0n1p3     567296   42510335   41943040    20G Linux swap
+/dev/nvme0n1p4 1998360576 2000408575    2048000  1000M Windows recovery environment
+/dev/nvme0n1p5   42510336   44607487    2097152     1G EFI System
+/dev/nvme0n1p6   44607488  581478399  536870912   100G Linux filesystem
+/dev/nvme0n1p7  581478400 1998360575 1416882176 300+G Linux filesystem
+

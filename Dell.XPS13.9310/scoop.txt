@@ -1,0 +1,29 @@
+Waterfox
+librewolf
+vivaldi
+ungoogled-chromium
+min browser
+vlc
+
+** vscodium
+** lapce
+** blender?
+
+vim-tux(?)
+
+WinDirStat
+pdftk
+pdfsam
+
+tad (CSV viewer)
+sumatrapdf
+irfanview
+speedcrunch
+slack
+
+kdiff3
+Inkscape
+avidemux
+Audacity
+
+
