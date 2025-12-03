@@ -351,9 +351,9 @@ gesture swipe down 3 swaymsg -t command focus next
 
   # https://www.freedesktop.org/software/systemd/man/latest/systemd-sleep.conf.html#suspend-then-hibernate
   # https://www.freedesktop.org/software/systemd/man/latest/logind.conf.html
-  services.logind.lidSwitchExternalPower = "hybrid-sleep";
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "hybrid-sleep";
   # https://github.com/systemd/systemd/issues/25269
-  services.logind.lidSwitch = "suspend-then-hibernate";
+  services.logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
   # https://nixos.wiki/wiki/Power_Management
   # https://search.nixos.org/options?show=services.logind.lidSwitchExternalPower
   # https://search.nixos.org/options?show=services.logind.lidSwitch
