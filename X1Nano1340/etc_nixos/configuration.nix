@@ -85,7 +85,7 @@
       # https://github.com/NixOS/nixpkgs/blob/324404fe2c77aec2c7379e672b6081367b15e527/pkgs/top-level/all-packages.nix#L15761-L15763
       yt-dlp-light # excludes: atomicparsley ffmpeg-headless rtmpdump
       freetube
-      floorp
+      floorp-bin
       # Can't use python3Minimal because I need SSL for urllib I think? https://github.com/NixOS/nixpkgs/pull/66762#issuecomment-522463717
       python3 # urllib.error.URLError: <urlopen error unknown url type: https>
       brave # Needs: `brave --enable-features=TouchpadOverscrollHistoryNavigation`
