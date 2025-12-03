@@ -11,3 +11,38 @@ Device              Start        End    Sectors   Size Type
 /dev/nvme0n1p6   44607488  581478399  536870912   100G Linux filesystem
 /dev/nvme0n1p7  581478400 1998360575 1416882176 300+G Linux filesystem
 
+----
+
+Recovery steps
+
+```sh
+sudo mkdir -v /home/separate_copy
+sudo chown joseph:users /home/separate_copy
+cd
+mv -v Dropbox Movies Downloads /home/separate_copy
+mv -v .cache /tmp
+# [!NOTE]
+# You can probably skip `~/screenshots` too, I doubt we need those
+mkdir -v /path/to/ext4/location
+sudo chown joseph:users /path/to/ext4/location
+rsync -avAX ./ /path/to/ext4/location
+# This requires about 100MiB for Documents + ~2GiB of hidden files (900MiB for .mozilla + 400MiB for .librewolf) + 
+mv -v ~/separate_copy/Downloads/_complete /tmp
+mv -v ~/separate_copy/Movies/_complete/* /tmp
+mv -v ~/separate_copy/Downloads /path/to/backup/location (~60GiB, usually vfat)
+mv -v ~/separate_copy/Movies /path/to/backup/location (~5GiB, usually vfat)
+```
+
+Look out for:
+~/.nix-profile (symlink)
+
+Optionally restore:
+reboot.txt (symlink)
+
+Install latest NixOS from scratch
+* sudo mkdir -v /opt/nixos-config
+* sudo chown joseph:wheel /opt/nixos-config
+* cd /opt/nixos-config; git clone 'https://github.com/yuzisee/nixos-config.git' .; git config user.name 'Joseph Huang'; git config user.email 'yuzisee+github@gmail.com'
+* mkdir -v X1Nano1340_v3.etc_nixos
+* mkdir -v X1Nano1340_v3.home
+* sudo chown root:wheel X1Nano1340_v3.etc_nixos
