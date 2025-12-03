@@ -29,6 +29,14 @@
   # Set your time zone.
   time.timeZone = "America/Los_Angeles";
 
+  # https://unix.stackexchange.com/questions/379632/how-to-set-the-default-browser-in-nixos
+  # https://wiki.nixos.org/wiki/Default_applications
+  xdg.mime.defaultApplications = {
+    "text/html" = "librewolf.desktop";
+    "x-scheme-handler/http" = "librewolf.desktop";
+    "x-scheme-handler/https" = "librewolf.desktop";
+  };
+
   # CONFIGURE AUDIO [start]
 
   # OPTION (1 of 2): PulseAudio
@@ -80,6 +88,7 @@
       floorp
       # Can't use python3Minimal because I need SSL for urllib I think? https://github.com/NixOS/nixpkgs/pull/66762#issuecomment-522463717
       python3 # urllib.error.URLError: <urlopen error unknown url type: https>
+      brave # Needs: `brave --enable-features=TouchpadOverscrollHistoryNavigation`
       microsoft-edge
       libarchive # for bsdtar command (as long as allowUnfree is also enabled)
       pdfsam-basic

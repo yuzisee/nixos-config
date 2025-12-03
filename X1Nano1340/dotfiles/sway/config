@@ -103,7 +103,7 @@ input "type:keyboard" {
 # Basics:
 #
     # Start a terminal
-    bindsym $mod+Return exec $term
+    # bindsym $mod+Return exec $term
 
     # Kill focused window
     bindsym $mod+Shift+q kill
@@ -178,6 +178,10 @@ bindsym XF86NotificationCenter exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 100%'
 bindsym XF86HangupPhone workspace next_on_output
 # Okay, we're going with next_on_output because you could get stuck in a full-screen app that redirects all modifier keys (such as a crashed x2go), and in those cases your media keys may still work.
 
+# https://old.reddit.com/r/swaywm/comments/g7rs1n/how_to_remap_mouse_button/
+# https://github.com/swaywm/sway/issues/5333
+bindsym --whole-window BTN_EXTRA focus left
+bindsym --whole-window BTN_SIDE focus right
 #
 # Moving around:
 #
@@ -254,6 +258,8 @@ workspace_auto_back_and_forth yes
     # Wayland-native Firefox uses javscript to dynamically set its title. All windows start with "Mozilla Firefox" as the title when first spawned.
     for_window [app_id="^firefox$" title="^Mozilla Firefox$"] move to workspace number 2
     for_window [app_id="^firefox$" title="Mozilla Firefox Private Browsing$"] move to workspace number 4
+    for_window [app_id="^org.kde.kwalletd6$" title="KDE Wallet Service"] move to workspace number 4
+    assign [app_id="^brave-browser$"] workspace number 4
     assign [class="^FreeTube$"] workspace number 4
     # for_window [app_id="^floorp$"] move to workspace number 5
     assign [app_id="^floorp$"] workspace number 5
