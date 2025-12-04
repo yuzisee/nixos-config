@@ -1,0 +1,207 @@
+{ config, pkgs, ... }:
+
+{
+  # https://unix.stackexchange.com/questions/379632/how-to-set-the-default-browser-in-nixos
+  # https://wiki.nixos.org/wiki/Default_applications
+  xdg.mime.defaultApplications = {
+    "text/html" = "librewolf.desktop";
+    "x-scheme-handler/http" = "librewolf.desktop";
+    "x-scheme-handler/https" = "librewolf.desktop";
+  };
+
+  # CONFIGURE AUDIO [start]
+
+  # OPTION (1 of 2): PulseAudio
+
+  # sound.enable = true;
+  # hardware.pulseaudio.enable = true;
+
+  # OPTION (2 of 2): Pipewire
+
+  # Pipewire benefits from realtime priority access
+  # https://nixos.wiki/wiki/PipeWire
+  security.rtkit.enable = true;
+  # https://ld.reddit.com/r/linux4noobs/comments/43iden/what_is_rtkitdaemon_in_ubuntu_processes/
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+
+    # …presumably otherwise we only get 16-bit audio and 24-bit audio? (not sure)
+    alsa.support32Bit = true;
+
+    # Continue to provide things like `pactl`
+    # https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Config-PulseAudio
+    pulse.enable = true;
+  };
+
+  # CONFIGURE AUDIO [end]
+
+  # https://nixos.wiki/wiki/Bluetooth
+  hardware.bluetooth.enable = true; # enables support for Bluetooth
+  hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
+  # https://discourse.nixos.org/t/bluetooth-devices-via-a-gui/20599/2
+  services.blueman.enable = true;
+
+  # https://nixos.org/manual/nixos/stable/options.html#opt-services.auto-cpufreq.enable
+  # https://ld.reddit.com/r/linux/comments/zwar52/haha_suck_on_dat_windows_finally_got_idle_power/
+  # https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/hardware/tlp.nix
+  # https://www.linuxuprising.com/2020/01/auto-cpufreq-is-new-cpu-speed-and-power.html
+  services.auto-cpufreq.enable = true;
+  # https://github.com/AdnanHodzic/auto-cpufreq/blob/4cee388c1bbea3adc333b597717d5d8d12375705/README.md?plain=1#L86
+  services.thermald.enable = true;
+  # Enable automatic login for the user.
+  services.getty.autologinUser = "joseph";
+
+  # CONFIGURE TOUCHPAD [start]
+
+  # [REASONING]
+  #   we don't want it to start at startup, an certainly not without `-c` providing a custom /etc/libinput-gestures.conf
+  # [SOLVED]
+  #   at the time of writing this: running at startup without -c would add bindings for super+s and Alt+Right, Alt+Left, etc. which we don't want
+  # [SEE ALSO]
+  #   under `environment.etc` much further below we write out own etc/libinput-gestures.conf and we'll invoke it ourselves from ^X1Nano1340/dotfiles/sway/config using `libinput-gestures -c /etc/libinput-gestures.conf`
+
+  # https://nixos.org/manual/nixos/stable/options.html#opt-systemd.services._name_.enable
+  systemd.services.libinput-gestures.enable = false;
+
+      # https://ld.reddit.com/r/NixOS/comments/cxzku1/overlaypackageoverride_to_change_installphase/
+#
+# >>> sudo nix-env -qa libinput-gestures --json
+# {
+#   "nixos.libinput-gestures": {
+#     "name": "libinput-gestures-2.73",
+#     "pname": "libinput-gestures",
+#     "version": "2.73",
+#     "system": "x86_64-linux",
+#     "outputName": "out",
+#     "outputs": {
+#       "out": null
+#     }
+#   }
+# }
+        # https://github.com/NixOS/nixpkgs/blob/524b2a65251dad3018f168af2049f5a29b7d5da8/lib/strings.nix#L131
+        # https://github.com/NixOS/nixpkgs/blob/524b2a65251dad3018f168af2049f5a29b7d5da8/lib/strings.nix#L537
+        # https://nixos.org/manual/nix/stable/language/values.html
+        # https://github.com/NixOS/nixpkgs/blob/524b2a65251dad3018f168af2049f5a29b7d5da8/lib/lists.nix#L143
+  # [OBJECTIVE]
+  #   remove the "... libinput-gestures-setup -d ... line from pkgs.libinput-gestures.installPhase
+  # packageOverrides = pkgs: {
+#       libinput-gestures = pkgs.libinput-gestures.override { installPhase = builtins.concatStringsSep "\n" (builtins.filter (xstep: builtins.hasInfix " libinput-gestures-setup -d " xstep) (builtins.splitString "\n" pkgs.libinput-gestures.installPhase)); };
+        # https://github.com/ryantm/nixpkgs/blob/master/pkgs/tools/inputmethods/libinput-gestures/default.nix
+# https://stackoverflow.com/questions/58243712/how-to-install-systemd-service-on-nixos
+
+  environment.etc = {
+    # Creates /etc/libinput-gestures.conf
+    # Added extraGroups = [ "input" ]; to joseph above
+    "libinput-gestures.conf" = {
+      text = ''
+# https://github.com/bulletmark/libinput-gestures/blob/master/libinput-gestures.conf
+gesture swipe left 4 swaymsg -t command workspace prev_on_output
+gesture swipe left 3 swaymsg -t command workspace prev_on_output
+gesture swipe right 4 swaymsg -t command workspace next_on_output
+gesture swipe right 3 swaymsg -t command workspace next_on_output
+
+gesture swipe up 4 swaymsg -t command focus prev
+gesture swipe up 3 swaymsg -t command focus prev
+gesture swipe down 4 swaymsg -t command focus next
+gesture swipe down 3 swaymsg -t command focus next
+'';
+
+       # The UNIX file mode bits
+       mode = "0444";
+    };
+  };
+
+  # CONFIGURE TOUCHPAD [end]
+
+  nixpkgs.config.chromium = {
+    enableWideVine = true;
+  };
+  # https://github.com/NixOS/nixpkgs/issues/54723
+
+  # https://stackoverflow.com/questions/36000514/how-to-override-2-two-packages-in-nixos-configuration-nix
+
+  # https://github.com/NixOS/nixos-hardware/blob/556101ff85bd6e20900ec73ee525b935154bc8ea/common/gpu/intel/default.nix
+  # environment.variables = {
+    # VDPAU_DRIVER = lib.mkIf config.hardware.graphics.enable (lib.mkDefault "va_gl");
+    # https://amigotechnotes.wordpress.com/2022/07/20/enable-firefox-hardware-video-acceleration-on-ubuntu/
+    # MOZ_ENABLE_WAYLAND = "1";
+  # };
+  # https://github.com/intel/intel-hybrid-driver is discontinued
+  # nixpkgs.config.packageOverrides = pkgs: {
+    # # https://nixos.wiki/wiki/Accelerated_Video_Playback
+    # vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+  # };
+
+  # Additional hardware acceleration
+  # https://youtu.be/VuESAFgsOvg?t=612
+  # about:config
+  #  + media.ffmpeg.vaapi.enabled
+  #  + layers.acceleration.force-enabled
+  #  + gfx.webrender.all
+
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver # LIBVA_DRIVER_NAME=iHD
+      intel-vaapi-driver # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
+      libva-vdpau-driver
+      libvdpau-va-gl
+    ];
+  };
+  # How to test:
+  #  https://discourse.ubuntu.com/t/enabling-accelerated-video-decoding-in-firefox-on-ubuntu-21-04/22081
+  #  https://mastransky.wordpress.com/2021/01/10/firefox-were-finally-getting-hw-acceleration-on-linux/
+
+  # https://nixos.org/manual/nixos/stable/release-notes.html
+  # 23.05
+  #  The catch-all hardware.video.hidpi.enable option was removed. Users on high density displays may want to:
+  #  * Set services.xserver.upscaleDefaultCursor to upscale the default X11 cursor for higher resolutions
+  #  * Adjust settings under fonts.fontconfig according to preference
+  #  * Adjust console.font according to preference, though the kernel will generally choose a reasonably sized font
+  # https://github.com/NixOS/nixpkgs/issues/34603
+  # https://github.com/NixOS/nixpkgs/issues/57602
+  # services.xserver.dpi
+
+  # https://nixos.org/manual/nixos/stable/release-notes.html#sec-release-22.11-notable-changes
+  services.udisks2.enable = true;
+  # ^^^ If you want bashmount to autodetect /media/* folders instead of asking you for a mount point
+
+  # https://nixos.wiki/wiki/Scanners
+  hardware.sane.enable = true;
+
+  xdg.portal.wlr.enable = true;
+
+  # Needed because https://github.com/NixOS/nixpkgs/issues/350266
+  # programs.ladybird.enable = true;
+
+  programs.sway.enable = true;
+  # https://discourse.nixos.org/t/where-is-callpackage-defined-exactly-part-2/12524/6
+  # https://nixos.org/guides/nix-pills/callpackage-design-pattern.html
+  # environment.etc."sway/config".source = lib.mkForce (pkgs.callPackage ./etc_conf/build-sway-config.nix {pkgs.writeText});
+  # https://nixos.wiki/wiki/Sway
+  # Added extraGroups = [ "video" ]; to joseph above
+  programs.light.enable = true;
+
+  # https://nixos.wiki/wiki/Fonts
+  # https://ld.reddit.com/r/NixOS/comments/lf6de0/some_config_questions/gmlzirz/
+  # https://git.sr.ht/~cyplo/dotfiles/tree/83ddcc09dc68389b129d598722eca9e90a6dff33/item/nixos/i3/i3.nix
+  fonts.packages = with pkgs; [
+    powerline-fonts
+    font-awesome
+  ];
+
+  # List services that you want to enable:
+  services.upower.enable = true;
+  services.upower.criticalPowerAction = "Hibernate";
+
+  # https://www.freedesktop.org/software/systemd/man/latest/systemd-sleep.conf.html#suspend-then-hibernate
+  # https://www.freedesktop.org/software/systemd/man/latest/logind.conf.html
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "hybrid-sleep";
+  # https://github.com/systemd/systemd/issues/25269
+  services.logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
+  # https://nixos.wiki/wiki/Power_Management
+  # https://search.nixos.org/options?show=services.logind.lidSwitchExternalPower
+  # https://search.nixos.org/options?show=services.logind.lidSwitch
+
+}
