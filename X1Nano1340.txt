@@ -39,6 +39,13 @@ Look out for:
 Optionally restore:
 reboot.txt (symlink)
 
+---
+
+# Prerequisites
+- Update by downloading and running Ventoy2Disk.sh if you are on an old version of Ventoy prior to the SBAT key changes. If you are able to get in even with SecureBoot on (at least, to the MOK step) you are all good
+- The OEM shipped this machine on the 6.14 Linux kernel, so we'll choose the live USB environment that is closest to that.
+
+
 Install latest NixOS from scratch
 * sudo mkdir -v /opt/nixos-config
 * sudo chown joseph:wheel /opt/nixos-config
