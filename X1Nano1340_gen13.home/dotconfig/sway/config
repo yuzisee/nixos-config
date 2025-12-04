@@ -128,21 +128,6 @@ input "type:keyboard" {
 # PrtSc button
 bindsym Print exec shotman -c region
 
-# Brightness
-# `light -G` shows 0.005156 turns off the screen, whereas 0.005157 has it at basically the lowest brightness
-# Can't use `light -U` by itself, we could potentially try `light -N 0.005157` but this is simpler for now
-# bindsym XF86MonBrightnessUp exec light -U 10
-bindsym XF86MonBrightnessDown exec light -S 0.0664
-# It seems 0.0664 and 0.005157 have no discernable difference on the LEDs themselves
-# bindsym XF86MonBrightnessDown exec light -S 0.005157
-
-# bindsym XF86MonBrightnessUp exec light -A 50
-# bindsym XF86MonBrightnessUp exec light -T 1.5
-# Put us at roughly 37% on first press, and 100% at second press
-# This _feels_ like half of the brightness of the next
-bindsym XF86MonBrightnessUp exec 'light -A 15; light -T 2.5'
-bindsym XF86Favorites exec light -S 0
-
 # Volume (PULSEAUDIO)
 
 #bindsym XF86AudioRaiseVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ +7%'
@@ -160,22 +145,60 @@ bindsym XF86Favorites exec light -S 0
 # Volume (PIPEWIRE + WIREPLUMBER)
 # (NOTE https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/2973 if switching to pipewire... or consider https://old.reddit.com/r/linuxaudio/comments/ldgk5u/change_volume_command_in_pipewire/ instead)
 
+bindsym XF86AudioMute exec 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'
+
 bindsym XF86AudioRaiseVolume exec 'wpctl set-volume -l 1.52 @DEFAULT_AUDIO_SINK@ 7%+'
 #http://www.sengpielaudio.com/calculator-levelchange.htm says '1.52 times' or '1.23 times'
 bindsym XF86AudioLowerVolume exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 7%-'
 
 bindsym XF86AudioMicMute exec 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle'
-bindsym XF86AudioMute exec 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'
 
 bindsym XF86Messenger exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 100%'
 bindsym XF86NotificationCenter exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 100%'
+bindsym XF86Favorites exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 100%'
 # According to `wev` this was XF86Messenger before, and XF86NotificationCenter now.
 
 # NOTE: https://old.reddit.com/r/swaywm/comments/15460e5/should_i_use_amixer_or_pactl_to_control_the/
 
+# Brightness
+# `light -G` shows 0.005156 turns off the screen, whereas 0.005157 has it at basically the lowest brightness
+# Can't use `light -U` by itself, we could potentially try `light -N 0.005157` but this is simpler for now
+# bindsym XF86MonBrightnessUp exec light -U 10
+# bindsym XF86MonBrightnessDown exec light -S 0.0664
+bindsym XF86MonBrightnessDown exec light -S 0.25
+# It seems 0.0664 and 0.005157 have no discernable difference on the LEDs themselves
+# bindsym XF86MonBrightnessDown exec light -S 0.005157
+
+# bindsym XF86MonBrightnessUp exec light -A 50
+# bindsym XF86MonBrightnessUp exec light -T 1.5
+
+# Put us at roughly 37% on first press, and 100% at second press
+# This _feels_ like half of the brightness of the next
+# bindsym XF86MonBrightnessUp exec 'light -A 15; light -T 2.5'
+
+# This gives 12%, 40%, 100%
+bindsym XF86MonBrightnessUp exec 'light -A 5; light -T 2.33'
+
+bindsym XF86Display exec light -S 0
+# bindsym XF86Favorites exec light -S 0
+
+# NOTE: The Mode key might be an ACPI event instead.
+# `thinkpad_acpi: unhandled HKEY event 0x1402`
+
+
+# Print is keycode 99 in `showkey --keycodes`
+# XF86Assistant is key 201
+# XF86Display is key 235 in `wev` but 277 in `showkey --keycodes`
+# What is key 248? (it's 240 in `showkey --keycodes`)
+# XF86SelectiveScreenshot is key 642 in `wev` but 634 in `showkey --keycodes`
+# XF86Favorites is key code 156 in `showkey --keycodes`
+
 
 # TODO XF86PickupPhone and XF86HangupPhone maybe can be used as Back/Forward for web browsing?
-bindsym XF86HangupPhone workspace next_on_output
+# bindsym XF86HangupPhone workspace next_on_output
+bindsym XF86SelectiveScreenshot workspace prev_on_output
+bindcode 248 workspace next_on_output
+
 # Okay, we're going with next_on_output because you could get stuck in a full-screen app that redirects all modifier keys (such as a crashed x2go), and in those cases your media keys may still work.
 
 # https://old.reddit.com/r/swaywm/comments/g7rs1n/how_to_remap_mouse_button/

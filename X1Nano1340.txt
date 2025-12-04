@@ -73,3 +73,5 @@ Install latest NixOS from scratch
 * mkdir -v X1Nano1340_v3.etc_nixos
 * mkdir -v X1Nano1340_v3.home
 * sudo chown root:wheel X1Nano1340_v3.etc_nixos
+
+BE **VERY** CAREFUL with maestral, if you do it wrong you'll delete all your files!!!!!!
