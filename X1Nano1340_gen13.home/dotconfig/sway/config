@@ -1,0 +1,385 @@
+# Default config for sway
+#
+# Copy this to ~/.config/sway/config and edit it to your liking.
+#
+# Read `man 5 sway` for a complete reference.
+
+# NOTE
+# https://stackoverflow.com/questions/39713096/nix-can-an-installed-package-set-a-user-environment-variable
+# https://discourse.nixos.org/t/defining-environment-variables-declaratively/9039/6
+# https://github.com/NixOS/nixpkgs/blob/nixos-22.05/nixos/modules/config/system-environment.nix
+# https://github.com/NixOS/nixpkgs/blob/nixos-22.05/nixos/modules/config/shells-environment.nix
+# https://askubuntu.com/questions/866161/setting-path-variable-in-etc-environment-vs-profile
+# https://gist.github.com/themattchan/55d21a524955111913afd7e1e22ce811
+# https://nixos.wiki/wiki/Environment_variables
+# https://www.mankier.com/1/sway
+# https://ld.reddit.com/r/swaywm/comments/qq74gv/how_do_i_set_correctly_the_cursor_theme/
+# Somehow we have to set XCURSOR_SIZE most likely through ~/.profile
+
+### Variables
+#
+# Logo key. Use Mod1 for Alt.
+set $mod Mod4
+# Home row direction keys, like vim
+set $left h
+set $down j
+set $up k
+set $right l
+# Your preferred terminal emulator
+set $term urxvt
+# Your preferred application launcher
+# Note: pass the final command to swaymsg so that the resulting window can be opened
+# on the original workspace that the command was run on.
+set $menu dmenu_path | dmenu | xargs swaymsg exec --
+
+set $container_next_or_create swaymsg -p -t get_workspaces | sed -n -e 's/Workspace \(.*\) (focused)/\1/p' | awk '{ print $1 + 1 }' | xargs -I @ swaymsg -t command move container to workspace @\; workspace next
+
+### Output configuration
+#
+# Default wallpaper (more resolutions are available in /run/current-system/sw/share/backgrounds/sway/)
+
+# >>> man sway-output
+# stretch skews the aspect ratio
+# center doesn't help with sizing
+# fill makes it so the full background is covered (but for a keyboard cheat sheet, that means we won't be able to see it all)
+# either tile or fit is what we want, I think
+# output * bg /home/joseph/Desktop/keyboard-layer1.png fill
+output * bg /home/joseph/Desktop/keyboard-layer1.png fit
+output eDP-1 scale 1
+
+#
+# Example configuration:
+#
+#   output HDMI-A-1 resolution 1920x1080 position 1920,0
+#
+# You can get the names of your outputs by running: swaymsg -t get_outputs
+
+### Idle configuration
+#
+# Example configuration:
+#
+# exec swayidle -w \
+#          timeout 300 'swaylock -f -c 000000' \
+#          timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
+#          before-sleep 'swaylock -f -c 000000'
+#
+# This will lock your screen after 300 seconds of inactivity, then turn off
+# your displays after another 300 seconds, and turn your screens back on when
+# resumed. It will also lock your screen before your computer goes to sleep.
+
+
+# https://github.com/swaywm/sway/issues/5499
+# https://wiki.archlinux.org/title/sway#Change_cursor_theme_and_size
+# seat seat0 xcursor_theme default 96
+#  ^ STILL DOESN'T INCREASE CURSOR SIZE
+
+### Input configuration
+#
+# Example configuration:
+#
+#   input "2:14:SynPS/2_Synaptics_TouchPad" {
+#       dwt enabled
+#       tap enabled
+#       natural_scroll enabled
+#       middle_emulation enabled
+#   }
+
+# https://man.archlinux.org/man/sway-input.5.en
+# https://www.mankier.com/5/sway-input
+input "1267:12624:ELAN0670:00_04F3:3150_Touchpad" {
+  click_method none
+}
+
+
+# https://unix.stackexchange.com/questions/504698/caps-lock-behavior-under-sway-wayland
+input "type:keyboard" {
+    xkb_options caps:ctrl_modifier
+}
+# You can get the names of your inputs by running: swaymsg -t get_inputs
+# Read `man 5 sway-input` for more information about this section.
+
+### Key bindings
+#
+# Basics:
+#
+    # Start a terminal
+    # bindsym $mod+Return exec $term
+
+    # Kill focused window
+    bindsym $mod+Shift+q kill
+
+    # Start your launcher
+    bindsym $mod+d exec $menu
+
+    # Drag floating windows by holding down $mod and left mouse button.
+    # Resize them with right mouse button + $mod.
+    # Despite the name, also works for non-floating windows.
+    # Change normal to inverse to use left mouse button for resizing and right
+    # mouse button for dragging.
+    floating_modifier $mod normal
+
+    # Reload the configuration file
+    bindsym $mod+Shift+c reload
+
+    # Exit sway (logs you out of your Wayland session)
+    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit' -s '╳'
+    # https://en.wikipedia.org/wiki/X_mark
+
+# PrtSc button
+bindsym Print exec shotman -c region
+
+# Brightness
+# `light -G` shows 0.005156 turns off the screen, whereas 0.005157 has it at basically the lowest brightness
+# Can't use `light -U` by itself, we could potentially try `light -N 0.005157` but this is simpler for now
+# bindsym XF86MonBrightnessUp exec light -U 10
+bindsym XF86MonBrightnessDown exec light -S 0.0664
+# It seems 0.0664 and 0.005157 have no discernable difference on the LEDs themselves
+# bindsym XF86MonBrightnessDown exec light -S 0.005157
+
+# bindsym XF86MonBrightnessUp exec light -A 50
+# bindsym XF86MonBrightnessUp exec light -T 1.5
+# Put us at roughly 37% on first press, and 100% at second press
+# This _feels_ like half of the brightness of the next
+bindsym XF86MonBrightnessUp exec 'light -A 15; light -T 2.5'
+bindsym XF86Favorites exec light -S 0
+
+# Volume (PULSEAUDIO)
+
+#bindsym XF86AudioRaiseVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ +7%'
+#bindsym XF86AudioLowerVolume exec 'pactl set-sink-volume @DEFAULT_SINK@ -7%'
+
+# bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
+# wev says there is now XF86AudioMute and XF86AudioMicMute
+#bindsym XF86AudioMicMute exec 'pactl set-source-mute @DEFAULT_SOURCE@ toggle'
+#bindsym XF86AudioMute exec 'pactl set-sink-mute @DEFAULT_SINK@ toggle'
+
+# bindsym XF86NotificationCenter exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
+# wev says this is now called XF86Messenger
+#bindsym XF86Messenger exec 'pactl set-sink-volume @DEFAULT_SINK@ 100%'
+
+# Volume (PIPEWIRE + WIREPLUMBER)
+# (NOTE https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/2973 if switching to pipewire... or consider https://old.reddit.com/r/linuxaudio/comments/ldgk5u/change_volume_command_in_pipewire/ instead)
+
+bindsym XF86AudioRaiseVolume exec 'wpctl set-volume -l 1.52 @DEFAULT_AUDIO_SINK@ 7%+'
+#http://www.sengpielaudio.com/calculator-levelchange.htm says '1.52 times' or '1.23 times'
+bindsym XF86AudioLowerVolume exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 7%-'
+
+bindsym XF86AudioMicMute exec 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle'
+bindsym XF86AudioMute exec 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'
+
+bindsym XF86Messenger exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 100%'
+bindsym XF86NotificationCenter exec 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 100%'
+# According to `wev` this was XF86Messenger before, and XF86NotificationCenter now.
+
+# NOTE: https://old.reddit.com/r/swaywm/comments/15460e5/should_i_use_amixer_or_pactl_to_control_the/
+
+
+# TODO XF86PickupPhone and XF86HangupPhone maybe can be used as Back/Forward for web browsing?
+bindsym XF86HangupPhone workspace next_on_output
+# Okay, we're going with next_on_output because you could get stuck in a full-screen app that redirects all modifier keys (such as a crashed x2go), and in those cases your media keys may still work.
+
+# https://old.reddit.com/r/swaywm/comments/g7rs1n/how_to_remap_mouse_button/
+# https://github.com/swaywm/sway/issues/5333
+bindsym --whole-window BTN_EXTRA focus left
+bindsym --whole-window BTN_SIDE focus right
+#
+# Moving around:
+#
+    # Move your focus around
+    bindsym $mod+$left focus left
+    bindsym $mod+$down focus down
+    bindsym $mod+$up focus up
+    bindsym $mod+$right focus right
+    # Or use $mod+[up|down|left|right]
+    #bindsym $mod+Left focus left
+    #bindsym $mod+Down focus down
+    #bindsym $mod+Up focus up
+    #bindsym $mod+Right focus right
+
+    bindsym $mod+Up focus child
+    bindsym $mod+Down focus parent
+    bindsym $mod+Left workspace prev
+    bindsym $mod+Right workspace next
+    #bindsym $mod+Left workspace prev_on_output
+    #bindsym $mod+Right workspace next_on_output
+
+    # Move the focused window with the same, but add Shift
+    bindsym $mod+Shift+$left move left
+    bindsym $mod+Shift+$down move down
+    bindsym $mod+Shift+$up move up
+    bindsym $mod+Shift+$right move right
+    # Ditto, with arrow keys
+    #bindsym $mod+Shift+Left move left
+    #bindsym $mod+Shift+Down move down
+    #bindsym $mod+Shift+Up move up
+    #bindsym $mod+Shift+Right move right
+
+    bindsym $mod+Shift+Left move container to workspace prev; workspace prev
+    bindsym $mod+Shift+Right exec $container_next_or_create
+    #bindsym $mod+Shift+Left move container to workspace prev_on_output
+    #bindsym $mod+Shift+Right move container to workspace next_on_output
+
+# https://i3wm.org/docs/userguide.html#workspace_auto_back_and_forth
+workspace_auto_back_and_forth yes
+
+#
+# Workspaces:
+#
+    # Switch to workspace
+    bindsym $mod+1 workspace number 1
+    bindsym $mod+2 workspace number 2
+    bindsym $mod+3 workspace number 3
+    bindsym $mod+4 workspace number 4
+    bindsym $mod+5 workspace number 5
+    bindsym $mod+6 workspace number 6
+    bindsym $mod+7 workspace number 7
+    bindsym $mod+8 workspace number 8
+    bindsym $mod+9 workspace number 9
+    bindsym $mod+0 workspace number 10
+    # Move focused container to workspace
+    bindsym $mod+Shift+1 move container to workspace number 1
+    bindsym $mod+Shift+2 move container to workspace number 2
+    bindsym $mod+Shift+3 move container to workspace number 3
+    bindsym $mod+Shift+4 move container to workspace number 4
+    bindsym $mod+Shift+5 move container to workspace number 5
+    bindsym $mod+Shift+6 move container to workspace number 6
+    bindsym $mod+Shift+7 move container to workspace number 7
+    bindsym $mod+Shift+8 move container to workspace number 8
+    bindsym $mod+Shift+9 move container to workspace number 9
+    bindsym $mod+Shift+0 move container to workspace number 10
+    # Note: workspaces can have any name you want, not just numbers.
+    # We just use 1-10 as the default.
+
+    # https://i3wm.org/docs/userguide.html#list_of_commands
+    assign [class="^URxvt$"] workspace number 1
+    assign [app_id="^foot$"] workspace number 1
+    assign [app_id="^.blueman-manager-wrapped"] workspace number 1
+    # assign [app_id="^firefox$"] workspace number 2
+    # Wayland-native Firefox uses javscript to dynamically set its title. All windows start with "Mozilla Firefox" as the title when first spawned.
+    for_window [app_id="^firefox$" title="^Mozilla Firefox$"] move to workspace number 2
+    for_window [app_id="^firefox$" title="Mozilla Firefox Private Browsing$"] move to workspace number 4
+    for_window [app_id="^org.kde.kwalletd6$" title="KDE Wallet Service"] move to workspace number 4
+    assign [app_id="^brave-browser$"] workspace number 4
+    assign [class="^FreeTube$"] workspace number 4
+    # for_window [app_id="^floorp$"] move to workspace number 5
+    assign [app_id="^floorp$"] workspace number 5
+    assign [app_id="^librewolf$"] workspace number 3
+    assign [app_id="^doublecmd$"] workspace number 5
+    assign [class="(?i)^Chromium-browser$"] workspace number 5
+    assign [class="(?i)^Microsoft-edge$"] workspace number 5
+    assign [class="Nxplayer\.bin"] workspace number 5
+    assign [class="^Pale moon$"] workspace number 6
+    assign [app_id="org.remmina.Remmina"] workspace number 5
+    assign [app_id="^org\.gnome\.Epiphany$"] workspace number 6
+    assign [app_id="^org\.qutebrowser\.qutebrowser$"] workspace number 6
+    assign [app_id="^midori$"] workspace number 6
+    assign [app_id="^org\.kde\.konqueror$"] workspace number 6
+    # swaymsg -t get_tree | grep -e '"app_id"' -e '"class"' -e window_role
+    # https://ld.reddit.com/r/swaywm/comments/czyiu9/automatically_launch_applications_on_specific/
+    exec mako
+    exec libinput-gestures -c /etc/libinput-gestures.conf
+    exec firefox
+    exec urxvt
+    exec foot
+    exec maestral start
+    # https://github.com/blueman-project/blueman/issues/949
+    exec blueman-applet
+    # Espanso waiting for https://github.com/NixOS/nixpkgs/pull/208949
+    # exec espanso daemon
+
+#
+# Layout stuff:
+#
+    # You can "split" the current object of your focus with
+    # $mod+b or $mod+v, for horizontal and vertical splits
+    # respectively.
+    bindsym $mod+b splith
+    # AHA: If you choose hjkl for directions, then splith becomes b instead of h
+    bindsym $mod+v splitv
+
+    # Switch the current container between different layout styles
+    bindsym $mod+s layout stacking
+    bindsym $mod+w layout tabbed
+    bindsym $mod+e layout toggle split
+
+    # Make the current focus fullscreen
+    bindsym $mod+f fullscreen
+
+    # Toggle the current focus between tiling and floating mode
+    bindsym $mod+Shift+space floating toggle
+
+    # Swap focus between the tiling area and the floating area
+    bindsym $mod+space focus mode_toggle
+
+    # Move focus to the parent container
+    bindsym $mod+a focus parent
+#
+# Scratchpad:
+#
+    # Sway has a "scratchpad", which is a bag of holding for windows.
+    # You can send windows there and get them back later.
+
+    # Move the currently focused window to the scratchpad
+    bindsym $mod+Shift+minus move scratchpad
+
+    # Show the next scratchpad window or hide the focused scratchpad window.
+    # If there are multiple scratchpad windows, this command cycles through them.
+    bindsym $mod+minus scratchpad show
+#
+# Resizing containers:
+#
+mode "resize" {
+    # left will shrink the containers width
+    # right will grow the containers width
+    # up will shrink the containers height
+    # down will grow the containers height
+    bindsym $left resize shrink width 10px
+    bindsym $down resize grow height 10px
+    bindsym $up resize shrink height 10px
+    bindsym $right resize grow width 10px
+
+    # Ditto, with arrow keys
+    bindsym Left resize shrink width 10px
+    bindsym Down resize grow height 10px
+    bindsym Up resize shrink height 10px
+    bindsym Right resize grow width 10px
+
+    # Return to default mode
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+    # ^ NOTE: it seems like [Esc] leaves "resize mode"
+}
+bindsym $mod+r mode "resize"
+
+#
+# Status Bar:
+#
+# Read `man 5 sway-bar` for more information about this section.
+bar {
+    position top
+
+    # When the status_command prints a new line to stdout, swaybar updates.
+    # The default just shows the current date and time.
+    #status_command while date +'%Y-%m-%d %I:%M:%S %p'; do sleep 1; done
+    status_command /etc/profiles/per-user/joseph/bin/i3status-rs /home/joseph/.config/i3status-rust/config.toml
+    # https://raw.githubusercontent.com/greshake/i3status-rust/master/examples/config.toml
+    # https://nixos.org/manual/nix/stable/package-management/profiles.html
+    font pango:DejaVu Sans Mono, Font Awesome 6 Free 12
+
+    colors {
+        statusline #ffffff
+        background #323232
+        inactive_workspace #32323200 #32323200 #5c5c5c
+        # background #222222
+        # statusline #dddddd
+        # inactive_workspace #333333 #333333 #888888
+        # https://github.com/greshake/i3status-rust
+        focused_workspace #0088CC #0088CC #ffffff
+        active_workspace #333333 #333333 #ffffff
+        urgent_workspace #2f343a #900000 #ffffff
+
+        separator #666666
+    }
+}
+
+include /etc/sway/config.d/*
