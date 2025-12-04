@@ -11,6 +11,17 @@ Device              Start        End    Sectors   Size Type
 /dev/nvme0n1p6   44607488  581478399  536870912   100G Linux filesystem
 /dev/nvme0n1p7  581478400 1998360575 1416882176 300+G Linux filesystem
 
+### Verdict
+
+**Resize 1**
+We'll use 799557MiB EXT4 for the main partition.
+We'll keep the rest (~160GiB) as XFS mounted to /nix
+
+**Resize 2**
+Then, take down to 798533MiB
+leaving 1024 MiB as /boot (FAT32)
+
+
 ----
 
 Recovery steps
