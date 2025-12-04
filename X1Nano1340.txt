@@ -59,6 +59,13 @@ reboot.txt (symlink)
   - https://github.com/NixOS/nixpkgs/issues/255643
   - https://github.com/NixOS/nixpkgs/issues/42127
 
+## Basic things you'll probably figure out
+nmtui connects to the internet
+gh is the easiest git authentication (you'll also need git)
+I added vim-full for convenience.
+
+### READY!
+
 Install latest NixOS from scratch
 * sudo mkdir -v /opt/nixos-config
 * sudo chown joseph:wheel /opt/nixos-config
