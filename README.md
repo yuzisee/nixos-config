@@ -65,6 +65,7 @@ nix-store --optimize
 
 # System is good, delete old generations
 sudo nix-collect-garbage -d
+sudo nix-env --delete-generations --profile /nix/var/nix/profiles/system 14d # https://wiki.nixos.org/wiki/Bootloader
 # https://old.reddit.com/r/NixOS/comments/10107km/how_to_delete_old_generations_on_nixos/
 sudo nixos-rebuild boot
 

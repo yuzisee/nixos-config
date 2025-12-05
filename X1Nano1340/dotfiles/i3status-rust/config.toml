@@ -11,14 +11,24 @@ icons = "awesome5"
 
 [[block]]
 block = "disk_space"
-path = "/opt"
+path = "/boot"
 info_type = "available"
-format = "♬$available.eng(prefix:G)"
-# format = "(not GiB) $icon$available.eng(prefix:G)"
-# format = "$icon total = $total.eng(prefix:G) available = $available.eng(prefix:G) free = $free.eng(prefix:G) used = $used.eng(prefix:G)"
+# format = "⏻$percentage"
+# https://greshake.github.io/i3status-rust/i3status_rs/formatting/index.html
+# https://greshake.github.io/i3status-rust/i3status_rs/formatting/prefix/enum.Prefix.html
+format = "⏻$available.eng(prefix:Mi)"
 [[block.click]]
 button = 'left'
 cmd = 'swaynag --type warning --message "GB, not GiB" --background "#268bd2" --button-background "#ffffff" --border "#000000" --border-bottom-size 0'
+
+[[block]]
+block = "disk_space"
+path = "/opt"
+info_type = "available"
+format = "♬$available.eng(prefix:G)"
+# format = "$icon total = $total.eng(prefix:G) available = $available.eng(prefix:G) free = $free.eng(prefix:G) used = $used.eng(prefix:G)"
+[[block.click]]
+button = 'left'
 # ♫♬
 
 [[block]]
