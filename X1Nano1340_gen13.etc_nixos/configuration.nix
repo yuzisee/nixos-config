@@ -9,6 +9,7 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./post-bringup.nix
+      ./my-flatpak-apps.nix
     ];
 
   # Bootloader.

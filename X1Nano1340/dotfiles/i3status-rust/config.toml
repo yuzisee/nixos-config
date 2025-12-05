@@ -10,6 +10,20 @@ icons = "awesome5"
 # https://github.com/greshake/i3status-rust/blob/a5d58997a7f40d92fffe032ea4ef697f8f1c8380/NEWS.md#i3status-rust-0300
 
 [[block]]
+block = "menu"
+text = "\u229eFlathub ↗"
+#text = "&plusb;\u2756Flathub"
+# ↗ (U+2197)
+# ⧉ (U+29C9
+# ⊞ ❖
+[[block.items]]
+# display = "\u25ce Zen Browser"
+display = "Zen Browser \u229a"
+#display = " -&gt;   Zen Browser   &lt;-"
+# ⊚ (U+229A,
+cmd = "flatpak run app.zen_browser.zen"
+
+[[block]]
 block = "disk_space"
 path = "/boot"
 info_type = "available"
