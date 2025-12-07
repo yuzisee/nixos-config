@@ -90,10 +90,18 @@ input "1267:12624:ELAN0670:00_04F3:3150_Touchpad" {
   click_method none
 }
 
-
+# sudo nix-build --no-out-link "<nixpkgs>" -A xkeyboard_config
+# /nix/store/mj6cxxrsx42afgiwd1jan5z68lx8kkg5-xkeyboard-config-2.46
+# /nix/store/mj6cxxrsx42afgiwd1jan5z68lx8kkg5-xkeyboard-config-2.46/share/X11/xkb/keycodes/evdev 
+# https://josiahkeeler.github.io/Custom-Keyboard-Layouts-with-XKB/
+# https://codeaffen.org/2023/09/16/custom-keyboard-layouts-with-xkb/
 # https://unix.stackexchange.com/questions/504698/caps-lock-behavior-under-sway-wayland
+#  /nix/store/mj6cxxrsx42afgiwd1jan5z68lx8kkg5-xkeyboard-config-2.46/share/X11/xkb/symbols/us
+#  /nix/store/mj6cxxrsx42afgiwd1jan5z68lx8kkg5-xkeyboard-config-2.46/share/X11/xkb/symbols/pc
 input "type:keyboard" {
     xkb_options caps:ctrl_modifier
+    # xkb_layout "us"
+    # xkb_variant "extra_ctrl_assistant_and_caps"
 }
 # You can get the names of your inputs by running: swaymsg -t get_inputs
 # Read `man 5 sway-input` for more information about this section.
@@ -177,7 +185,9 @@ bindsym XF86MonBrightnessDown exec light -S 0.25
 # bindsym XF86MonBrightnessUp exec 'light -A 15; light -T 2.5'
 
 # This gives 12%, 40%, 100%
-bindsym XF86MonBrightnessUp exec 'light -A 5; light -T 2.33'
+# bindsym XF86MonBrightnessUp exec 'light -A 5; light -T 2.33'
+
+bindsym XF86MonBrightnessUp exec light -T 2
 
 bindsym XF86Display exec light -S 0
 # bindsym XF86Favorites exec light -S 0
@@ -187,7 +197,7 @@ bindsym XF86Display exec light -S 0
 
 
 # Print is keycode 99 in `showkey --keycodes`
-# XF86Assistant is key 201
+# XF86Assistant is key 201 (or... ALL THREE OF 193, 42, 125, in showkey?)
 # XF86Display is key 235 in `wev` but 277 in `showkey --keycodes`
 # What is key 248? (it's 240 in `showkey --keycodes`)
 # XF86SelectiveScreenshot is key 642 in `wev` but 634 in `showkey --keycodes`

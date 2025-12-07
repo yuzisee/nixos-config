@@ -60,7 +60,7 @@
       microsoft-edge
       libarchive # for bsdtar command (as long as allowUnfree is also enabled)
       pdfsam-basic
-      # ffmpeg-headless
+      ffmpeg-headless
       inkscape
       # gmailctl
       kdiff3

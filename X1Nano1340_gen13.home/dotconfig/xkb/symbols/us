@@ -1,0 +1,10 @@
+partial modifier_keys
+xkb_symbols "extra_ctrl_assistant_and_caps" {
+    include "us(basic)"
+    
+    key <FK23> { [ Control_R ] };
+    modifier_map Control { <FK23> };
+
+    key <CAPS> { [ Control_L ] };
+    modifier_map Control { <CAPS> };
+};
