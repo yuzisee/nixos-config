@@ -67,6 +67,7 @@
       # https://ld.reddit.com/r/NixOS/comments/cxzku1/overlaypackageoverride_to_change_installphase/
 #
 # >>> sudo nix-env -qa libinput-gestures --json
+       mode = "0444";
 # {
 #   "nixos.libinput-gestures": {
 #     "name": "libinput-gestures-2.73",
@@ -108,6 +109,28 @@ gesture swipe down 3 swaymsg -t command focus next
 '';
 
        # The UNIX file mode bits
+       mode = "0444";
+    };
+    "xkb/symbols/x1nanogen13" = {
+      text = ''
+partial modifier_keys
+xkb_symbols "multi_ctrl" {
+    key <FK23> { [ Control_R ] };
+    modifier_map Control { <FK23> };
+
+    key <CAPS> { [ Control_L ] };
+    modifier_map Control { <CAPS> };
+};
+''
+       mode = "0444";
+    };
+    "xkb/rules/evdev" = {
+      text = ''
+      ! include %S/evdev
+
+      ! option = symbols
+        custom:assistant_to_ctrl = +x1nanogen13(multi_ctrl)
+''
        mode = "0444";
     };
   };
@@ -197,7 +220,10 @@ gesture swipe down 3 swaymsg -t command focus next
 
   # https://www.freedesktop.org/software/systemd/man/latest/systemd-sleep.conf.html#suspend-then-hibernate
   # https://www.freedesktop.org/software/systemd/man/latest/logind.conf.html
-  services.logind.settings.Login.HandleLidSwitchExternalPower = "hybrid-sleep";
+  # services.logind.settings.Login.HandleLidSwitchExternalPower = "hybrid-sleep";
+  # ^^^ Ahhhh I'm startin gto suspect that `hybrid-sleep` in a recent kernel causes both the touchpad & Wi-Fi to break upon wake...
+  # so let's just `suspend` for now
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "suspend";
   # https://github.com/systemd/systemd/issues/25269
   services.logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
   # https://nixos.wiki/wiki/Power_Management

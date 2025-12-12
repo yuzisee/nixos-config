@@ -21,6 +21,12 @@ We'll keep the rest (~160GiB) as XFS mounted to /nix
 Then, take down to 798533MiB
 leaving 1024 MiB as /boot (FAT32)
 
+HOWEVER, you probably want swap if you want hibernate:
+* https://discourse.nixos.org/t/how-can-i-see-if-my-system-is-using-my-swap-partition/47803
+* https://nixos.wiki/wiki/Hibernation
+
+but there have been issues where the Wi-Fi and touchpad don't turn back on after... (suspend? hybrid-sleep? hibernate?)
+
 
 ----
 

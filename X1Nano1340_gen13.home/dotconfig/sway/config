@@ -86,9 +86,16 @@ output eDP-1 scale 1
 
 # https://man.archlinux.org/man/sway-input.5.en
 # https://www.mankier.com/5/sway-input
-input "1267:12624:ELAN0670:00_04F3:3150_Touchpad" {
-  click_method none
+# swaymsg -t get_inputs
+input "1149:32982:Kensington_SlimBlade_Pro(2.4GHz_Receiver)_Kensington_SlimBlade_Pro_Trackball(2.4GHz_Receiver)" {
+  pointer_accel -0.98
+  scroll_factor 1.4
+  natural_scroll enabled
+  left_handed true
 }
+# input "1267:12624:ELAN0670:00_04F3:3150_Touchpad" {
+#   click_method none
+# }
 
 # sudo nix-build --no-out-link "<nixpkgs>" -A xkeyboard_config
 # /nix/store/mj6cxxrsx42afgiwd1jan5z68lx8kkg5-xkeyboard-config-2.46
@@ -99,8 +106,9 @@ input "1267:12624:ELAN0670:00_04F3:3150_Touchpad" {
 #  /nix/store/mj6cxxrsx42afgiwd1jan5z68lx8kkg5-xkeyboard-config-2.46/share/X11/xkb/symbols/us
 #  /nix/store/mj6cxxrsx42afgiwd1jan5z68lx8kkg5-xkeyboard-config-2.46/share/X11/xkb/symbols/pc
 input "type:keyboard" {
-    xkb_options caps:ctrl_modifier
-    # xkb_layout "us"
+    # xkb_options "caps:ctrl_modifier"
+    xkb_options "custom:assistant_to_ctrl"
+    xkb_layout "us"
     # xkb_variant "extra_ctrl_assistant_and_caps"
 }
 # You can get the names of your inputs by running: swaymsg -t get_inputs
@@ -399,6 +407,9 @@ bar {
     # https://raw.githubusercontent.com/greshake/i3status-rust/master/examples/config.toml
     # https://nixos.org/manual/nix/stable/package-management/profiles.html
     font pango:DejaVu Sans Mono, Font Awesome 6 Free 12
+
+    bindsym button4 workspace next
+    bindsym button5 workspace prev
 
     colors {
         statusline #ffffff
