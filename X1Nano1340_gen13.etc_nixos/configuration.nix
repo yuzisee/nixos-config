@@ -127,6 +127,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    adwaita-icon-theme # for Sway to resize cursors, the icon files must be accessible to the Sway process
     wl-clipboard # for `wl-copy` and `wl-paste` etc.
     # cifs-utils
     samba # Doesn't provide libsmbclient for doublecmd to use, but these work: smbclient --list 192.168.10.110 && smbclient //192.168.10.110/joseph (and then: cd "Public/Drop Box")

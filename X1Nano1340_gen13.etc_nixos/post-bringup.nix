@@ -67,7 +67,6 @@
       # https://ld.reddit.com/r/NixOS/comments/cxzku1/overlaypackageoverride_to_change_installphase/
 #
 # >>> sudo nix-env -qa libinput-gestures --json
-       mode = "0444";
 # {
 #   "nixos.libinput-gestures": {
 #     "name": "libinput-gestures-2.73",
@@ -121,16 +120,16 @@ xkb_symbols "multi_ctrl" {
     key <CAPS> { [ Control_L ] };
     modifier_map Control { <CAPS> };
 };
-''
+'';
        mode = "0444";
     };
     "xkb/rules/evdev" = {
       text = ''
-      ! include %S/evdev
+! include %S/evdev
 
-      ! option = symbols
-        custom:assistant_to_ctrl = +x1nanogen13(multi_ctrl)
-''
+! option = symbols
+  custom:assistant_to_ctrl = +x1nanogen13(multi_ctrl)
+'';
        mode = "0444";
     };
   };
