@@ -78,10 +78,9 @@
       # kdePackages.falkon
       # servo
       # midori
-      # ladybird # Executable is 'Ladybird'
+      # ladybird # Executable is 'Ladybird' (as of Dec 2025, it's still very very slow at Javascript)
       # qutebrowser # This is the "vim-like" one with keyboard navigation
-      # Wayland epiphany has some serious memory leaks (like 7GiB+), it's essentially unusuable
-      epiphany
+      epiphany # Wayland epiphany has some serious memory leaks (like 7GiB+), it's essentially unusuable
       doublecmd
       scid-vs-pc
       mupdf
