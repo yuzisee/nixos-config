@@ -17,11 +17,21 @@ text = "\u229eFlathub ↗"
 # ⧉ (U+29C9
 # ⊞ ❖
 [[block.items]]
-# display = "\u25ce Zen Browser"
 display = "Zen Browser \u229a"
-#display = " -&gt;   Zen Browser   &lt;-"
-# ⊚ (U+229A,
 cmd = "flatpak run app.zen_browser.zen"
+# display = "\u25ce Zen Browser"
+# ⊚ U+229A,
+#display = " -&gt;   Zen Browser   &lt;-"
+[[block.items]]
+display = "Epiphany (OOM friendly) \u15e2"
+# ☸ U+2638
+# ᗢ U+15E2
+cmd = "sh /home/joseph/quicklaunch/epiphany_oom_friendly.sh"
+[[block.items]]
+display = "Librewolf (OOM friendly) \u2446"
+cmd = "sh /home/joseph/quicklaunch/librewolf_oom_friendly.sh"
+# ⑆ U+2446
+# ▶ U+25B6
 
 [[block]]
 block = "disk_space"

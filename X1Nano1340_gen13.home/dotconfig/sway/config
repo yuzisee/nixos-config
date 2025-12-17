@@ -195,7 +195,8 @@ bindsym XF86Display exec '(test $(light -G) = 0.25 && light -S 0) || (test $(lig
 # The `XF86Display → XF86MonBrightnessUp` combination provides `light -S 2.0`
 # The `XF86Display → XF86Display → XF86MonBrightnessUp` combination provides `light -S 1.0`
 bindsym XF86MonBrightnessUp exec light -T 4
-bindsym XF86MonBrightnessDown exec light -U 3
+# bindsym XF86MonBrightnessDown exec light -U 3
+bindsym XF86MonBrightnessDown exec 'test $(light -G | tr '.' '0') -gt 20000 && light -T 0.33 || light -U 3'
 
 # bindsym XF86Favorites exec light -S 0
 
@@ -406,6 +407,8 @@ bar {
     # https://nixos.org/manual/nix/stable/package-management/profiles.html
     font pango:DejaVu Sans Mono, Font Awesome 6 Free 12
 
+    bindsym button1 workspace next
+    bindsym button3 workspace prev
     bindsym button4 workspace next
     bindsym button5 workspace prev
 
