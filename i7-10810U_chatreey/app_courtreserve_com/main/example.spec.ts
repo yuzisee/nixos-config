@@ -52,7 +52,7 @@ test('try booking pickleball', async ({ page }) => {
   - text: Continue with Google
 ...
  */
-  if (await page.getByRole('text').getByText('log in')) {
+  if (await locator_visible(page.getByText('log in to access your account'), 2000)) {
 /*
 <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 16px;">
  <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 8px;">
@@ -89,27 +89,116 @@ test('try booking pickleball', async ({ page }) => {
  </div>
 </div>
  */
-    let username_el: Locator = await page.getByRole('textbox').getByPlaceholder('Enter Your Email', {exact: true});
+    let username_el: Locator = await page.getByPlaceholder('Enter Your Email', {exact: true});
     if (await locator_visible(username_el, 300)) {
-      let passwd_el: Locator = await page.getByRole('textbox').getByPlaceholder('password');
+      let passwd_el: Locator = await page.getByPlaceholder('password');
       if (await locator_visible(passwd_el, 300)) {
         console.log('Not logged in, need to login');
-        await username_el.ariaSnapshot().then(function(val) { console.log(val); } );
 
         // Click the get started link.
         await username_el.fill(process.env.U);
         await passwd_el.fill(process.env.P);
-	//  page.getByRole('link', { name: 'Get started' }).click();
+	await page.getByRole('button', { name: 'Continue', exact: true }).click();
+	await expect(page.getByTestId('warning-message-block')).not.toBeVisible();
+	await expect(page.getByText('The username or password is incorrect')).not.toBeVisible();
       }
     }
   }
 
-
   // Expect a title "to contain" a substring.
-  // await expect(page).toHaveTitle(/Playwright/);
+   //await expect(page).toHaveTitle('Lifetime');
 
-  // Expects page to have a heading with the name of Installation.
-  // await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Lifetime Activities: Sunnyvale' })).toBeVisible();
+  await page.getByRole('region', { name: 'breadcrumb' }).ariaSnapshot().then(function(val) { console.log(val); } );
+  console.log('Ok, it seems we are logged in!');
+  await page.locator('body', { name: 'breadcrumb' }).ariaSnapshot().then(function(val) { console.log(val); } );
+/*
+- banner:
+  - navigation:
+    - 'link "Lifetime Activities: Sunnyvale"':
+      - /url: /Online/Portal/Index/13233
+      - 'img "Lifetime Activities: Sunnyvale"'
+    - list:
+      - listitem:
+        - link "Events, Camps, And Classes ":
+          - /url: "#"
+      - listitem:
+        - link "Reservations ":
+          - /url: "#"
+      - listitem:
+        - link "Announcements":
+          - /url: /Online/Announcement/Index/13233
+      - listitem:
+        - link "Yuzisee Playwright ":
+          - /url: "#"
+      - listitem
+- listitem:
+  - link "Events, Camps, And Classes ":
+    - /url: "#"
+- listitem:
+  - link "Reservations ":
+    - /url: "#"
+- listitem:
+  - link "Announcements":
+    - /url: /Online/Announcement/Index/13233
+- listitem:
+  - link "Yuzisee Playwright ":
+    - /url: "#"
+- listitem:
+  - link:
+    - /url: "#menu"
+- listitem
+- region "breadcrumb":
+  - heading "My Clubs" [level=4]
+- link "Join Another Organization":
+  - /url: /Online/MyProfile/JoinClub/13233
+- 'img "Lifetime Activities: Sunnyvale"'
+- 'heading "Lifetime Activities: Sunnyvale" [level=4]'
+- text: Organization Hours of Operation
+- grid:
+  - rowgroup:
+    - row "Day Open Time Close Time":
+      - gridcell "Day"
+      - gridcell "Open Time"
+      - gridcell "Close Time"
+  - rowgroup:
+    - row "Monday 8:00 AM 10:00 PM":
+      - gridcell "Monday"
+      - gridcell "8:00 AM"
+      - gridcell "10:00 PM"
+    - row "Tuesday 8:00 AM 10:00 PM":
+      - gridcell "Tuesday"
+      - gridcell "8:00 AM"
+      - gridcell "10:00 PM"
+    - row "Wednesday 8:00 AM 10:00 PM":
+      - gridcell "Wednesday"
+      - gridcell "8:00 AM"
+      - gridcell "10:00 PM"
+    - row "Thursday 8:00 AM 10:00 PM":
+      - gridcell "Thursday"
+      - gridcell "8:00 AM"
+      - gridcell "10:00 PM"
+    - row "Friday 8:00 AM 10:00 PM":
+      - gridcell "Friday"
+      - gridcell "8:00 AM"
+      - gridcell "10:00 PM"
+    - row "Saturday 8:00 AM 10:00 PM":
+      - gridcell "Saturday"
+      - gridcell "8:00 AM"
+      - gridcell "10:00 PM"
+    - row "Sunday 8:00 AM 8:00 PM":
+      - gridcell "Sunday"
+      - gridcell "8:00 AM"
+      - gridcell "8:00 PM"
+- paragraph
+- paragraph:
+  - link "VIEW":
+    - /url: /Online/Portal/Index/13233
+- paragraph: © 2026 Powered by CourtReserve
+- list
+
+*/
+
 });
 
 // Try:
