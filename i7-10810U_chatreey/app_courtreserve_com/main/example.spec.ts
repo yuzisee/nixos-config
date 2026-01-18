@@ -19,10 +19,14 @@ async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise
 }
 
 test('try booking pickleball', async ({ page }) => {
-  var start_url = '';
+  const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233'
+  // const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
+  const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
+
+  var start_url: string = '';
   if(process.env.U) {
     if(process.env.P) {
-      start_url = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
+      start_url = HOME_URL;
     }
   }
 
@@ -33,8 +37,15 @@ test('try booking pickleball', async ({ page }) => {
 
   await page.goto(start_url);
 
-  console.log('Hello hello hello');
-  await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+  let need_login_btn: Locator = page.locator('nav ul#respMenu').getByRole('listitem').getByRole('link', {name: 'LOG IN', exact: true});
+  if (await locator_visible(need_login_btn, 300)) {
+    await need_login_btn.click();
+    // await page.waitForURL('**Account/LogIn**');
+    // e.g. https://app.courtreserve.com/Online/Account/LogIn/13233
+  }
+
+  // console.log('Hello hello hello');
+  // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 /*
 - img
 - text: Log In to Access Your Account Don't have an account? Create Account Email
@@ -52,7 +63,9 @@ test('try booking pickleball', async ({ page }) => {
   - text: Continue with Google
 ...
  */
-  if (await locator_visible(page.getByText('log in to access your account'), 2000)) {
+  if (
+    (await locator_visible(page.getByText('log in to access your account'), 2000))
+  ) {
 /*
 <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 16px;">
  <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 8px;">
@@ -105,13 +118,15 @@ test('try booking pickleball', async ({ page }) => {
     }
   }
 
-  // Expect a title "to contain" a substring.
-   //await expect(page).toHaveTitle('Lifetime');
+  await page.waitForURL(HOME_URL + '*');
 
-  await expect(page.getByRole('heading', { name: 'Lifetime Activities: Sunnyvale' })).toBeVisible();
-  await page.getByRole('region', { name: 'breadcrumb' }).ariaSnapshot().then(function(val) { console.log(val); } );
-  console.log('Ok, it seems we are logged in!');
-  await page.locator('body', { name: 'breadcrumb' }).ariaSnapshot().then(function(val) { console.log(val); } );
+  console.log('Ok, it seems we are logged in! ' + page.url());
+
+  if (page.url().indexOf('Online/MyProfile/MyClubs') != -1) {
+    let target_club: Locator = page.getByRole('heading', { name: HOME_CLUB });
+    await expect(target_club).toBeVisible();
+
+    await page.getByRole('region', { name: 'breadcrumb' }).ariaSnapshot().then(function(val) { console.log(val); } );
 /*
 - banner:
   - navigation:
@@ -128,9 +143,7 @@ test('try booking pickleball', async ({ page }) => {
       - listitem:
         - link "Announcements":
           - /url: /Online/Announcement/Index/13233
-      - listitem:
-        - link "Yuzisee Playwright ":
-          - /url: "#"
+⋮
       - listitem
 - listitem:
   - link "Events, Camps, And Classes ":
@@ -141,9 +154,7 @@ test('try booking pickleball', async ({ page }) => {
 - listitem:
   - link "Announcements":
     - /url: /Online/Announcement/Index/13233
-- listitem:
-  - link "Yuzisee Playwright ":
-    - /url: "#"
+⋮
 - listitem:
   - link:
     - /url: "#menu"
@@ -198,7 +209,105 @@ test('try booking pickleball', async ({ page }) => {
 - list
 
 */
+  await target_club.locator('~ div').getByRole('paragraph').getByRole('link', { name: 'VIEW' }).click();
+ // TODO(from joseph): Should we just try to open 'https://app.courtreserve.com/Online/Portal/Index/13233' directly?
 
+    await page.waitForURL('**/Online/Portal/Index**');
+  }
+  console.log("Alright, let's book a slot " + page.url());
+
+  // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+  if (page.url().indexOf('Online/Portal/Index') != -1) {
+    if (await locator_visible(page.getByText('BOOK A COURT'), 2000)) {
+/*
+
+- banner:
+  - navigation:
+    - 'link "Lifetime Activities: Sunnyvale"':
+      - /url: /Online/Portal/Index/13233
+      - 'img "Lifetime Activities: Sunnyvale"'
+    - list:
+      - listitem:
+        - link "Events, Camps, And Classes ":
+          - /url: "#"
+      - listitem:
+        - link "Reservations ":
+          - /url: "#"
+      - listitem:
+        - link "Announcements":
+          - /url: /Online/Announcement/Index/13233
+⋮
+      - listitem
+- listitem:
+  - link "Events, Camps, And Classes ":
+    - /url: "#"
+- listitem:
+  - link "Reservations ":
+    - /url: "#"
+- listitem:
+  - link "Announcements":
+    - /url: /Online/Announcement/Index/13233
+⋮
+- listitem:
+  - link:
+    - /url: "#menu"
+- listitem
+- img
+- img "footer-logo.png"
+⋮
+- list:
+  - listitem:
+    - link "":
+      - /url: https://www.lifetimeactivities.com
+  - listitem:
+    - link "":
+      - /url: https://www.instagram.com/lifetime.activities?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==
+- heading "Hours of Availability" [level=4]
+- list:
+  - listitem: Mon - Fri 8:00 AM - 10:00 PM
+  - listitem: Saturday 8:00 AM - 10:00 PM
+  - listitem: Sunday 8:00 AM - 8:00 PM
+- heading "Links" [level=4]
+- list:
+  - listitem:
+    - link "Looking for a different Lifetime Activities location? Click here!":
+      - /url: https://www.lifetimeactivities.com/wp-content/uploads/Lifetime-Activities-on-CourtReserve-Home-Page-Links.pdf
+- paragraph: © 2026 Powered by CourtReserve
+- list
+ */
+
+  // [!CAUTION]
+  // Here id="respMenu" gives the desktop dropdown (which you can hover)
+  //  and id="fn-nav-clone" gives the mobile dropdown (which you would toggle)
+  // but the desktop one is finnicky, so let's rely on the mobile one for now
+  await page.setViewportSize( { width: 900, height: 720 });
+  // https://github.com/microsoft/playwright/blob/37d58bd440ea06966c98508714854563db46df0a/packages/playwright/src/index.ts#L146
+  await page.locator('nav ul#respMenu a#menu-bar-container-web').click();
+  await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+  let mobile_main_menu_el: Locator = page.locator('div#mobile-menu-container');
+  let all_reservations_mobile_el: Locator = mobile_main_menu_el.getByRole('listitem').getByRole('link', { name: 'Reservations'});
+  // await mobile_main_menu_el.filter( {has: all_reservations_mobile_el} ).getByRole('link', { name: 'Open submenu' }).click();
+  // https://playwright.dev/docs/other-locators#parent-element-locator
+  await all_reservations_mobile_el.locator('xpath=..').getByRole('link', { name: 'Open submenu' }).click();
+
+/*
+  await all_reservations_desktop_el).getByText('Pickleball Reservations').click();
+ // let all_reservations_desktop_el: Locator = page.getByRole('listitem').filter( {has: page.getByRole('link', { name: 'Reservations'}), visible: true });
+  let all_reservations_desktop_el: Locator = page.locator('ul#respMenu');
+  await all_reservations_desktop_el.hover()
+  // await page.getByRole('listitem').getByRole('link', { name: 'Reservations'}).hover();
+  // await page.getByText('BOOK A COURT').click(); // this defaults to Tennis courts...
+  await all_reservations_desktop_el.ariaSnapshot().then(function(val) { console.log(val); } );
+  // await all_reservations_desktop_el).getByText('Pickleball Reservations').click();
+*/
+  await all_reservations_mobile_el.getByRole('listitem').getByText('Pickleball Reservations').click();
+}}
+
+  // TODO(from joseph): What if we went straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984'
+  // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+
+  // Expect a title "to contain" a substring.
+  await expect(page).toHaveTitle('Lifetime');
 });
 
 // Try:
