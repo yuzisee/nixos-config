@@ -5,6 +5,9 @@ import { test, expect, errors } from '@playwright/test';
 const LOOK_N_DAYS_IN_FUTURE: number = 8;
 const N_DAYS_IN_FUTURE: Date = new Date((new Date()).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
 
+const DESIRED_AM_PM: string = 'PM';
+const EARLIEST_HOUR_TO_BOOK: number = 7;
+
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
 const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
@@ -39,7 +42,8 @@ async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise
   }
 }
 
-// Return true if the date is available, false if we needed to refresh the page
+// Goal: Keep refreshing the page until the target date is visible... and then select the target date.
+// Return: true if the date is available, false if we needed to refresh the page
 async function refresh_until_date_available(p: Page, long_month: string, short_month: string, day_num: number): Promise<bool> {
   let short_date: string = short_month + ' ' + day_num;
 
@@ -120,7 +124,7 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
           // Okay, it's there!
 	  target_month_el.click();
 	} else {
-	  console.log('Month ' + long_month + ' not yet selectable');
+	  console.log('Month ' + long_month + ' not yet selectable... so refresh!');
           await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
           await p.reload();
           return false;
@@ -137,7 +141,7 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
         await target_day_el.click();
         return true;
       } else {
-        console.log('Day ' + day_num + ' not yet selectable');
+        console.log('Day ' + day_num + ' not yet selectable, refresh');
         await day_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
         await p.reload();
         return false;
@@ -164,6 +168,10 @@ test('try booking pickleball', async ({ page }) => {
   // https://playwright.dev/docs/test-timeouts
 
   await page.goto(start_url);
+
+  // ====================================
+  // PHASE 1: make sure you are logged in
+  // ====================================
 
   let need_login_btn: Locator = page.locator('nav ul#respMenu').getByRole('listitem').getByRole('link', {name: 'LOG IN', exact: true});
   if (await locator_visible(need_login_btn, 300)) {
@@ -249,6 +257,10 @@ test('try booking pickleball', async ({ page }) => {
   await page.waitForURL(HOME_URL + '*');
 
   console.log('Ok, it seems we are logged in! ' + page.url());
+
+  // ========
+  // Phase 2: In case you end up at https://app.courtreserve.com/Online/MyProfile/MyClubs/13233 navigate to the `HOME_CLUB`'s page as quickly as possible
+  // ========
 
   if (page.url().indexOf('Online/MyProfile/MyClubs') != -1) {
     let target_club: Locator = page.getByRole('heading', { name: HOME_CLUB });
@@ -344,6 +356,10 @@ test('try booking pickleball', async ({ page }) => {
   }
   console.log("Alright, let's book a slot " + page.url());
 
+  // ========
+  // Phase 3: Find the "Pickleball Reservations" link and click it.
+  // ========
+
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
   if (page.url().indexOf('Online/Portal/Index') != -1) {
     if (await locator_visible(page.getByText('BOOK A COURT'), 2000)) {
@@ -435,6 +451,10 @@ test('try booking pickleball', async ({ page }) => {
   // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
+  // ========
+  // Phase 4: Refresh the page until the date we want becomes visible, and then book!
+  // ========
+
   let countdown: Date = new Date();
   if (countdown.getHours() < 12) {
     // The day is not selectable until noon, so we'll need to wait a bit first.
@@ -469,8 +489,21 @@ test('try booking pickleball', async ({ page }) => {
     let reserve_btn_el: Locator = r_el.locator('xpath=..');
     let data_time: string = await reserve_btn_el.getAttribute('data-time');
     let data_courttype: string = await reserve_btn_el.getAttribute('data-courttype');
-    console.log(data_time + ' RESERVABLE: ' + data_courttype);
-    reserveTimes.push(data_time);
+
+    // *********************
+    // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
+    // *********************
+    if (data_time.indexOf(DESIRED_AM_PM) == -1) {
+      console.log(data_time + ' NOT OUR TARGET: ' + data_courttype);
+    } else {
+      let reserve_btn_hour: number = Number(data_time.split(':')[0]);
+      if ((reserve_btn_hour == 12) || (reserve_btn_hour < EARLIEST_HOUR_TO_BOOK)) {
+        console.log(data_time + ' TOO EARLY: ' + data_courttype);
+      } else {
+        console.log(data_time + ' RESERVABLE: ' + data_courttype);
+        reserveTimes.push(data_time);
+      }
+    }
   }
 
   if (reserveTimes.length == 0) {
@@ -478,8 +511,10 @@ test('try booking pickleball', async ({ page }) => {
     throw new Error('Nothing bookable on the target date.');
   }
 
-  let randomTimeForTest: string = reserveTimes[Math.floor(Math.random() * reserveTimes.length)];
-  await page.getByRole('application').getByRole('button', { name: ' at ' + randomTimeForTest }).getByText('Reserve').click();
+  let earliestSatisfactoryTime: string = reserveTimes[0]; // assuming we parse the DOM in chronological order (and why wouldn't we?)
+  // let randomTimeForTest: string = reserveTimes[Math.floor(Math.random() * reserveTimes.length)];
+  // await page.getByRole('application').getByRole('button', { name: ' at ' + randomTimeForTest }).getByText('Reserve').click();
+  await page.getByRole('application').getByRole('button', { name: ' at ' + earliestSatisfactoryTime }).getByText('Reserve').click();
 
   let booking_form_el: Locator = page.locator('form#createReservation-Form');
   await booking_form_el.getByText('End Time').waitFor({state: 'visible'});
