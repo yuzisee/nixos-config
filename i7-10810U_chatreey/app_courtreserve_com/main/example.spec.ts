@@ -435,6 +435,20 @@ test('try booking pickleball', async ({ page }) => {
   // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
+  let countdown: Date = new Date();
+  if (countdown.getHours() < 12) {
+    // The day is not selectable until noon, so we'll need to wait a bit first.
+
+    if (countdown.getHours() == 11) {
+      if ((countdown.getMinutes() < 59) || countdown.getSeconds() < 53) {
+
+        let secondsUntilNoon: number = (60 - countdown.getMinutes()) * 60 + (60 - countdown.getSeconds());
+        await page.waitForTimeout((secondsUntilNoon - 3.0) * 1000.0); // wait until 3 seconds left...
+      }
+    } else {
+      console.warn('Are you testing for debugging purposes? We are WAYYYY too early in the day to be running right now.');
+    }
+  }
 
   while(true) {
     console.log('MAIN LOOP');
