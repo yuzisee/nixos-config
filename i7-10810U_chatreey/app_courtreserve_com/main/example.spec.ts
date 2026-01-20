@@ -29,7 +29,7 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
     } else {
       // let visibleDate: Array<string> = await page.locator('span.k-icon.k-i-calendar ~ span').allInnerTexts();
       // console.log(JSON.stringify(visibleDate));
-      
+
       await p.locator('span.k-icon.k-i-calendar').click();
       let calendar_el: Locator = p.locator('div[data-role=calendar]');
       await calendar_el.waitFor({state: 'visible'});
@@ -363,7 +363,7 @@ test('try booking pickleball', async ({ page }) => {
   await page.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
 
  /*
- 
+
 - banner:
   - navigation:
     - 'link "Lifetime Activities: Sunnyvale"':
@@ -492,8 +492,8 @@ test('try booking pickleball', async ({ page }) => {
     // Even useInnerText can't interpret opacity (which is what the page seems to use) because pseudo-elements are not part of the DOM tree
     await disclosure_agree_el.locator('xpath=..').click();
     await expect(async () => {
-      let checkmarkOpacity: number = await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity);
-      expect(checkmarkOpacity).includes(['1', 1, 1.0]);
+      let checkmarkOpacity: number = await stupid_checkbox_el.evaluate(el => parseFloat(window.getComputedStyle(el, '::after').opacity));
+      expect(checkmarkOpacity).toBeGreaterThanOrEqual(1.0);
     }).toPass();
 
   } else {
