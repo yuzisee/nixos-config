@@ -1,13 +1,25 @@
 import { test, expect, errors } from '@playwright/test';
 
+// https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
+// "Verified Sunnyvale  residents may reserve courts 8 days in advance. Unverified Residents and Non-Residents may reserve courts 7 days in advance"
+const LOOK_N_DAYS_IN_FUTURE: number = 8;
+const N_DAYS_IN_FUTURE: Date = new Date((new Date()).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
+
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
 const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
 const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
 
-const TARGET_MONTH_LONG: string = 'January';
-const TARGET_MONTH_SHORT: string = 'Jan';
-const TARGET_DAY: number = 28;
+interface QuickMonth {
+  long_month: str;
+  short_month: str;
+}
+
+const TARGET_MONTH: QuickMonth = {
+  long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
+  short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
+};
+const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
 
 async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise<boolean>
 {
@@ -84,7 +96,7 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
 
   */
 
-   await page.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
+   await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
 
     if (await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: short_date, exact: false}).isVisible()) {
       return true;
@@ -145,6 +157,11 @@ test('try booking pickleball', async ({ page }) => {
   if (start_url == '') {
     throw new Error('Please set U and P environment variables, so we have some kind of login credentials');
   }
+
+  // Suppose we want to launch this around 11:57am, and will leave it running at least until 12:03pm to be safe...
+  test.setTimeout(6 * 60 * 1000);
+  // The default timeout is only 30s
+  // https://playwright.dev/docs/test-timeouts
 
   await page.goto(start_url);
 
@@ -421,7 +438,7 @@ test('try booking pickleball', async ({ page }) => {
 
   while(true) {
     console.log('MAIN LOOP');
-    if (await refresh_until_date_available(page, TARGET_MONTH_LONG, TARGET_MONTH_SHORT, TARGET_DAY)) {
+    if (await refresh_until_date_available(page, TARGET_MONTH.long_month, TARGET_MONTH.short_month, TARGET_DAY)) {
       break;
     }
   }
