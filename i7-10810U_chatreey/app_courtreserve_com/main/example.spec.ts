@@ -393,7 +393,7 @@ test('try booking pickleball', async ({ page }) => {
   - link "Announcements":
     - /url: /Online/Announcement/Index/13233
 - listitem:
-  - link "Yuzisee Playwright ":
+  - link "firstname lastname ":
     - /url: "#"
 - listitem:
   - link:
@@ -425,12 +425,80 @@ test('try booking pickleball', async ({ page }) => {
   let reservable_els: Locator = await page.getByRole('application').getByRole('button').getByText('Reserve');
   await alreadybooked_els.or(reservable_els).first().waitFor({ state: 'visible' });
   console.log('READY: ' + (await alreadybooked_els.count()) + ':' + (await reservable_els.count()));
-  await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+
+  var reserveTimes: Array<string> = [];
 
   for (let r_el: Locator of (await reservable_els.all())) {
     let reserve_btn_el: Locator = r_el.locator('xpath=..');
-    console.log((await reserve_btn_el.getAttribute('data-time')) + ' RESERVABLE: ' + (await reserve_btn_el.getAttribute('data-courttype')));
+    let data_time: string = await reserve_btn_el.getAttribute('data-time');
+    let data_courttype: string = await reserve_btn_el.getAttribute('data-courttype');
+    console.log(data_time + ' RESERVABLE: ' + data_courttype);
+    reserveTimes.push(data_time);
   }
+
+  if (reserveTimes.length == 0) {
+    await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+    throw new Error('Nothing bookable on the target date.');
+  }
+
+  let randomTimeForTest: string = reserveTimes[Math.floor(Math.random() * reserveTimes.length)];
+  await page.getByRole('application').getByRole('button', { name: ' at ' + randomTimeForTest }).getByText('Reserve').click();
+
+  let booking_form_el: Locator = page.locator('form#createReservation-Form');
+  await booking_form_el.getByText('End Time').waitFor({state: 'visible'});
+  // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+  /*
+- text: Book a reservation for 1/27/2026
+- button "Close"
+- button "Save"
+- separator
+- text: Reservation Type *
+- listbox "Reservation Type *":
+  - option "Recreational Play - Pickleball" [selected]
+  - button "select": 
+- text: Start Time 8:30 AM Duration *
+- listbox "Duration *":
+  - option "1 hour" [selected]
+  - button "select": 
+- text: End Time
+- textbox "End Time" [disabled]: 9:30 AM
+- text: Player(s)
+- grid:
+  - rowgroup:
+    - row "# 1 Name firstname lastname Cost $7.00 Due $7.00":
+      - gridcell "# 1"
+      - gridcell "Name firstname lastname"
+      - gridcell "Cost $7.00"
+      - gridcell "Due $7.00"
+      - gridcell
+- text: "Total Due: $7.00 Court Reservations Payment is due upon check-in (at the time of your reservation.) Payment is not required at the time of booking. However, if you opt to prepay for your court time, any court reservation refunds due to cancelations will be returned as an account credit ... View More"
+- checkbox "Check to agree to above disclosure"
+- text:  Check to agree to above disclosure
+- separator
+- button "Close"
+- button "Save"
+   */
+  await expect(booking_form_el.getByRole('textbox', { name: 'End Time' })).toBeDisabled();
+
+  let disclosure_agree_el: Locator = booking_form_el.getByRole('checkbox', { name: 'Check to agree to above disclosure' });
+  /*
+  await disclosure_agree_el.waitFor( {state: 'visible'} );
+  await expect(disclosure_agree_el).not.toBeChecked();
+  await disclosure_agree_el.check();
+  */
+   // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders '' (U+F0C4) Wingdings checkmark in a span
+  await page.locator('your-selector::after').evaluate(el => getComputedStyle(el, '::after').content);
+  let stupid_checkbox_el: Promise<Serializable> = disclosure_agree_el.locator('~ span.check-box-helper::after');
+  await expect(stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after').content)).not.toHaveText('', {useInnerText: true});
+  // useInnerText should allow it to interpret opacity (which is what the page seems to use)
+  await disclosure_agree_el.locator('xpath=..').click();
+  await expect(stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after').content)).toHaveText('', {useInnerText: true});
+
+  let totalDueAmount: string = await booking_form_el.locator('label.total-due-amount').textContent();
+  console.log(
+   totalDueAmount + ' READY TO BOOK ' + 
+   (await booking_form.el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
+  );
 
   // Expect a title "to contain" a substring.
   // await expect(page).toHaveTitle('Lifetime');
