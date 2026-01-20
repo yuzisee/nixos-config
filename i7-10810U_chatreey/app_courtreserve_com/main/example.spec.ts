@@ -1,5 +1,14 @@
 import { test, expect, errors } from '@playwright/test';
 
+// const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
+const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
+// const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
+const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
+
+const TARGET_MONTH_LONG: string = 'January';
+const TARGET_MONTH_SHORT: string = 'Jan';
+const TARGET_DAY: number = 28;
+
 async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise<boolean>
 {
   if ((timeout_ms === undefined) || (timeout_ms == null)) {
@@ -23,6 +32,59 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
   let short_date: string = short_month + ' ' + day_num;
 
    console.log('SEARCHING FOR ' + short_date);
+
+ /*
+
+- banner:
+  - navigation:
+    - 'link "Lifetime Activities: Sunnyvale"':
+      - /url: /Online/Portal/Index/13233
+      - 'img "Lifetime Activities: Sunnyvale"'
+    - list:
+      - listitem:
+        - link "Events, Camps, And Classes ":
+          - /url: "#"
+      - listitem:
+        - link "Reservations ":
+          - /url: "#"
+      - listitem:
+        - link "Announcements":
+          - /url: /Online/Announcement/Index/13233
+      - listitem:
+        - link:
+          - /url: "#menu"
+      - listitem
+- listitem:
+  - link "Events, Camps, And Classes ":
+    - /url: "#"
+- listitem:
+  - link "Reservations ":
+    - /url: "#"
+- listitem:
+  - link "Announcements":
+    - /url: /Online/Announcement/Index/13233
+- listitem:
+  - link "firstname lastname ":
+    - /url: "#"
+- listitem:
+  - link:
+    - /url: "#menu"
+- listitem
+- application:
+  - toolbar:
+    - button "Today"
+    - button "Previous": 
+    - button "Next": 
+    - button " Mon, Jan 19"
+    - text: Pickleball Reservations
+  - text: Pickleball 8:00 AM 8:30 AM 9:00 AM 9:30 AM 10:00 AM 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM 8:00 PM 8:30 PM 9:00 PM 9:30 PM
+  - alert: Loading...
+- paragraph: © 2026 Powered by CourtReserve
+- list
+
+  */
+
+   await page.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
 
     if (await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: short_date, exact: false}).isVisible()) {
       return true;
@@ -72,11 +134,6 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
 }
 
 test('try booking pickleball', async ({ page }) => {
-  // const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
-  const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
-  // const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
-  const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
-
   var start_url: string = '';
   if(process.env.U) {
     if(process.env.P) {
@@ -360,62 +417,11 @@ test('try booking pickleball', async ({ page }) => {
 
   // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-  await page.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
 
- /*
-
-- banner:
-  - navigation:
-    - 'link "Lifetime Activities: Sunnyvale"':
-      - /url: /Online/Portal/Index/13233
-      - 'img "Lifetime Activities: Sunnyvale"'
-    - list:
-      - listitem:
-        - link "Events, Camps, And Classes ":
-          - /url: "#"
-      - listitem:
-        - link "Reservations ":
-          - /url: "#"
-      - listitem:
-        - link "Announcements":
-          - /url: /Online/Announcement/Index/13233
-      - listitem:
-        - link:
-          - /url: "#menu"
-      - listitem
-- listitem:
-  - link "Events, Camps, And Classes ":
-    - /url: "#"
-- listitem:
-  - link "Reservations ":
-    - /url: "#"
-- listitem:
-  - link "Announcements":
-    - /url: /Online/Announcement/Index/13233
-- listitem:
-  - link "firstname lastname ":
-    - /url: "#"
-- listitem:
-  - link:
-    - /url: "#menu"
-- listitem
-- application:
-  - toolbar:
-    - button "Today"
-    - button "Previous": 
-    - button "Next": 
-    - button " Mon, Jan 19"
-    - text: Pickleball Reservations
-  - text: Pickleball 8:00 AM 8:30 AM 9:00 AM 9:30 AM 10:00 AM 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM 8:00 PM 8:30 PM 9:00 PM 9:30 PM
-  - alert: Loading...
-- paragraph: © 2026 Powered by CourtReserve
-- list
-
-  */
 
   while(true) {
     console.log('MAIN LOOP');
-    if (await refresh_until_date_available(page, 'January', 'Jan', 27)) {
+    if (await refresh_until_date_available(page, TARGET_MONTH_LONG, TARGET_MONTH_SHORT, TARGET_DAY)) {
       break;
     }
   }
