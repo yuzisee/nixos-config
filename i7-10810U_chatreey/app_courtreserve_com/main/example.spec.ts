@@ -18,8 +18,62 @@ async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise
   }
 }
 
+// Return true if the date is available, false if we needed to refresh the page
+async function refresh_until_date_available(p: Page, long_month: string, short_month: string, day_num: number): Promise<bool> {
+  let short_date: string = short_month + ' ' + day_num;
+
+   console.log('SEARCHING FOR ' + short_date);
+
+    if (await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: short_date, exact: false}).isVisible()) {
+      return true;
+    } else {
+      // let visibleDate: Array<string> = await page.locator('span.k-icon.k-i-calendar ~ span').allInnerTexts();
+      // console.log(JSON.stringify(visibleDate));
+      
+      await p.locator('span.k-icon.k-i-calendar').click();
+      let calendar_el: Locator = p.locator('div[data-role=calendar]');
+      await calendar_el.waitFor({state: 'visible'});
+
+      let correct_month_shown: Locator = calendar_el.getByRole('button', {name: long_month, exact: false});
+      if (!(await correct_month_shown.isVisible())) {
+        // [INVARIANT]: A different month is showing than the one we want. Try to switch using the switcher.
+
+        await calendar_el.locator('a[data-action=nav-up][role=button]').click();
+	let month_chooser_el: Locator = calendar_el.locator('div.k-calendar-yearview');
+	await month_chooser_el.waitFor({state: 'visible'});
+	let target_month_el: Locator = month_chooser_el.getByRole('grid').getByRole('link', {name: short_month});
+	if (await target_month_el.isVisible()) {
+          // Okay, it's there!
+	  target_month_el.click();
+	} else {
+	  console.log('Month ' + long_month + ' not yet selectable');
+          await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
+          await p.reload();
+          return false;
+	}
+      }
+
+      // [INVARIANT]: OK good! We're should be on the correct month now.
+      await expect(correct_month_shown).toBeVisible();
+      let day_chooser_el: Locator = calendar_el.locator('div.k-calendar-monthview');
+      await expect(day_chooser_el).toBeVisible();
+
+      let target_day_el: Locator = day_chooser_el.getByRole('grid').getByRole('link', {name: '' + day_num});
+      if (await target_day_el.isVisible()) {
+        await target_day_el.click();
+        return true;
+      } else {
+        console.log('Day ' + day_num + ' not yet selectable');
+        await day_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
+        await p.reload();
+        return false;
+      }
+    }
+}
+
 test('try booking pickleball', async ({ page }) => {
-  const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233'
+  // const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
+  const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
   // const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
   const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
 
@@ -40,7 +94,7 @@ test('try booking pickleball', async ({ page }) => {
   let need_login_btn: Locator = page.locator('nav ul#respMenu').getByRole('listitem').getByRole('link', {name: 'LOG IN', exact: true});
   if (await locator_visible(need_login_btn, 300)) {
     await need_login_btn.click();
-    // await page.waitForURL('**Account/LogIn**');
+    await page.waitForURL('**Account/LogIn**');
     // e.g. https://app.courtreserve.com/Online/Account/LogIn/13233
   }
 
@@ -64,7 +118,7 @@ test('try booking pickleball', async ({ page }) => {
 ...
  */
   if (
-    (await locator_visible(page.getByText('log in to access your account'), 2000))
+    (await locator_visible(page.getByText('log in to access your account'), 4000))
   ) {
 /*
 <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 16px;">
@@ -283,9 +337,10 @@ test('try booking pickleball', async ({ page }) => {
   await page.setViewportSize( { width: 900, height: 720 });
   // https://github.com/microsoft/playwright/blob/37d58bd440ea06966c98508714854563db46df0a/packages/playwright/src/index.ts#L146
   await page.locator('nav ul#respMenu a#menu-bar-container-web').click();
-  await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-  let mobile_main_menu_el: Locator = page.locator('div#mobile-menu-container');
-  let all_reservations_mobile_el: Locator = mobile_main_menu_el.getByRole('listitem').getByRole('link', { name: 'Reservations'});
+  // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+  let all_reservations_mobile_el: Locator = page.locator('div#mobile-menu-container').getByRole('listitem').getByRole('link', { name: 'Reservations'});
+  // page.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByText('Pickleball Reservations')
+  let pickleball_reservations_mobile_el: Locator = page.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByRole('link', { name: 'Pickleball Reservations'});
   // await mobile_main_menu_el.filter( {has: all_reservations_mobile_el} ).getByRole('link', { name: 'Open submenu' }).click();
   // https://playwright.dev/docs/other-locators#parent-element-locator
   await all_reservations_mobile_el.locator('xpath=..').getByRole('link', { name: 'Open submenu' }).click();
@@ -300,14 +355,85 @@ test('try booking pickleball', async ({ page }) => {
   await all_reservations_desktop_el.ariaSnapshot().then(function(val) { console.log(val); } );
   // await all_reservations_desktop_el).getByText('Pickleball Reservations').click();
 */
-  await all_reservations_mobile_el.getByRole('listitem').getByText('Pickleball Reservations').click();
+  await pickleball_reservations_mobile_el.click();
 }}
 
-  // TODO(from joseph): What if we went straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984'
+  // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+  await page.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
+
+ /*
+ 
+- banner:
+  - navigation:
+    - 'link "Lifetime Activities: Sunnyvale"':
+      - /url: /Online/Portal/Index/13233
+      - 'img "Lifetime Activities: Sunnyvale"'
+    - list:
+      - listitem:
+        - link "Events, Camps, And Classes ":
+          - /url: "#"
+      - listitem:
+        - link "Reservations ":
+          - /url: "#"
+      - listitem:
+        - link "Announcements":
+          - /url: /Online/Announcement/Index/13233
+      - listitem:
+        - link:
+          - /url: "#menu"
+      - listitem
+- listitem:
+  - link "Events, Camps, And Classes ":
+    - /url: "#"
+- listitem:
+  - link "Reservations ":
+    - /url: "#"
+- listitem:
+  - link "Announcements":
+    - /url: /Online/Announcement/Index/13233
+- listitem:
+  - link "Yuzisee Playwright ":
+    - /url: "#"
+- listitem:
+  - link:
+    - /url: "#menu"
+- listitem
+- application:
+  - toolbar:
+    - button "Today"
+    - button "Previous": 
+    - button "Next": 
+    - button " Mon, Jan 19"
+    - text: Pickleball Reservations
+  - text: Pickleball 8:00 AM 8:30 AM 9:00 AM 9:30 AM 10:00 AM 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM 8:00 PM 8:30 PM 9:00 PM 9:30 PM
+  - alert: Loading...
+- paragraph: © 2026 Powered by CourtReserve
+- list
+
+  */
+
+  while(true) {
+    console.log('MAIN LOOP');
+    if (await refresh_until_date_available(page, 'January', 'Jan', 27)) {
+      break;
+    }
+  }
+  console.log('DATE CORRECT');
+
+  let alreadybooked_els: Locator = await page.getByRole('presentation').getByRole('button').getByText('None Available');
+  let reservable_els: Locator = await page.getByRole('application').getByRole('button').getByText('Reserve');
+  await alreadybooked_els.or(reservable_els).first().waitFor({ state: 'visible' });
+  console.log('READY: ' + (await alreadybooked_els.count()) + ':' + (await reservable_els.count()));
+  await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+
+  for (let r_el: Locator of (await reservable_els.all())) {
+    let reserve_btn_el: Locator = r_el.locator('xpath=..');
+    console.log((await reserve_btn_el.getAttribute('data-time')) + ' RESERVABLE: ' + (await reserve_btn_el.getAttribute('data-courttype')));
+  }
 
   // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle('Lifetime');
+  // await expect(page).toHaveTitle('Lifetime');
 });
 
 // Try:
