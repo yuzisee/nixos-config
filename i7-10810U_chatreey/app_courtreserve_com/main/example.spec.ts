@@ -487,17 +487,25 @@ test('try booking pickleball', async ({ page }) => {
   await disclosure_agree_el.check();
   */
    // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders '' (U+F0C4) Wingdings checkmark in a span
-  await page.locator('your-selector::after').evaluate(el => getComputedStyle(el, '::after').content);
-  let stupid_checkbox_el: Promise<Serializable> = disclosure_agree_el.locator('~ span.check-box-helper::after');
-  await expect(stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after').content)).not.toHaveText('', {useInnerText: true});
-  // useInnerText should allow it to interpret opacity (which is what the page seems to use)
-  await disclosure_agree_el.locator('xpath=..').click();
-  await expect(stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after').content)).toHaveText('', {useInnerText: true});
+  let stupid_checkbox_el: Promise<Serializable> = disclosure_agree_el.locator('~ span.check-box-helper');
+  if ((await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity)) == 0.0) {
+    // Even useInnerText can't interpret opacity (which is what the page seems to use) because pseudo-elements are not part of the DOM tree
+    await disclosure_agree_el.locator('xpath=..').click();
+    await expect(async () => {
+      let checkmarkOpacity: number = await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity);
+      expect(checkmarkOpacity).includes(['1', 1, 1.0]);
+    }).toPass();
+
+  } else {
+    let actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
+    let unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(actual_style);
+    throw new Error(unexpected_checkmark);
+  }
 
   let totalDueAmount: string = await booking_form_el.locator('label.total-due-amount').textContent();
   console.log(
-   totalDueAmount + ' READY TO BOOK ' + 
-   (await booking_form.el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
+   totalDueAmount + ' READY TO BOOK ' +
+   (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
   );
 
   // Expect a title "to contain" a substring.
