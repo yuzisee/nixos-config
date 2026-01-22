@@ -52,7 +52,7 @@ async function localtime_datenow(p: Page): Promise<Date> {
 }
 
 // Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again
-async function sleep_until_noon(p: Page): Promise<bool> {
+async function sleep_until_noon(p: Page): Promise<boolean> {
   let countdown: Date = await localtime_datenow(p);
   if ((countdown.getHours() > 12) || (countdown.getHours() < 10)) {
     // 10am or earlier?
