@@ -62,8 +62,10 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
 
     return false;
   } else if (countdown.getHours() == 10) {
-    console.log('countdown.getHours() is ' + countdown.getHours() + ', which is almost 11am so sleep 30mins and check again.');
-    await p.waitForTimeout(30 * 60 * 1000.0);
+    console.log('countdown.getHours() is ' + countdown.getHours() + ', which is almost 11am so sleep ~30mins and check again.');
+    await p.waitForTimeout(29 * 60 * 1000.0);
+
+    return false;
   } else {
     // It's almost noon!
     // The day is not selectable until exactly noon, so we'll need to wait just a bit more...
@@ -72,9 +74,9 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
       if ((countdown.getMinutes() < 59) || countdown.getSeconds() < 53) {
 
         let secondsUntilNoon: number =
-          (11 - countdown.getHours()) * 60 * 60 +
+//          (11 - countdown.getHours()) * 60 * 60 +
           (60 - countdown.getMinutes()) * 60 +
-	  (60 - countdown.getSeconds());
+          (60 - countdown.getSeconds());
 
 	console.log('Almost at time, sleep the final ' + (secondsUntilNoon / 60.0) + ' minutes until just a few seconds before noon');
         await p.waitForTimeout((secondsUntilNoon - 3.0) * 1000.0); // wait until 3 seconds left...
@@ -543,8 +545,8 @@ const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
   console.log('READY: ' + (await alreadybooked_els.count()) + ':' + (await reservable_els.count()));
 
   var reserveTimes: Array<string> = [];
-
-  for (let r_el: Locator of (await reservable_els.all())) {
+  // for (let r_el: Locator of (await reservable_els.all())) {
+  for (let r_el of (await reservable_els.all())) {
     let reserve_btn_el: Locator = r_el.locator('xpath=..');
     let data_time: string = await reserve_btn_el.getAttribute('data-time');
     let data_courttype: string = await reserve_btn_el.getAttribute('data-courttype');
