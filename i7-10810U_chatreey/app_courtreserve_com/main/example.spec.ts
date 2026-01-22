@@ -537,8 +537,8 @@ const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
   }
   console.log('DATE CORRECT: ' + (new Date().toISOString()) + ' UTC');
 
-  let alreadybooked_els: Locator = await page.getByRole('presentation').getByRole('button').getByText('None Available');
-  let reservable_els: Locator = await page.getByRole('application').getByRole('button').getByText('Reserve');
+  let alreadybooked_els: Locator = page.getByRole('presentation').getByRole('button').getByText('None Available');
+  let reservable_els: Locator = page.getByRole('application').getByRole('button').getByText('Reserve');
   await alreadybooked_els.or(reservable_els).first().waitFor({ state: 'visible' });
   console.log('READY: ' + (await alreadybooked_els.count()) + ':' + (await reservable_els.count()));
 
@@ -618,7 +618,7 @@ const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
   await disclosure_agree_el.check();
   */
    // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders '' (U+F0C4) Wingdings checkmark in a span
-  let stupid_checkbox_el: Promise<Serializable> = disclosure_agree_el.locator('~ span.check-box-helper');
+  let stupid_checkbox_el: Locator = disclosure_agree_el.locator('~ span.check-box-helper');
   if ((await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity)) == 0.0) {
     // Even useInnerText can't interpret opacity (which is what the page seems to use) because pseudo-elements are not part of the DOM tree
     await disclosure_agree_el.locator('xpath=..').click();
@@ -639,7 +639,7 @@ const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
    (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
   );
 
-  booking_form_el.getByRole('button', { name: 'Save' }).first().click()
+  await booking_form_el.getByRole('button', { name: 'Save' }).first().click()
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle('Lifetime');
 });
