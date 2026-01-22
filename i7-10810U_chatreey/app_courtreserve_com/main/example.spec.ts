@@ -42,8 +42,32 @@ async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise
   }
 }
 
+// Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again
+async function sleep_until_noon(p: Page): Promise<bool> {
+  let countdown: Date = new Date();
+  if (countdown.getHours() < 12) {
+    // The day is not selectable until noon, so we'll need to wait a bit first.
+
+    if ((countdown.getHours() == 9) || (countdown.getHours() == 10) || (countdown.getHours() == 11)) {
+      if ((countdown.getMinutes() < 59) || countdown.getSeconds() < 53) {
+
+        let secondsUntilNoon: number =
+          (11 - countdown.getHours()) * 60 * 60 +
+          (60 - countdown.getMinutes()) * 60 +
+	  (60 - countdown.getSeconds());
+
+        await page.waitForTimeout((secondsUntilNoon - 3.0) * 1000.0); // wait until 3 seconds left...
+      }
+    } else {
+      console.warn('Are you testing for debugging purposes? We are WAYYYY too early in the day to be running right now.');
+    }
+  }
+
+  return true;
+}
+
 // Goal: Keep refreshing the page until the target date is visible... and then select the target date.
-// Return: true if the date is available, false if we needed to refresh the page
+// Return: `true` if the date is available, `false` if we needed to refresh the page
 async function refresh_until_date_available(p: Page, long_month: string, short_month: string, day_num: number): Promise<bool> {
   let short_date: string = short_month + ' ' + day_num;
 
@@ -163,7 +187,9 @@ test('try booking pickleball', async ({ page }) => {
   }
 
   // Suppose we want to launch this around 11:57am, and will leave it running at least until 12:03pm to be safe...
-  test.setTimeout(6 * 60 * 1000);
+  // test.setTimeout(6 * 60 * 1000);
+  // Okay, now that we have the sleep, we can run this at like 9am so allow the test to run ~3hrs
+  test.setTimeout(3 * 60 * 60 * 1000);
   // The default timeout is only 30s
   // https://playwright.dev/docs/test-timeouts
 
@@ -455,20 +481,7 @@ test('try booking pickleball', async ({ page }) => {
   // Phase 4: Refresh the page until the date we want becomes visible, and then book!
   // ========
 
-  let countdown: Date = new Date();
-  if (countdown.getHours() < 12) {
-    // The day is not selectable until noon, so we'll need to wait a bit first.
-
-    if (countdown.getHours() == 11) {
-      if ((countdown.getMinutes() < 59) || countdown.getSeconds() < 53) {
-
-        let secondsUntilNoon: number = (60 - countdown.getMinutes()) * 60 + (60 - countdown.getSeconds());
-        await page.waitForTimeout((secondsUntilNoon - 3.0) * 1000.0); // wait until 3 seconds left...
-      }
-    } else {
-      console.warn('Are you testing for debugging purposes? We are WAYYYY too early in the day to be running right now.');
-    }
-  }
+  await sleep_until_noon(page);
 
   while(true) {
     console.log('MAIN LOOP');
@@ -580,8 +593,9 @@ test('try booking pickleball', async ({ page }) => {
    (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
   );
 
+  booking_form_el.getByRole('button', { name: 'Save' }).first()
   // Expect a title "to contain" a substring.
-  // await expect(page).toHaveTitle('Lifetime');
+  await expect(page).toHaveTitle('Lifetime');
 });
 
 // Try:
