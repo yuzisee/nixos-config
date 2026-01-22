@@ -19,8 +19,8 @@ const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233
 const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
 
 interface QuickMonth {
-  long_month: str;
-  short_month: str;
+  long_month: string;
+  short_month: string;
 }
 
 async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise<boolean>
