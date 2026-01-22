@@ -297,9 +297,9 @@ test('try booking pickleball', async ({ page }) => {
  </div>
 </div>
  */
-    let username_el: Locator = await page.getByPlaceholder('Enter Your Email', {exact: true});
+    let username_el: Locator = page.getByPlaceholder('Enter Your Email', {exact: true});
     if (await locator_visible(username_el, 300)) {
-      let passwd_el: Locator = await page.getByPlaceholder('password');
+      let passwd_el: Locator = page.getByPlaceholder('password');
       if (await locator_visible(passwd_el, 300)) {
         console.log('Not logged in, need to login');
 
