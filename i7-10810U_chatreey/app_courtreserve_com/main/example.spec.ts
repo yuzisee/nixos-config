@@ -89,7 +89,7 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
 
 // Goal: Keep refreshing the page until the target date is visible... and then select the target date.
 // Return: `true` if the date is available, `false` if we needed to refresh the page
-async function refresh_until_date_available(p: Page, long_month: string, short_month: string, day_num: number): Promise<bool> {
+async function refresh_until_date_available(p: Page, long_month: string, short_month: string, day_num: number): Promise<boolean> {
   let short_date: string = short_month + ' ' + day_num;
 
    console.log('SEARCHING FOR ' + short_date);
