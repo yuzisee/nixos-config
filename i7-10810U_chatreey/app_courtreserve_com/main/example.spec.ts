@@ -3,7 +3,7 @@ import { test, expect, errors } from '@playwright/test';
 const LAUNCH_MODE = 'prod';
 
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
-// "Verified Sunnyvale  residents may reserve courts 8 days in advance. Unverified Residents and Non-Residents may reserve courts 7 days in advance"
+// "Verified Sunnyvale residents may reserve courts 8 days in advance. Unverified Residents and Non-Residents may reserve courts 7 days in advance"
 const LOOK_N_DAYS_IN_FUTURE: number = 8;
 test.use({
   // https://playwright.dev/docs/emulation
@@ -54,13 +54,16 @@ async function localtime_datenow(p: Page): Promise<Date> {
 // Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again
 async function sleep_until_noon(p: Page): Promise<bool> {
   let countdown: Date = await localtime_datenow(p);
-  if ((countdown.getHours() > 12) || (countdown.getHours() < 11)) {
+  if ((countdown.getHours() > 12) || (countdown.getHours() < 10)) {
     // 10am or earlier?
     // 1pm or later?
     console.log('countdown.getHours() is ' + countdown.getHours() + ' so sleep one hour and check again.');
     await p.waitForTimeout(60 * 60 * 1000.0);
 
     return false;
+  } else if (countdown.getHours() == 10) {
+    console.log('countdown.getHours() is ' + countdown.getHours() + ', which is almost 11am so sleep 30mins and check again.');
+    await p.waitForTimeout(30 * 60 * 1000.0);
   } else {
     // It's almost noon!
     // The day is not selectable until exactly noon, so we'll need to wait just a bit more...
@@ -73,7 +76,7 @@ async function sleep_until_noon(p: Page): Promise<bool> {
           (60 - countdown.getMinutes()) * 60 +
 	  (60 - countdown.getSeconds());
 
-	console.log('Almost at time, it is ' + secondsUntilNoon + 's until noon');
+	console.log('Almost at time, sleep the final ' + (secondsUntilNoon / 60.0) + ' minutes until just a few seconds before noon');
         await p.waitForTimeout((secondsUntilNoon - 3.0) * 1000.0); // wait until 3 seconds left...
       }
     } else {
@@ -211,6 +214,15 @@ test('try booking pickleball', async ({ page }) => {
   test.setTimeout(24 * 60 * 60 * 1000); // because `sleep_until_noon` could go all the way until the next day
   // The default timeout is only 30s
   // https://playwright.dev/docs/test-timeouts
+
+  //await page.route('**/*.woff2', async function (r) {
+  //  await r.fulfill( { status: 200, contentType: 'font/woff2', body: Buffer.from('') } );
+  //});
+  await (await page.context().newCDPSession(page)).send('Network.setBlockedURLs', { urls: ['*.woff2'] });
+  // ^^^ We get too many
+  //   "The resource https://app.courtreserve.com/Content/memberportal/lib/font-awesome/webfonts/fa-*.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+  // warnings in the console, so if it all works without these extra fonts (and it might even run faster), let's skip these downloads altogether.
+
 
   await page.goto(start_url);
 
@@ -523,7 +535,7 @@ const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
       break;
     }
   }
-  console.log('DATE CORRECT');
+  console.log('DATE CORRECT: ' + (new Date().toISOString()) + ' UTC');
 
   let alreadybooked_els: Locator = await page.getByRole('presentation').getByRole('button').getByText('None Available');
   let reservable_els: Locator = await page.getByRole('application').getByRole('button').getByText('Reserve');
@@ -627,7 +639,7 @@ const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
    (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
   );
 
-  booking_form_el.getByRole('button', { name: 'Save' }).first()
+  booking_form_el.getByRole('button', { name: 'Save' }).first().click()
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle('Lifetime');
 });
