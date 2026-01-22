@@ -1,10 +1,15 @@
 import { test, expect, errors } from '@playwright/test';
 
+const LAUNCH_MODE = 'prod';
+
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
 // "Verified Sunnyvale  residents may reserve courts 8 days in advance. Unverified Residents and Non-Residents may reserve courts 7 days in advance"
 const LOOK_N_DAYS_IN_FUTURE: number = 8;
-const N_DAYS_IN_FUTURE: Date = new Date((new Date()).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
-
+test.use({
+  // https://playwright.dev/docs/emulation
+  // https://playwright.dev/docs/api/class-testoptions#test-options-timezone-id
+  timezoneId: 'America/Los_Angeles',
+});
 const DESIRED_AM_PM: string = 'PM';
 const EARLIEST_HOUR_TO_BOOK: number = 7;
 
@@ -17,12 +22,6 @@ interface QuickMonth {
   long_month: str;
   short_month: str;
 }
-
-const TARGET_MONTH: QuickMonth = {
-  long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
-  short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
-};
-const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
 
 async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise<boolean>
 {
@@ -42,13 +41,31 @@ async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise
   }
 }
 
+async function localtime_datenow(p: Page): Promise<Date> {
+  let date_in_playwright: Date = await p.evaluate(
+    function() {
+      return new Date().toISOString();
+    }
+  );
+
+  return new Date(date_in_playwright);
+}
+
 // Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again
 async function sleep_until_noon(p: Page): Promise<bool> {
-  let countdown: Date = new Date();
-  if (countdown.getHours() < 12) {
-    // The day is not selectable until noon, so we'll need to wait a bit first.
+  let countdown: Date = await localtime_datenow(p);
+  if ((countdown.getHours() > 12) || (countdown.getHours() < 11)) {
+    // 10am or earlier?
+    // 1pm or later?
+    console.log('countdown.getHours() is ' + countdown.getHours() + ' so sleep one hour and check again.');
+    await p.waitForTimeout(60 * 60 * 1000.0);
 
-    if ((countdown.getHours() == 9) || (countdown.getHours() == 10) || (countdown.getHours() == 11)) {
+    return false;
+  } else {
+    // It's almost noon!
+    // The day is not selectable until exactly noon, so we'll need to wait just a bit more...
+
+    if (countdown.getHours() == 11) {
       if ((countdown.getMinutes() < 59) || countdown.getSeconds() < 53) {
 
         let secondsUntilNoon: number =
@@ -56,14 +73,15 @@ async function sleep_until_noon(p: Page): Promise<bool> {
           (60 - countdown.getMinutes()) * 60 +
 	  (60 - countdown.getSeconds());
 
-        await page.waitForTimeout((secondsUntilNoon - 3.0) * 1000.0); // wait until 3 seconds left...
+	console.log('Almost at time, it is ' + secondsUntilNoon + 's until noon');
+        await p.waitForTimeout((secondsUntilNoon - 3.0) * 1000.0); // wait until 3 seconds left...
       }
     } else {
-      console.warn('Are you testing for debugging purposes? We are WAYYYY too early in the day to be running right now.');
+      console.warn('Are you testing for debugging purposes? You just passed noon. Proceeding anyway...');
     }
-  }
 
-  return true;
+    return true;
+  }
 }
 
 // Goal: Keep refreshing the page until the target date is visible... and then select the target date.
@@ -189,7 +207,8 @@ test('try booking pickleball', async ({ page }) => {
   // Suppose we want to launch this around 11:57am, and will leave it running at least until 12:03pm to be safe...
   // test.setTimeout(6 * 60 * 1000);
   // Okay, now that we have the sleep, we can run this at like 9am so allow the test to run ~3hrs
-  test.setTimeout(3 * 60 * 60 * 1000);
+  // test.setTimeout(3 * 60 * 60 * 1000);
+  test.setTimeout(24 * 60 * 60 * 1000); // because `sleep_until_noon` could go all the way until the next day
   // The default timeout is only 30s
   // https://playwright.dev/docs/test-timeouts
 
@@ -200,7 +219,7 @@ test('try booking pickleball', async ({ page }) => {
   // ====================================
 
   let need_login_btn: Locator = page.locator('nav ul#respMenu').getByRole('listitem').getByRole('link', {name: 'LOG IN', exact: true});
-  if (await locator_visible(need_login_btn, 300)) {
+  if (await locator_visible(need_login_btn, 2000)) {
     await need_login_btn.click();
     await page.waitForURL('**Account/LogIn**');
     // e.g. https://app.courtreserve.com/Online/Account/LogIn/13233
@@ -481,7 +500,22 @@ test('try booking pickleball', async ({ page }) => {
   // Phase 4: Refresh the page until the date we want becomes visible, and then book!
   // ========
 
-  await sleep_until_noon(page);
+  if (LAUNCH_MODE == 'prod') {
+    while(true) {
+      console.log('Wait until almost noon... we are currently still ' + (await localtime_datenow(page)).toISOString());
+      if (await sleep_until_noon(page)) {
+        break;
+      }
+    }
+  }
+
+const N_DAYS_IN_FUTURE: Date = new Date((await localtime_datenow(page)).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
+const TARGET_MONTH: QuickMonth = {
+  long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
+  short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
+};
+const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
+
 
   while(true) {
     console.log('MAIN LOOP');
