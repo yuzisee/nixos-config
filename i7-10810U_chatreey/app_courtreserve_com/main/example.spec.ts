@@ -5,11 +5,7 @@ const LAUNCH_MODE = 'prod';
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
 // "Verified Sunnyvale residents may reserve courts 8 days in advance. Unverified Residents and Non-Residents may reserve courts 7 days in advance"
 const LOOK_N_DAYS_IN_FUTURE: number = 8;
-test.use({
-  // https://playwright.dev/docs/emulation
-  // https://playwright.dev/docs/api/class-testoptions#test-options-timezone-id
-  timezoneId: 'America/Los_Angeles',
-});
+
 const DESIRED_AM_PM: string = 'PM';
 const EARLIEST_HOUR_TO_BOOK: number = 7;
 
@@ -17,12 +13,10 @@ const EARLIEST_HOUR_TO_BOOK: number = 7;
 const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
 const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
+const HOME_TIMEZONE: string = 'America/Los_Angeles';
 
-interface QuickMonth {
-  long_month: string;
-  short_month: string;
-}
-
+// Playwright documentation complains that if you call `isVisible()` directly that the results will be flaky...
+// So, we'll need this helper function to check if a certain element becomes visible after the page finishes loading (Playwright auto-wait)
 async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise<boolean>
 {
   if ((timeout_ms === undefined) || (timeout_ms == null)) {
@@ -41,6 +35,13 @@ async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise
   }
 }
 
+// By setting `timezoneId` and implementing a `localtime_datenow` helper function, we have an easy way to do math inside a specific time zone
+// (The booking site shows times in the local time zone of the court you're trying to book, so try to match that here)
+test.use({
+  // https://playwright.dev/docs/emulation
+  // https://playwright.dev/docs/api/class-testoptions#test-options-timezone-id
+  timezoneId: HOME_TIMEZONE,
+});
 async function localtime_datenow(p: Page): Promise<Date> {
   const date_in_playwright: Date = await p.evaluate(
     function() {
@@ -196,6 +197,8 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
     }
 }
 
+// There is a [Reserve] button for every half hour, but the point of this script is to try and get a full hour as early as we can.
+// This helper function here will narrow down the options to only the [Reserve] buttons that still have a full hour available.
 function fullHourReservable(halfHourTimes: Array<string>): Array<string> {
   var result: Array<string> = [];
   var reserveTimesLookup: Set<string> = new Set(halfHourTimes);
@@ -231,6 +234,18 @@ function fullHourReservable(halfHourTimes: Array<string>): Array<string> {
   return result;
 }
 
+interface QuickMonth {
+  long_month: string;
+  short_month: string;
+}
+
+// Overall strategy:
+// ================
+// PHASE 1: make sure you are logged in
+// (Phase 2, optional) only if somehow we get redirected onto the wrong page, use the selector to click through to the correct one...
+// Phase 3: Find the "Pickleball Reservations" link and click it.
+// Phase 4: Sleep the thread (up to ~23hrs) until we get very very close to noon
+// Phase 5: Quickly refresh the page until the date we want becomes visible, and then book!
 test('try booking pickleball', async ({ page }) => {
   var start_url: string = '';
   if(process.env.U) {
@@ -546,8 +561,9 @@ test('try booking pickleball', async ({ page }) => {
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
   // ========
-  // Phase 4: Refresh the page until the date we want becomes visible, and then book!
+  // Phase 4: Sleep the thread (up to ~23hrs) until we get very very close to noon
   // ========
+
 
   if (LAUNCH_MODE == 'prod') {
     while(true) {
@@ -558,13 +574,16 @@ test('try booking pickleball', async ({ page }) => {
     }
   }
 
-const N_DAYS_IN_FUTURE: Date = new Date((await localtime_datenow(page)).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
-const TARGET_MONTH: QuickMonth = {
-  long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
-  short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
-};
-const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
+  const N_DAYS_IN_FUTURE: Date = new Date((await localtime_datenow(page)).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
+  const TARGET_MONTH: QuickMonth = {
+    long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
+    short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
+  };
+  const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
 
+  // ========
+  // Phase 5: Quickly refresh the page until the date we want becomes visible, and then book!
+  // ========
 
   while(true) {
     console.log('MAIN LOOP');
