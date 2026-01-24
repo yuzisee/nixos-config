@@ -42,7 +42,7 @@ async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise
 }
 
 async function localtime_datenow(p: Page): Promise<Date> {
-  let date_in_playwright: Date = await p.evaluate(
+  const date_in_playwright: Date = await p.evaluate(
     function() {
       return new Date().toISOString();
     }
@@ -53,7 +53,7 @@ async function localtime_datenow(p: Page): Promise<Date> {
 
 // Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again
 async function sleep_until_noon(p: Page): Promise<boolean> {
-  let countdown: Date = await localtime_datenow(p);
+  const countdown: Date = await localtime_datenow(p);
   if ((countdown.getHours() > 12) || (countdown.getHours() < 10)) {
     // 10am or earlier?
     // 1pm or later?
@@ -73,7 +73,7 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
     if (countdown.getHours() == 11) {
       if ((countdown.getMinutes() < 59) || countdown.getSeconds() < 53) {
 
-        let secondsUntilNoon: number =
+        const secondsUntilNoon: number =
 //          (11 - countdown.getHours()) * 60 * 60 +
           (60 - countdown.getMinutes()) * 60 +
           (60 - countdown.getSeconds());
@@ -92,7 +92,7 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
 // Goal: Keep refreshing the page until the target date is visible... and then select the target date.
 // Return: `true` if the date is available, `false` if we needed to refresh the page
 async function refresh_until_date_available(p: Page, long_month: string, short_month: string, day_num: number): Promise<boolean> {
-  let short_date: string = short_month + ' ' + day_num;
+  const short_date: string = short_month + ' ' + day_num;
 
    console.log('SEARCHING FOR ' + short_date);
 
@@ -194,6 +194,41 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
         return false;
       }
     }
+}
+
+function fullHourReservable(halfHourTimes: Array<string>): Array<string> {
+  var result: Array<string> = [];
+  var reserveTimesLookup: Set<string> = new Set(halfHourTimes);
+  for (let datatime_str of halfHourTimes) {
+    if (datatime_str != '12:00 AM') {
+      const [timestr, am_pm] = datatime_str.split(' ');
+      const [hourstr, minstr] = timestr.split(':');
+      const prev_hourstr: string = (parseInt(hourstr) - 1).toString().padStart(2, '0');
+
+      const halfHourBefore: string = (
+        minstr == '30'
+      ) ? (
+        hourstr + ':00 ' + am_pm
+      ) : (
+        (
+          hourstr == '12'
+        ) ? (
+          '11:30 AM'
+	) : (
+          prev_hourstr + ':00 ' + am_pm
+	)
+      );
+
+      if (reserveTimesLookup.has(halfHourBefore)) {
+        // Both `datatime_str` and `halfHourBefore` are bookable! That means...
+	result.push(halfHourBefore);
+	// ... `halfHourBefore` will let you book a full hour
+      }
+    }
+
+    // end datatime_str
+  }
+  return result;
 }
 
 test('try booking pickleball', async ({ page }) => {
@@ -544,12 +579,12 @@ const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
   await alreadybooked_els.or(reservable_els).first().waitFor({ state: 'visible' });
   console.log('READY: ' + (await alreadybooked_els.count()) + ':' + (await reservable_els.count()));
 
-  var reserveTimes: Array<string> = [];
+  var reserveTimesChronological: Array<string> = [];
   // for (let r_el: Locator of (await reservable_els.all())) {
   for (let r_el of (await reservable_els.all())) {
     let reserve_btn_el: Locator = r_el.locator('xpath=..');
-    let data_time: string = await reserve_btn_el.getAttribute('data-time');
-    let data_courttype: string = await reserve_btn_el.getAttribute('data-courttype');
+    const data_time: string = await reserve_btn_el.getAttribute('data-time');
+    const data_courttype: string = await reserve_btn_el.getAttribute('data-courttype');
 
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
@@ -557,22 +592,26 @@ const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
     if (data_time.indexOf(DESIRED_AM_PM) == -1) {
       console.log(data_time + ' NOT OUR TARGET: ' + data_courttype);
     } else {
-      let reserve_btn_hour: number = Number(data_time.split(':')[0]);
+      const reserve_btn_hour: number = Number(data_time.split(':')[0]);
       if ((reserve_btn_hour == 12) || (reserve_btn_hour < EARLIEST_HOUR_TO_BOOK)) {
         console.log(data_time + ' TOO EARLY: ' + data_courttype);
       } else {
         console.log(data_time + ' RESERVABLE: ' + data_courttype);
-        reserveTimes.push(data_time);
+        reserveTimesChronological.push(data_time);
       }
     }
   }
+
+  const reserveTimes: Array<string> = fullHourReservable(reserveTimesChronological);
+
+  console.log('FULL HOUR BOOKABLE = ' + JSON.stringify(reserveTimes));
 
   if (reserveTimes.length == 0) {
     await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
     throw new Error('Nothing bookable on the target date.');
   }
 
-  let earliestSatisfactoryTime: string = reserveTimes[0]; // assuming we parse the DOM in chronological order (and why wouldn't we?)
+  const earliestSatisfactoryTime: string = reserveTimes[0]; // assuming we parse the DOM in chronological order (and why wouldn't we?)
   // let randomTimeForTest: string = reserveTimes[Math.floor(Math.random() * reserveTimes.length)];
   // await page.getByRole('application').getByRole('button', { name: ' at ' + randomTimeForTest }).getByText('Reserve').click();
   await page.getByRole('application').getByRole('button', { name: ' at ' + earliestSatisfactoryTime }).getByText('Reserve').click();
@@ -625,25 +664,27 @@ const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
     // Even useInnerText can't interpret opacity (which is what the page seems to use) because pseudo-elements are not part of the DOM tree
     await disclosure_agree_el.locator('xpath=..').click();
     await expect(async () => {
-      let checkmarkOpacity: number = await stupid_checkbox_el.evaluate(el => parseFloat(window.getComputedStyle(el, '::after').opacity));
+      const checkmarkOpacity: number = await stupid_checkbox_el.evaluate(el => parseFloat(window.getComputedStyle(el, '::after').opacity));
       expect(checkmarkOpacity).toBeGreaterThanOrEqual(1.0);
     }).toPass();
 
   } else {
-    let actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
-    let unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(actual_style);
+    const actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
+    const unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(actual_style);
     throw new Error(unexpected_checkmark);
   }
 
-  let totalDueAmount: string = await booking_form_el.locator('label.total-due-amount').textContent();
+  const totalDueAmount: string = await booking_form_el.locator('label.total-due-amount').textContent();
   console.log(
    totalDueAmount + ' READY TO BOOK ' +
    (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
   );
 
-  await booking_form_el.getByRole('button', { name: 'Save' }).first().click()
+  if (LAUNCH_MODE == 'prod') {
+    await booking_form_el.getByRole('button', { name: 'Save' }).first().click()
+  }
   // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle('Lifetime');
+  await expect(page).toHaveTitle('Lifetime'); // "Pickleball Reservations | powered by CourtReserve"
 });
 
 // Try:
