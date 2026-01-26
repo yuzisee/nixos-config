@@ -538,19 +538,35 @@ test('try booking pickleball', async ({ page }) => {
  */
 
   // [!CAUTION]
-  // Here id="respMenu" gives the desktop dropdown (which you can hover)
+  // Here id="respMenu" gives the desktop dropdown (which you can hover) above 992px
   //  and id="fn-nav-clone" gives the mobile dropdown (which you would toggle)
-  // but the desktop one is finnicky, so let's rely on the mobile one for now
-  await page.setViewportSize( { width: 900, height: 720 });
+
+  let hover_el : Locator = page.locator('nav ul#respMenu a.parent-header-link').getByText('Reservations', { exact: true });
+  console.log('Hovering...');
+  await hover_el.hover();
+  let submenu_parent_loc : Locator = page.getByRole('navigation').getByRole('listitem')
+  let pickleball_reservations_el : Locator = submenu_parent_loc.getByRole('listitem').getByRole('link', { name: 'Pickleball Reservations'} )
+  await page.waitForTimeout(200);
+  // ^^^ wait for Javascript animation
+  //     * The default https://github.com/samsono/Ace-Responsive-Menu/blob/2b6f89aa60c13976ea3be8d87293936bc93af948/js/ace-responsive-menu.js#L15 uses 'fast'
+  //     * According to https://api.jquery.com/slideUp/ the 'fast' keyword makes it 200ms
+  // await expect(hover_el).toBeVisible();
+  // await page.locator('div#render-body-container').ariaSnapshot().then(function(val) { console.log(val); } );
+  // await expect(pickleball_reservations_el1).toBeVisible();
+
+/*
+  // ...but the desktop one is finnicky (it appears to use `ace-responsive-menu` which relies on Javascript's onMouseenter & onMouseleave rather than onHover), so let's rely on the mobile one for now
+  await page.setViewportSize( { width: 800, height: 720 });
   // https://github.com/microsoft/playwright/blob/37d58bd440ea06966c98508714854563db46df0a/packages/playwright/src/index.ts#L146
   await page.locator('nav ul#respMenu a#menu-bar-container-web').click();
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
   let all_reservations_mobile_el: Locator = page.locator('div#mobile-menu-container').getByRole('listitem').getByRole('link', { name: 'Reservations'});
   // page.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByText('Pickleball Reservations')
-  let pickleball_reservations_mobile_el: Locator = page.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByRole('link', { name: 'Pickleball Reservations'});
+  let pickleball_reservations_el: Locator = page.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByRole('link', { name: 'Pickleball Reservations'});
   // await mobile_main_menu_el.filter( {has: all_reservations_mobile_el} ).getByRole('link', { name: 'Open submenu' }).click();
   // https://playwright.dev/docs/other-locators#parent-element-locator
   await all_reservations_mobile_el.locator('xpath=..').getByRole('link', { name: 'Open submenu' }).click();
+*/
 
 /*
   await all_reservations_desktop_el).getByText('Pickleball Reservations').click();
@@ -562,7 +578,8 @@ test('try booking pickleball', async ({ page }) => {
   await all_reservations_desktop_el.ariaSnapshot().then(function(val) { console.log(val); } );
   // await all_reservations_desktop_el).getByText('Pickleball Reservations').click();
 */
-  await pickleball_reservations_mobile_el.click();
+  await pickleball_reservations_el.hover();
+  await pickleball_reservations_el.click();
 }}
 
   // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
