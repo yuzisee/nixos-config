@@ -152,6 +152,7 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
    await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
 
     if (await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: short_date, exact: false}).isVisible()) {
+      // SUCCESS!
       return true;
     } else {
       // let visibleDate: Array<string> = await page.locator('span.k-icon.k-i-calendar ~ span').allInnerTexts();
@@ -161,28 +162,42 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
       let calendar_el: Locator = p.locator('div[data-role=calendar]');
       await calendar_el.waitFor({state: 'visible'});
 
+      let day_chooser_el: Locator = calendar_el.locator('div.k-calendar-monthview');
+
       let correct_month_shown: Locator = calendar_el.getByRole('button', {name: long_month, exact: false});
       if (!(await correct_month_shown.isVisible())) {
         // [INVARIANT]: A different month is showing than the one we want. Try to switch using the switcher.
 
-        await calendar_el.locator('a[data-action=nav-up][role=button]').click();
-	let month_chooser_el: Locator = calendar_el.locator('div.k-calendar-yearview');
-	await month_chooser_el.waitFor({state: 'visible'});
-	let target_month_el: Locator = month_chooser_el.getByRole('grid').getByRole('link', {name: short_month});
-	if (await target_month_el.isVisible()) {
-          // Okay, it's there!
-	  target_month_el.click();
+	let quickjump_day_el : Locator = day_chooser_el.getByRole('grid').locator('td.k-other-month[role=gridcell]').getByRole('link', {name: '' + day_num, exact: true});
+	let quickjump_htmltitle : string = long_month + ' ' + day_num + ',';
+	// e.g. 'Monday, February 2, 2026'
+        if ((await quickjump_day_el.isVisible()) && ((await quickjump_day_el.getAttribute('title')).indexOf(quickjump_htmltitle) != -1)) {
+          // Quickly jump to the day we want, otherwise it could slow us down an extra second or two!
+          await quickjump_day_el.click();
+          return true;
 	} else {
-	  console.log('Month ' + long_month + ' not yet selectable... so refresh!');
-          await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
-          await p.reload();
-          return false;
+          // Switch months the slow way, then...
+
+          await calendar_el.locator('a[data-action=nav-up][role=button]').click();
+          let month_chooser_el: Locator = calendar_el.locator('div.k-calendar-yearview');
+          await month_chooser_el.waitFor({state: 'visible'});
+          let target_month_el: Locator = month_chooser_el.getByRole('grid').getByRole('link', {name: short_month});
+          if (await target_month_el.isVisible()) {
+            // Okay, it's there!
+            target_month_el.click();
+          } else {
+            console.log('Month ' + long_month + ' not yet selectable (did you wake from sleep too early?)... so refresh @ ' + (new Date().toISOString()) + ' UTC');
+            await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
+            await p.reload();
+            return false;
+          }
 	}
+
+	// end if different month
       }
 
       // [INVARIANT]: OK good! We're should be on the correct month now.
       await expect(correct_month_shown).toBeVisible();
-      let day_chooser_el: Locator = calendar_el.locator('div.k-calendar-monthview');
       await expect(day_chooser_el).toBeVisible();
 
       let target_day_el: Locator = day_chooser_el.getByRole('grid').getByRole('link', {name: '' + day_num, exact: true});
@@ -190,7 +205,7 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
         await target_day_el.click();
         return true;
       } else {
-        console.log('Day ' + day_num + ' not yet selectable, refresh');
+        console.log('Day ' + day_num + ' not yet selectable (did you wake from sleep too early?), refresh @ ' + (new Date().toISOString()) + ' UTC');
         await day_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
         await p.reload();
         return false;
@@ -237,6 +252,69 @@ async function get_to_pickleball_reservations(p: Page): Promise<Locator> {
   }
 }
 
+async function book_best_slot(p: Page): Promise<bool> {
+
+  let alreadybooked_els: Locator = p.getByRole('presentation').getByRole('button').getByText('None Available');
+  let reservable_els: Locator = p.getByRole('application').getByRole('button').getByText('Reserve');
+  await alreadybooked_els.or(reservable_els).first().waitFor({ state: 'visible' });
+  console.log('READY: ' + (await alreadybooked_els.count()) + ':' + (await reservable_els.count()));
+
+  var reserveTimesChronological: Array<string> = [];
+  // for (let r_el: Locator of (await reservable_els.all())) {
+  for (let r_el of (await reservable_els.all())) {
+    let reserve_btn_el: Locator = r_el.locator('xpath=..');
+    const data_time: string = await reserve_btn_el.getAttribute('data-time');
+    const data_courttype: string = await reserve_btn_el.getAttribute('data-courttype');
+
+    // *********************
+    // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
+    // *********************
+    if (data_time.indexOf(DESIRED_AM_PM) == -1) {
+      console.log(data_time + ' NOT OUR TARGET: ' + data_courttype);
+    } else {
+      const reserve_btn_hour: number = Number(data_time.split(':')[0]);
+      if ((reserve_btn_hour == 12) || (reserve_btn_hour < EARLIEST_HOUR_TO_BOOK)) {
+        console.log(data_time + ' TOO EARLY: ' + data_courttype);
+      } else {
+        console.log(data_time + ' RESERVABLE: ' + data_courttype);
+        reserveTimesChronological.push(data_time);
+      }
+    }
+  }
+
+  const reserveTimes: Array<string> = topPriorityFullHourReservable(reserveTimesChronological);
+
+  console.log('FULL HOUR BOOKABLE, best first = ' + JSON.stringify(reserveTimes));
+
+  // let randomTimeForTest: string = reserveTimes[Math.floor(Math.random() * reserveTimes.length)];
+  // await p.getByRole('application').getByRole('button', { name: ' at ' + randomTimeForTest }).getByText('Reserve').click();
+  const abort_after_ms : number = 1999;
+  while(reserveTimes.length > 0) {
+
+    const earliestSatisfactoryTime: string = reserveTimes.shift(); // assuming we parse the DOM in chronological order (and why wouldn't we?)
+
+    let ready_to_book_el: Locator = p.getByRole('application').getByRole('button', { name: ' at ' + earliestSatisfactoryTime }).getByText('Reserve');
+    try {
+      await ready_to_book_el.click({timeout: abort_after_ms});
+      // SUCCESS!
+      return true;
+    } catch (e) {
+      if (e instanceof errors.TimeoutError) {
+	console.log("Wasn't able to click " + earliestSatisfactoryTime + ' after ' + abort_after_ms + 'ms...');
+      } else {
+        throw e;
+      }
+    }
+
+    // end while
+  }
+
+  // [INVARIANT] If you get here, nothing was bookable for a full hour
+
+  await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+  throw new Error('Nothing bookable on the target date.');
+}
+
 // There is a [Reserve] button for every half hour, but the point of this script is to try and get a full hour as early as we can.
 // This helper function here will narrow down the options to only the [Reserve] buttons that still have a full hour available.
 // The returned results will be chronological, EXCEPT you will have an extra copy of FAVOURITE_TIMES_BEST_FIRST at the very front, if any of them are also available for the full hour
@@ -269,10 +347,13 @@ function topPriorityFullHourReservable(halfHourTimes: Array<string>): Array<stri
 	)
       );
 
-      if (reserveTimesLookup.has(halfHourAfter)) {
+
+      // [!TIP]
+      // `reserveTimesLookup.has(datatime_str)` should already be true, unless we're checking one of `FAVOURITE_TIMES_BEST_FIRST`
+      if (reserveTimesLookup.has(datatime_str) && reserveTimesLookup.has(halfHourAfter)) {
         // Both `datatime_str` and `halfHourAfter` are bookable! That means...
 	result.push(datatime_str);
-	// ... `halfHourBefore` will let you book a full hour
+	// ... `datatime_str` will let you book a full hour
       }
     }
 
@@ -616,6 +697,8 @@ test('try booking pickleball', async ({ page }) => {
   };
   const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
 
+  console.log('WAKEUP: ' + (new Date().toISOString()) + ' UTC');
+
   // ========
   // Phase 5: Quickly refresh the page until the date we want becomes visible, and then book!
   // ========
@@ -628,47 +711,7 @@ test('try booking pickleball', async ({ page }) => {
   }
   console.log('DATE CORRECT: ' + (new Date().toISOString()) + ' UTC');
 
-  let alreadybooked_els: Locator = page.getByRole('presentation').getByRole('button').getByText('None Available');
-  let reservable_els: Locator = page.getByRole('application').getByRole('button').getByText('Reserve');
-  await alreadybooked_els.or(reservable_els).first().waitFor({ state: 'visible' });
-  console.log('READY: ' + (await alreadybooked_els.count()) + ':' + (await reservable_els.count()));
-
-  var reserveTimesChronological: Array<string> = [];
-  // for (let r_el: Locator of (await reservable_els.all())) {
-  for (let r_el of (await reservable_els.all())) {
-    let reserve_btn_el: Locator = r_el.locator('xpath=..');
-    const data_time: string = await reserve_btn_el.getAttribute('data-time');
-    const data_courttype: string = await reserve_btn_el.getAttribute('data-courttype');
-
-    // *********************
-    // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
-    // *********************
-    if (data_time.indexOf(DESIRED_AM_PM) == -1) {
-      console.log(data_time + ' NOT OUR TARGET: ' + data_courttype);
-    } else {
-      const reserve_btn_hour: number = Number(data_time.split(':')[0]);
-      if ((reserve_btn_hour == 12) || (reserve_btn_hour < EARLIEST_HOUR_TO_BOOK)) {
-        console.log(data_time + ' TOO EARLY: ' + data_courttype);
-      } else {
-        console.log(data_time + ' RESERVABLE: ' + data_courttype);
-        reserveTimesChronological.push(data_time);
-      }
-    }
-  }
-
-  const reserveTimes: Array<string> = topPriorityFullHourReservable(reserveTimesChronological);
-
-  console.log('FULL HOUR BOOKABLE, best first = ' + JSON.stringify(reserveTimes));
-
-  if (reserveTimes.length == 0) {
-    await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-    throw new Error('Nothing bookable on the target date.');
-  }
-
-  const earliestSatisfactoryTime: string = reserveTimes[0]; // assuming we parse the DOM in chronological order (and why wouldn't we?)
-  // let randomTimeForTest: string = reserveTimes[Math.floor(Math.random() * reserveTimes.length)];
-  // await page.getByRole('application').getByRole('button', { name: ' at ' + randomTimeForTest }).getByText('Reserve').click();
-  await page.getByRole('application').getByRole('button', { name: ' at ' + earliestSatisfactoryTime }).getByText('Reserve').click();
+  await book_best_slot(page);
 
   let booking_form_el: Locator = page.locator('form#createReservation-Form');
   await booking_form_el.getByText('End Time').waitFor({state: 'visible'});
