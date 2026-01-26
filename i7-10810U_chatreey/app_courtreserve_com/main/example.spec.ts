@@ -8,6 +8,7 @@ const LOOK_N_DAYS_IN_FUTURE: number = 8;
 
 const DESIRED_AM_PM: string = 'PM';
 const EARLIEST_HOUR_TO_BOOK: number = 7;
+const FAVOURITE_TIMES_BEST_FIRST: Array<string> = ['8:30 PM', '9:00 PM', '8:00 PM'];
 
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
 const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
@@ -184,7 +185,7 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
       let day_chooser_el: Locator = calendar_el.locator('div.k-calendar-monthview');
       await expect(day_chooser_el).toBeVisible();
 
-      let target_day_el: Locator = day_chooser_el.getByRole('grid').getByRole('link', {name: '' + day_num});
+      let target_day_el: Locator = day_chooser_el.getByRole('grid').getByRole('link', {name: '' + day_num, exact: true});
       if (await target_day_el.isVisible()) {
         await target_day_el.click();
         return true;
@@ -199,32 +200,39 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
 
 // There is a [Reserve] button for every half hour, but the point of this script is to try and get a full hour as early as we can.
 // This helper function here will narrow down the options to only the [Reserve] buttons that still have a full hour available.
-function fullHourReservable(halfHourTimes: Array<string>): Array<string> {
+// The returned results will be chronological, EXCEPT you will have an extra copy of FAVOURITE_TIMES_BEST_FIRST at the very front, if any of them are also available for the full hour
+function topPriorityFullHourReservable(halfHourTimes: Array<string>): Array<string> {
   var result: Array<string> = [];
   var reserveTimesLookup: Set<string> = new Set(halfHourTimes);
-  for (let datatime_str of halfHourTimes) {
-    if (datatime_str != '12:00 AM') {
+  for (let datatime_str of [...FAVOURITE_TIMES_BEST_FIRST, ...halfHourTimes]) {
+    if (datatime_str != '11:30 PM') {
       const [timestr, am_pm] = datatime_str.split(' ');
       const [hourstr, minstr] = timestr.split(':');
-      const prev_hourstr: string = (parseInt(hourstr) - 1).toString().padStart(2, '0');
+      const next_hourstr: string = (parseInt(hourstr) + 1).toString().padStart(2, '0');
 
-      const halfHourBefore: string = (
-        minstr == '30'
+      const halfHourAfter: string = (
+        minstr == '00'
       ) ? (
-        hourstr + ':00 ' + am_pm
+        hourstr + ':30 ' + am_pm
       ) : (
         (
-          hourstr == '12'
+          hourstr == '11'
         ) ? (
-          '11:30 AM'
+          '12:00 PM' // 11:30 PM is excluded above already so must have been 11:30 AM, which has 12:00 PM next
 	) : (
-          prev_hourstr + ':00 ' + am_pm
+	  (
+            hourstr == '12'
+	  ) ? (
+            '01:00 ' + am_pm // 12:30 AM has 1:00 AM next, and 12:30 PM has 1:00 PM next
+	  ) : (
+            next_hourstr + ':00 ' + am_pm
+	  )
 	)
       );
 
-      if (reserveTimesLookup.has(halfHourBefore)) {
-        // Both `datatime_str` and `halfHourBefore` are bookable! That means...
-	result.push(halfHourBefore);
+      if (reserveTimesLookup.has(halfHourAfter)) {
+        // Both `datatime_str` and `halfHourAfter` are bookable! That means...
+	result.push(datatime_str);
 	// ... `halfHourBefore` will let you book a full hour
       }
     }
@@ -621,9 +629,9 @@ test('try booking pickleball', async ({ page }) => {
     }
   }
 
-  const reserveTimes: Array<string> = fullHourReservable(reserveTimesChronological);
+  const reserveTimes: Array<string> = topPriorityFullHourReservable(reserveTimesChronological);
 
-  console.log('FULL HOUR BOOKABLE = ' + JSON.stringify(reserveTimes));
+  console.log('FULL HOUR BOOKABLE, best first = ' + JSON.stringify(reserveTimes));
 
   if (reserveTimes.length == 0) {
     await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
