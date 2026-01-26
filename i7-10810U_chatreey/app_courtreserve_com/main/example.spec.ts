@@ -198,6 +198,45 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
     }
 }
 
+async function get_to_pickleball_reservations(p: Page): Promise<Locator> {
+
+  // [!CAUTION]
+  // Here id="respMenu" gives the desktop dropdown (which you can hover) above 992px
+  //  and id="fn-nav-clone" gives the mobile dropdown (which you would toggle)
+  let mobile_detect_el : Locator = p.locator('nav ul#respMenu a#menu-bar-container-web');
+  if (await mobile_detect_el.isVisible()) {
+    console.log('Traversing mmenu...');
+
+    // ...but the desktop one is finnicky (it appears to use `ace-responsive-menu` which relies on Javascript's onMouseenter & onMouseleave rather than onHover), so let's rely on the mobile one for now
+    await p.setViewportSize( { width: 800, height: 720 });
+    // https://github.com/microsoft/playwright/blob/37d58bd440ea06966c98508714854563db46df0a/packages/playwright/src/index.ts#L146
+    await mobile_detect_el.click();
+    // await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+    let all_reservations_mobile_el: Locator = p.locator('div#mobile-menu-container').getByRole('listitem').getByRole('link', { name: 'Reservations'});
+
+    // await mobile_main_menu_el.filter( {has: all_reservations_mobile_el} ).getByRole('link', { name: 'Open submenu' }).click();
+    // https://playwright.dev/docs/other-locators#parent-element-locator
+    await all_reservations_mobile_el.locator('xpath=..').getByRole('link', { name: 'Open submenu' }).click();
+
+    // p.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByText('Pickleball Reservations')
+    return p.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByRole('link', { name: 'Pickleball Reservations'});
+  } else {
+    let hover_el : Locator = p.locator('nav ul#respMenu a.parent-header-link').getByText('Reservations', { exact: true });
+    console.log('Hovering ace-responsive-menu...');
+    await hover_el.hover();
+    await p.waitForTimeout(200);
+    // ^^^ wait for Javascript animation
+    //     * The default https://github.com/samsono/Ace-Responsive-Menu/blob/2b6f89aa60c13976ea3be8d87293936bc93af948/js/ace-responsive-menu.js#L15 uses 'fast'
+    //     * According to https://api.jquery.com/slideUp/ the 'fast' keyword makes it 200ms
+
+    let submenu_parent_loc : Locator = p.getByRole('navigation').getByRole('listitem')
+    // await expect(hover_el).toBeVisible();
+    // await p.locator('div#render-body-container').ariaSnapshot().then(function(val) { console.log(val); } );
+    // await expect(pickleball_reservations_el1).toBeVisible();
+    return submenu_parent_loc.getByRole('listitem').getByRole('link', { name: 'Pickleball Reservations'} );
+  }
+}
+
 // There is a [Reserve] button for every half hour, but the point of this script is to try and get a full hour as early as we can.
 // This helper function here will narrow down the options to only the [Reserve] buttons that still have a full hour available.
 // The returned results will be chronological, EXCEPT you will have an extra copy of FAVOURITE_TIMES_BEST_FIRST at the very front, if any of them are also available for the full hour
@@ -537,36 +576,7 @@ test('try booking pickleball', async ({ page }) => {
 - list
  */
 
-  // [!CAUTION]
-  // Here id="respMenu" gives the desktop dropdown (which you can hover) above 992px
-  //  and id="fn-nav-clone" gives the mobile dropdown (which you would toggle)
-
-  let hover_el : Locator = page.locator('nav ul#respMenu a.parent-header-link').getByText('Reservations', { exact: true });
-  console.log('Hovering...');
-  await hover_el.hover();
-  let submenu_parent_loc : Locator = page.getByRole('navigation').getByRole('listitem')
-  let pickleball_reservations_el : Locator = submenu_parent_loc.getByRole('listitem').getByRole('link', { name: 'Pickleball Reservations'} )
-  await page.waitForTimeout(200);
-  // ^^^ wait for Javascript animation
-  //     * The default https://github.com/samsono/Ace-Responsive-Menu/blob/2b6f89aa60c13976ea3be8d87293936bc93af948/js/ace-responsive-menu.js#L15 uses 'fast'
-  //     * According to https://api.jquery.com/slideUp/ the 'fast' keyword makes it 200ms
-  // await expect(hover_el).toBeVisible();
-  // await page.locator('div#render-body-container').ariaSnapshot().then(function(val) { console.log(val); } );
-  // await expect(pickleball_reservations_el1).toBeVisible();
-
-/*
-  // ...but the desktop one is finnicky (it appears to use `ace-responsive-menu` which relies on Javascript's onMouseenter & onMouseleave rather than onHover), so let's rely on the mobile one for now
-  await page.setViewportSize( { width: 800, height: 720 });
-  // https://github.com/microsoft/playwright/blob/37d58bd440ea06966c98508714854563db46df0a/packages/playwright/src/index.ts#L146
-  await page.locator('nav ul#respMenu a#menu-bar-container-web').click();
-  // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-  let all_reservations_mobile_el: Locator = page.locator('div#mobile-menu-container').getByRole('listitem').getByRole('link', { name: 'Reservations'});
-  // page.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByText('Pickleball Reservations')
-  let pickleball_reservations_el: Locator = page.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByRole('link', { name: 'Pickleball Reservations'});
-  // await mobile_main_menu_el.filter( {has: all_reservations_mobile_el} ).getByRole('link', { name: 'Open submenu' }).click();
-  // https://playwright.dev/docs/other-locators#parent-element-locator
-  await all_reservations_mobile_el.locator('xpath=..').getByRole('link', { name: 'Open submenu' }).click();
-*/
+  let pickleball_reservations_el : Locator = await get_to_pickleball_reservations(page);
 
 /*
   await all_reservations_desktop_el).getByText('Pickleball Reservations').click();
