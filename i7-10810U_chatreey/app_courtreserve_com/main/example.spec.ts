@@ -1,6 +1,7 @@
 import { test, expect, errors } from '@playwright/test';
 
-const LAUNCH_MODE = 'prod';
+const LAUNCH_MODE: string = 'prod';
+const RISKY_BUT_FASTER: boolean = true;
 
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
 // "Verified Sunnyvale residents may reserve courts 8 days in advance. Unverified Residents and Non-Residents may reserve courts 7 days in advance"
@@ -176,15 +177,22 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
           await quickjump_day_el.click();
           return true;
 	} else {
+	  if (RISKY_BUT_FASTER) {
+            console.log("Couldn't find the k-other-month " + long_month + "'s " + day_num + ' yet either. Did you wake from sleep too early? Refresh now & try again → ' + (new Date().toISOString()) + ' UTC');
+            // Don't bother clicking the month selector and the month and waiting for it to re-animate. That can burn 1.6s+ and we don't really gain anything.
+            await p.reload();
+            return false;
+          }
+
           // Switch months the slow way, then...
 
-          await calendar_el.locator('a[data-action=nav-up][role=button]').click();
+          await calendar_el.locator('a[data-action=nav-up][role=button]').click(); // this can take ~300ms+ though
           let month_chooser_el: Locator = calendar_el.locator('div.k-calendar-yearview');
           await month_chooser_el.waitFor({state: 'visible'});
           let target_month_el: Locator = month_chooser_el.getByRole('grid').getByRole('link', {name: short_month});
           if (await target_month_el.isVisible()) {
             // Okay, it's there!
-            target_month_el.click();
+            target_month_el.click(); // this can take +440ms though
           } else {
             console.log('Month ' + long_month + ' not yet selectable (did you wake from sleep too early?)... so refresh @ ' + (new Date().toISOString()) + ' UTC');
             await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
@@ -197,7 +205,7 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
       }
 
       // [INVARIANT]: OK good! We're should be on the correct month now.
-      await expect(correct_month_shown).toBeVisible();
+      await expect(correct_month_shown).toBeVisible(); // this sometimes waits ~900ms (or maybe longer??)
       await expect(day_chooser_el).toBeVisible();
 
       let target_day_el: Locator = day_chooser_el.getByRole('grid').getByRole('link', {name: '' + day_num, exact: true});
@@ -252,12 +260,12 @@ async function get_to_pickleball_reservations(p: Page): Promise<Locator> {
   }
 }
 
-async function book_best_slot(p: Page): Promise<bool> {
+async function book_best_slot(p: Page): Promise<boolean> {
 
   let alreadybooked_els: Locator = p.getByRole('presentation').getByRole('button').getByText('None Available');
   let reservable_els: Locator = p.getByRole('application').getByRole('button').getByText('Reserve');
   await alreadybooked_els.or(reservable_els).first().waitFor({ state: 'visible' });
-  console.log('READY: ' + (await alreadybooked_els.count()) + ':' + (await reservable_els.count()));
+  console.log('READY: ' + (await alreadybooked_els.count()) + ' booked ↔ available ' + (await reservable_els.count()));
 
   var reserveTimesChronological: Array<string> = [];
   // for (let r_el: Locator of (await reservable_els.all())) {
