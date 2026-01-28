@@ -78,14 +78,21 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
 
         const secondsUntilNoon: number =
 //          (11 - countdown.getHours()) * 60 * 60 +
-          (60 - countdown.getMinutes()) * 60 +
+          (60 - countdown.getMinutes() - 1) * 60 +  // e.g. if it's 11:59:30, you want to wait 0 minutes and 30 seconds
           (60 - countdown.getSeconds());
 
 	console.log('Almost at time, sleep the final ' + (secondsUntilNoon / 60.0) + ' minutes until just a few seconds before noon');
         await p.waitForTimeout((secondsUntilNoon - 3.0) * 1000.0); // wait until 3 seconds left...
       }
     } else {
-      console.warn('Are you testing for debugging purposes? You just passed noon. Proceeding anyway...');
+      // [INVARIANT] It's 12:xx PM
+      if (countdown.getMinutes() < 30) {
+        console.warn('Are you testing for debugging purposes? You just passed noon. Proceeding anyway...');
+      } else {
+        console.log('Starting now... ' + countdown.toString() + ' ▶ Continuously sleep 1 hour at a time until tomorrow!');
+        await p.waitForTimeout(60 * 60 * 1000.0);
+        return false;
+      }
     }
 
     return true;
@@ -150,8 +157,10 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
 
   */
 
+   // k-scheduler-toolbar
    await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
 
+    // k-sm-date-format
     if (await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: short_date, exact: false}).isVisible()) {
       // SUCCESS!
       return true;
@@ -690,12 +699,19 @@ test('try booking pickleball', async ({ page }) => {
 
 
   if (LAUNCH_MODE == 'prod') {
+    // At 1024px width and smaller, the 'k-scheduler-toolbar' shows k-sm-date-format instead of k-lg-date-format
+    // At 480px width and smaller, the table gets a little cumbersome to use
+    await page.setViewportSize( { width: 616, height: 1700 });
+    // Giving us 2400px of height makes it easier to see all the bookable slots at a glance
+
     while(true) {
       console.log('Wait until almost noon... we are currently still ' + (await localtime_datenow(page)).toISOString());
       if (await sleep_until_noon(page)) {
         break;
       }
     }
+  } else {
+    await page.setViewportSize( { width: 616, height: 720 });
   }
 
   const N_DAYS_IN_FUTURE: Date = new Date((await localtime_datenow(page)).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
@@ -719,6 +735,7 @@ test('try booking pickleball', async ({ page }) => {
   }
   console.log('DATE CORRECT: ' + (new Date().toISOString()) + ' UTC');
 
+  // UJS XHR POST https://app.courtreserve.com/Online/Reservations/CreateReservation/13233?start=1/29/2026%209:00%20AM&end=1/29/2026%209:30%20AM&customSchedulerId=16984&courtTypeId=9&courtType=Pickleball
   await book_best_slot(page);
 
   let booking_form_el: Locator = page.locator('form#createReservation-Form');
