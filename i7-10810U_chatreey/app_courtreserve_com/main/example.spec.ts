@@ -101,7 +101,7 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
 
 // Goal: Keep refreshing the page until the target date is visible... and then select the target date.
 // Return: `true` if the date is available, `false` if we needed to refresh the page
-async function refresh_until_date_available(p: Page, long_month: string, short_month: string, day_num: number): Promise<boolean> {
+async function refresh_until_date_available(p: Page, year_num: number, month_zerobased: number, long_month: string, short_month: string, day_num: number): Promise<boolean> {
   const short_date: string = short_month + ' ' + day_num;
 
    console.log('SEARCHING FOR ' + short_date);
@@ -171,6 +171,23 @@ async function refresh_until_date_available(p: Page, long_month: string, short_m
       await p.locator('span.k-icon.k-i-calendar').click();
       let calendar_el: Locator = p.locator('div[data-role=calendar]');
       await calendar_el.waitFor({state: 'visible'});
+
+      if (RISKY_BUT_FASTER) {
+        let force_date_data : string = year_num + '/' + month_zerobased + '/' + day_num;
+	let force_feed_commandeer : Locator = p.locator('td.k-calendar-td:not(.k-state-selected):not([aria-selected])').getByRole('link').first();
+        // await force_feed_commandeer.waitFor({state: 'visible'});
+        const force_feed_result : string = await force_feed_commandeer.evaluate(
+          function (force_el, new_data_val) {
+            force_el.dataset.value = new_data_val;
+	    var commandeer_result = force_el.outerHTML;
+	    force_el.click();
+            return commandeer_result;
+          }, force_date_data
+        );
+        console.log('Force feed attempt: ' + force_feed_result);
+        // await force_feed_commandeer.click();
+        return false;
+      }
 
       let day_chooser_el: Locator = calendar_el.locator('div.k-calendar-monthview');
 
@@ -729,7 +746,7 @@ test('try booking pickleball', async ({ page }) => {
 
   while(true) {
     console.log('MAIN LOOP');
-    if (await refresh_until_date_available(page, TARGET_MONTH.long_month, TARGET_MONTH.short_month, TARGET_DAY)) {
+    if (await refresh_until_date_available(page, N_DAYS_IN_FUTURE.getFullYear(), N_DAYS_IN_FUTURE.getMonth(), TARGET_MONTH.long_month, TARGET_MONTH.short_month, TARGET_DAY)) {
       break;
     }
   }
