@@ -1,6 +1,7 @@
 import { test, expect, errors } from '@playwright/test';
 
 const LAUNCH_MODE: string = 'prod';
+//const LAUNCH_MODE: string = 'dev';
 const RISKY_BUT_FASTER: boolean = true;
 
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
@@ -172,6 +173,8 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
       let calendar_el: Locator = p.locator('div[data-role=calendar]');
       await calendar_el.waitFor({state: 'visible'});
 
+      // TODO(from joseph): This seems like it should work, but if you hit right on the boundary I think something quirky happens with the loading... so revisit if we need to be faster
+      /*
       if (RISKY_BUT_FASTER) {
         let force_date_data : string = year_num + '/' + month_zerobased + '/' + day_num;
 	let force_feed_commandeer : Locator = p.locator('td.k-calendar-td:not(.k-state-selected):not([aria-selected])').getByRole('link').first();
@@ -184,10 +187,11 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
             return commandeer_result;
           }, force_date_data
         );
-        console.log('Force feed attempt: ' + force_feed_result);
+        console.log('Force feed ' + force_feed_result + ' at ' + (new Date().toISOString()) + ' UTC');
         // await force_feed_commandeer.click();
         return false;
       }
+      */
 
       let day_chooser_el: Locator = calendar_el.locator('div.k-calendar-monthview');
 
