@@ -7,6 +7,7 @@ const RISKY_BUT_FASTER: boolean = true;
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
 // "Verified Sunnyvale residents may reserve courts 8 days in advance. Unverified Residents and Non-Residents may reserve courts 7 days in advance"
 const LOOK_N_DAYS_IN_FUTURE: number = 8;
+// e.g. queue up on Sunday evening to try and book the Monday slots 8 days later
 
 const DESIRED_AM_PM: string = 'PM';
 const EARLIEST_HOUR_TO_BOOK: number = 7;
@@ -83,7 +84,7 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
           (60 - countdown.getSeconds());
 
 	console.log('Almost at time, sleep the final ' + (secondsUntilNoon / 60.0) + ' minutes until just a few seconds before noon');
-        await p.waitForTimeout((secondsUntilNoon - 3.0) * 1000.0); // wait until 3 seconds left...
+        await p.waitForTimeout((secondsUntilNoon - 4.0) * 1000.0); // wait until 4 seconds left...
       }
     } else {
       // [INVARIANT] It's 12:xx PM
@@ -353,6 +354,27 @@ async function book_best_slot(p: Page): Promise<boolean> {
   throw new Error('Nothing bookable on the target date.');
 }
 
+function halfHourAfter(reserve_str: string): string {
+  const [timestr, am_pm] = reserve_str.split(' ');
+  const [hourstr, minstr] = timestr.split(':');
+  // const next_hourstr: string = (parseInt(hourstr) + 1).toString().padStart(2, '0');
+  const next_hourstr: string = (parseInt(hourstr) + 1).toString();
+  // [!TIP]
+  // As far as I can tell, the `data-testid="reserveBtn" data-time="..."` are not zero padded
+
+  if ( minstr == '00') {
+    return hourstr + ':30 ' + am_pm;
+  } else {
+    if ( hourstr == '11') {
+      return '12:00 PM'; // 11:30 PM is excluded above already so must have been 11:30 AM, which has 12:00 PM next
+    } else if (hourstr == '12') {
+      return '1:00 ' + am_pm; // 12:30 AM has 1:00 AM next, and 12:30 PM has 1:00 PM next
+    } else {
+      return next_hourstr + ':00 ' + am_pm;
+    }
+  }
+}
+
 // There is a [Reserve] button for every half hour, but the point of this script is to try and get a full hour as early as we can.
 // This helper function here will narrow down the options to only the [Reserve] buttons that still have a full hour available.
 // The returned results will be chronological, EXCEPT you will have an extra copy of FAVOURITE_TIMES_BEST_FIRST at the very front, if any of them are also available for the full hour
@@ -361,34 +383,9 @@ function topPriorityFullHourReservable(halfHourTimes: Array<string>): Array<stri
   var reserveTimesLookup: Set<string> = new Set(halfHourTimes);
   for (let datatime_str of [...FAVOURITE_TIMES_BEST_FIRST, ...halfHourTimes]) {
     if (datatime_str != '11:30 PM') {
-      const [timestr, am_pm] = datatime_str.split(' ');
-      const [hourstr, minstr] = timestr.split(':');
-      const next_hourstr: string = (parseInt(hourstr) + 1).toString().padStart(2, '0');
-
-      const halfHourAfter: string = (
-        minstr == '00'
-      ) ? (
-        hourstr + ':30 ' + am_pm
-      ) : (
-        (
-          hourstr == '11'
-        ) ? (
-          '12:00 PM' // 11:30 PM is excluded above already so must have been 11:30 AM, which has 12:00 PM next
-	) : (
-	  (
-            hourstr == '12'
-	  ) ? (
-            '01:00 ' + am_pm // 12:30 AM has 1:00 AM next, and 12:30 PM has 1:00 PM next
-	  ) : (
-            next_hourstr + ':00 ' + am_pm
-	  )
-	)
-      );
-
-
       // [!TIP]
       // `reserveTimesLookup.has(datatime_str)` should already be true, unless we're checking one of `FAVOURITE_TIMES_BEST_FIRST`
-      if (reserveTimesLookup.has(datatime_str) && reserveTimesLookup.has(halfHourAfter)) {
+      if (reserveTimesLookup.has(datatime_str) && reserveTimesLookup.has(halfHourAfter(datatime_str))) {
         // Both `datatime_str` and `halfHourAfter` are bookable! That means...
 	result.push(datatime_str);
 	// ... `datatime_str` will let you book a full hour
@@ -825,9 +822,26 @@ test('try booking pickleball', async ({ page }) => {
 
   if (LAUNCH_MODE == 'prod') {
     await booking_form_el.getByRole('button', { name: 'Save' }).first().click()
+
+    await expect(page).getByRole('alert').toHaveText('Reservation Confirmed');
   }
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle('Lifetime'); // "Pickleball Reservations | powered by CourtReserve"
+});
+
+test('logic self-test', async ({ }) => {
+  const halfHourAfter_actual: string = halfHourAfter('8:30 PM');
+  if (halfHourAfter_actual != '9:00 PM') {
+    throw new Error('Wrong time increment → ' + halfHourAfter_actual);
+  }
+
+  const allAvailable_in: Array<string> = ['7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM', '9:30 PM'];
+  const allAvailable_actual: Array<string> = topPriorityFullHourReservable(allAvailable_in);
+  if (allAvailable_actual[0] != '8:30 PM') {
+    throw new Error("Why didn't " + JSON.stringify(FAVOURITE_TIMES_BEST_FIRST) + ' take priority? Instead we got ' + JSON.stringify(allAvailable_actual));
+  }
+
+  console.log('All pass');
 });
 
 // Try:
