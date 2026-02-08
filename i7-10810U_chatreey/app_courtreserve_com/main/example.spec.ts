@@ -823,7 +823,11 @@ test('try booking pickleball', async ({ page }) => {
   if (LAUNCH_MODE == 'prod') {
     await booking_form_el.getByRole('button', { name: 'Save' }).first().click()
 
-    await expect(page).getByRole('alert').toHaveText('Reservation Confirmed');
+    let confirmation_popup : Locator = page.getByRole('alert');
+
+    // https://github.com/microsoft/playwright/blob/bfd1ec67a923589fd3b6ff30a6bcceba87ceaf96/packages/playwright/src/common/config.ts#L40
+    await confirmation_popup.waitFor({state: 'visible', timeout: 30000});
+    await expect(confirmation_popup).toHaveText('Reservation Confirmed');
   }
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle('Lifetime'); // "Pickleball Reservations | powered by CourtReserve"
