@@ -354,6 +354,106 @@ async function book_best_slot(p: Page): Promise<boolean> {
   throw new Error('Nothing bookable on the target date.');
 }
 
+async function fill_out_form(p: Page) : Promise<boolean> {
+
+  let booking_form_el: Locator = p.locator('form#createReservation-Form');
+  await booking_form_el.getByText('End Time').waitFor({state: 'visible'});
+  // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+  /*
+- text: Book a reservation for 1/27/2026
+- button "Close"
+- button "Save"
+- separator
+- text: Reservation Type *
+- listbox "Reservation Type *":
+  - option "Recreational Play - Pickleball" [selected]
+  - button "select": 
+- text: Start Time 8:30 AM Duration *
+- listbox "Duration *":
+  - option "1 hour" [selected]
+  - button "select": 
+- text: End Time
+- textbox "End Time" [disabled]: 9:30 AM
+- text: Player(s)
+- grid:
+  - rowgroup:
+    - row "# 1 Name firstname lastname Cost $7.00 Due $7.00":
+      - gridcell "# 1"
+      - gridcell "Name firstname lastname"
+      - gridcell "Cost $7.00"
+      - gridcell "Due $7.00"
+      - gridcell
+- text: "Total Due: $7.00 Court Reservations Payment is due upon check-in (at the time of your reservation.) Payment is not required at the time of booking. However, if you opt to prepay for your court time, any court reservation refunds due to cancelations will be returned as an account credit ... View More"
+- checkbox "Check to agree to above disclosure"
+- text:  Check to agree to above disclosure
+- separator
+- button "Close"
+- button "Save"
+   */
+  await expect(booking_form_el.getByRole('textbox', { name: 'End Time' })).toBeDisabled();
+
+  let disclosure_agree_el: Locator = booking_form_el.getByRole('checkbox', { name: 'Check to agree to above disclosure' });
+  /*
+  await disclosure_agree_el.waitFor( {state: 'visible'} );
+  await expect(disclosure_agree_el).not.toBeChecked();
+  await disclosure_agree_el.check();
+  */
+   // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders '' (U+F0C4) Wingdings checkmark in a span
+  let stupid_checkbox_el: Locator = disclosure_agree_el.locator('~ span.check-box-helper');
+  if ((await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity)) == 0.0) {
+    // Even useInnerText can't interpret opacity (which is what the page seems to use) because pseudo-elements are not part of the DOM tree
+    await disclosure_agree_el.locator('xpath=..').click();
+    await expect(async () => {
+      const checkmarkOpacity: number = await stupid_checkbox_el.evaluate(el => parseFloat(window.getComputedStyle(el, '::after').opacity));
+      expect(checkmarkOpacity).toBeGreaterThanOrEqual(1.0);
+    }).toPass();
+
+  } else {
+    const actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
+    const unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(actual_style);
+    throw new Error(unexpected_checkmark);
+  }
+
+  const totalDueAmount: string = await booking_form_el.locator('label.total-due-amount').textContent();
+
+  if (LAUNCH_MODE == 'prod') {
+    console.log(
+     totalDueAmount + ' READY TO BOOK ' + (new Date().toISOString()) + ' UTC'
+    );
+
+    await booking_form_el.getByRole('button', { name: 'Save' }).first().click();
+
+    let confirmation_popup : Locator = p.getByRole('alert').getByText('Reservation Confirmed');
+
+    // <div aria-labelledby="swal2-title" aria-describedby="swal2-html-container" class="swal2-popup swal2-modal swal2-icon-error swal2-show" tabindex="-1" role="dialog" aria-live="assertive" aria-modal="true" style="display: grid;"><button type="button" class="swal2-close" aria-label="Close this dialog" style="display: none;">×</button><ul class="swal2-progress-steps" style="display: none;"></ul><div class="swal2-icon swal2-error swal2-icon-show" style="display: flex;"><span class="swal2-x-mark">
+    // <h2 class="swal2-title" id="swal2-title" style="display: block;">&#xFEFF;&#xFEFF;Reservation Notice</h2>
+    // <div class="swal2-html-container" id="swal2-html-container" style="display: block;">Sorry, no available courts for the time requested.</div>
+    let failure_popup : Locator = p.getByRole('dialog', { name: 'Reservation Notice', exact: false });
+
+    // https://github.com/microsoft/playwright/blob/bfd1ec67a923589fd3b6ff30a6bcceba87ceaf96/packages/playwright/src/common/config.ts#L40
+    await confirmation_popup.or(failure_popup).waitFor({state: 'visible', timeout: 30000});
+
+    if (await failure_popup.isVisible()) {
+      await failure_popup.getByRole('button', { name: 'OK' }).click();
+      console.log('Sorry, no available courts for the time requested.');
+      return false;
+    } else {
+      await expect(confirmation_popup).toHaveText('Reservation Confirmed');
+      console.log('SUCCESS at ' + (await localtime_datenow(page)).toISOString());
+      return true;
+    }
+  } else {
+    console.log(
+     totalDueAmount + ' READY TO BOOK ' +
+     (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
+    );
+
+    return true;
+  }
+
+
+}
+
 function halfHourAfter(reserve_str: string): string {
   const [timestr, am_pm] = reserve_str.split(' ');
   const [hourstr, minstr] = timestr.split(':');
@@ -746,91 +846,26 @@ test('try booking pickleball', async ({ page }) => {
   // ========
 
   while(true) {
-    console.log('MAIN LOOP');
+    console.log('BEGIN LONG WAIT');
     if (await refresh_until_date_available(page, N_DAYS_IN_FUTURE.getFullYear(), N_DAYS_IN_FUTURE.getMonth(), TARGET_MONTH.long_month, TARGET_MONTH.short_month, TARGET_DAY)) {
       break;
     }
   }
-  console.log('DATE CORRECT: ' + (new Date().toISOString()) + ' UTC');
 
-  // UJS XHR POST https://app.courtreserve.com/Online/Reservations/CreateReservation/13233?start=1/29/2026%209:00%20AM&end=1/29/2026%209:30%20AM&customSchedulerId=16984&courtTypeId=9&courtType=Pickleball
-  await book_best_slot(page);
+  console.log('MAIN LOOP');
 
-  let booking_form_el: Locator = page.locator('form#createReservation-Form');
-  await booking_form_el.getByText('End Time').waitFor({state: 'visible'});
-  // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
-  /*
-- text: Book a reservation for 1/27/2026
-- button "Close"
-- button "Save"
-- separator
-- text: Reservation Type *
-- listbox "Reservation Type *":
-  - option "Recreational Play - Pickleball" [selected]
-  - button "select": 
-- text: Start Time 8:30 AM Duration *
-- listbox "Duration *":
-  - option "1 hour" [selected]
-  - button "select": 
-- text: End Time
-- textbox "End Time" [disabled]: 9:30 AM
-- text: Player(s)
-- grid:
-  - rowgroup:
-    - row "# 1 Name firstname lastname Cost $7.00 Due $7.00":
-      - gridcell "# 1"
-      - gridcell "Name firstname lastname"
-      - gridcell "Cost $7.00"
-      - gridcell "Due $7.00"
-      - gridcell
-- text: "Total Due: $7.00 Court Reservations Payment is due upon check-in (at the time of your reservation.) Payment is not required at the time of booking. However, if you opt to prepay for your court time, any court reservation refunds due to cancelations will be returned as an account credit ... View More"
-- checkbox "Check to agree to above disclosure"
-- text:  Check to agree to above disclosure
-- separator
-- button "Close"
-- button "Save"
-   */
-  await expect(booking_form_el.getByRole('textbox', { name: 'End Time' })).toBeDisabled();
+  while(true) {
+    console.log('DATE CORRECT: ' + (new Date().toISOString()) + ' UTC');
 
-  let disclosure_agree_el: Locator = booking_form_el.getByRole('checkbox', { name: 'Check to agree to above disclosure' });
-  /*
-  await disclosure_agree_el.waitFor( {state: 'visible'} );
-  await expect(disclosure_agree_el).not.toBeChecked();
-  await disclosure_agree_el.check();
-  */
-   // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders '' (U+F0C4) Wingdings checkmark in a span
-  let stupid_checkbox_el: Locator = disclosure_agree_el.locator('~ span.check-box-helper');
-  if ((await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity)) == 0.0) {
-    // Even useInnerText can't interpret opacity (which is what the page seems to use) because pseudo-elements are not part of the DOM tree
-    await disclosure_agree_el.locator('xpath=..').click();
-    await expect(async () => {
-      const checkmarkOpacity: number = await stupid_checkbox_el.evaluate(el => parseFloat(window.getComputedStyle(el, '::after').opacity));
-      expect(checkmarkOpacity).toBeGreaterThanOrEqual(1.0);
-    }).toPass();
+    // UJS XHR POST https://app.courtreserve.com/Online/Reservations/CreateReservation/13233?start=1/29/2026%209:00%20AM&end=1/29/2026%209:30%20AM&customSchedulerId=16984&courtTypeId=9&courtType=Pickleball
+    await book_best_slot(page);
 
-  } else {
-    const actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
-    const unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(actual_style);
-    throw new Error(unexpected_checkmark);
+    if (await fill_out_form(page)) {
+      // Expect a title "to contain" a substring.
+      await expect(page).toHaveTitle('Lifetime'); // "Pickleball Reservations | powered by CourtReserve"
+      return;
+    }
   }
-
-  const totalDueAmount: string = await booking_form_el.locator('label.total-due-amount').textContent();
-  console.log(
-   totalDueAmount + ' READY TO BOOK ' +
-   (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
-  );
-
-  if (LAUNCH_MODE == 'prod') {
-    await booking_form_el.getByRole('button', { name: 'Save' }).first().click()
-
-    let confirmation_popup : Locator = page.getByRole('alert').getByText('Reservation Confirmed');
-
-    // https://github.com/microsoft/playwright/blob/bfd1ec67a923589fd3b6ff30a6bcceba87ceaf96/packages/playwright/src/common/config.ts#L40
-    await confirmation_popup.waitFor({state: 'visible', timeout: 30000});
-    // await expect(confirmation_popup).toHaveText('Reservation Confirmed');
-  }
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle('Lifetime'); // "Pickleball Reservations | powered by CourtReserve"
 });
 
 test('logic self-test', async ({ }) => {
