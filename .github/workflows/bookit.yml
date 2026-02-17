@@ -9,6 +9,8 @@ jobs:
     # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
     environment: "Configure Prod (Lifetime Activities Sunnyvale)"
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
     - name: Book within 24hrs
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       run: npx playwright test main/example.spec.ts
