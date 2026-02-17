@@ -511,6 +511,8 @@ interface QuickMonth {
 // Phase 5: Quickly refresh the page until the date we want becomes visible, and then book!
 test('try booking pickleball', async ({ page }) => {
   var start_url: string = '';
+  var ready_u : string | undefined = undefined;
+  var ready_p : string | null = null;
   if (LAUNCH_MODE == 'prod') {
     if(process.env.U) {
       if(process.env.P) {
