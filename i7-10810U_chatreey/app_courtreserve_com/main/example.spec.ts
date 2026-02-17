@@ -511,15 +511,27 @@ interface QuickMonth {
 // Phase 5: Quickly refresh the page until the date we want becomes visible, and then book!
 test('try booking pickleball', async ({ page }) => {
   var start_url: string = '';
-  if(process.env.U) {
-    if(process.env.P) {
-      start_url = HOME_URL;
+  if (LAUNCH_MODE == 'prod') {
+    if(process.env.U) {
+      if(process.env.P) {
+        start_url = HOME_URL;
+        ready_u = process.env.U
+        ready_p = process.env.P
+      }
+    }
+  } else {
+    if(process.env.DEV_U) {
+      if(process.env.DEV_P) {
+        start_url = HOME_URL;
+        ready_u = process.env.DEV_U
+        ready_p = process.env.DEV_P
+      }
     }
   }
 
   // await expect(start_url).notToBe('');
   if (start_url == '') {
-    throw new Error('Please set U and P environment variables, so we have some kind of login credentials');
+    throw new Error('Please set U and P (or DEV_U and DEV_P) environment variables, so we have some kind of login credentials');
   }
 
   // Suppose we want to launch this around 11:57am, and will leave it running at least until 12:03pm to be safe...
@@ -617,8 +629,8 @@ test('try booking pickleball', async ({ page }) => {
         console.log('Not logged in, need to login');
 
         // Click the get started link.
-        await username_el.fill(process.env.U);
-        await passwd_el.fill(process.env.P);
+        await username_el.fill(ready_u);
+        await passwd_el.fill(ready_p);
 	await page.getByRole('button', { name: 'Continue', exact: true }).click();
 	await expect(page.getByTestId('warning-message-block')).not.toBeVisible();
 	await expect(page.getByText('The username or password is incorrect')).not.toBeVisible();
