@@ -1,0 +1,21 @@
+name: Lifetime Activities
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  pickleball:
+    runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
+    environment: "Configure Prod (Lifetime Activities Sunnyvale)"
+    steps:
+    - name: Book within 24hrs
+      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
+      run: npx playwright test main/example.spec.ts
+      env:
+        U: ${{ secrets.ANTHONY }}
+        P: ${{ secrets.LOGIN_PROD }}
+        DEV_U: ${{ secrets.LOGIN_DEV }}
+        DEV_P: ${{ secrets.DUMMYPW }}
+
+
