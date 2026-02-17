@@ -15,13 +15,14 @@ jobs:
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       run: |
         if sudo -n -k echo 'this is most likely a Github-hosted runner, because I am able to sudo without a password, even after -k invalidates any existing credentials (and by setting STDIN to /dev/null it is impossible to enter another password)' < /dev/null; then
-          npx 'playwright@1.56.0' install chromium
+          npm ci # requires that we already `npm init playwright@1.56.0` at some point
+          npx --no-install playwright install chromium
         else
           exit 69 # EX_UNAVAILABLE
         fi
     - name: Book within 24hrs
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
-      run: npx 'playwright@1.56.0' test main/example.spec.ts
+      run: npx --no-install playwright test main/example.spec.ts
       env:
         U: ${{ secrets.ANTHONY }}
         P: ${{ secrets.LOGIN_PROD }}
