@@ -1,7 +1,7 @@
 import { test, expect, errors } from '@playwright/test';
 
-const LAUNCH_MODE: string = 'prod';
-//const LAUNCH_MODE: string = 'dev';
+// const LAUNCH_MODE: string = 'prod';
+const LAUNCH_MODE: string = 'dev';
 const RISKY_BUT_FASTER: boolean = true;
 
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
