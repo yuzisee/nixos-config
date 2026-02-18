@@ -879,7 +879,7 @@ test('try booking pickleball', async ({ page }) => {
     if (await fill_out_form(page)) {
 
       if (process.env.GITHUB_ACTIONS == 'true') {
-        await page.screenshot({ path: 'booked.png', fullPage: true });
+        await page.screenshot({ path: 'booked-' + LAUNCH_MODE + '.png', fullPage: true });
       } else {
         // Expect a title "to contain" a substring.
         await expect(page).toHaveTitle('Lifetime'); // "Pickleball Reservations | powered by CourtReserve"
