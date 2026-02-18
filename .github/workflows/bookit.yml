@@ -7,7 +7,7 @@ jobs:
   pickleball:
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
-    environment: "Configure Prod (Lifetime Activities Sunnyvale)"
+    environment: "Prod (Lifetime Activities Sunnyvale)"
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5
