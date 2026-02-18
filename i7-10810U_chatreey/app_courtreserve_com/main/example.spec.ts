@@ -439,7 +439,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
       return false;
     } else {
       await expect(confirmation_popup).toHaveText('Reservation Confirmed');
-      console.log('SUCCESS at ' + (await localtime_datenow(page)).toISOString());
+      console.log('SUCCESS at ' + (await localtime_datenow(p)).toISOString());
       return true;
     }
   } else {
