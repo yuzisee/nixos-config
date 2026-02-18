@@ -29,6 +29,7 @@ jobs:
         DEV_U: ${{ secrets.LOGIN_DEV }}
         DEV_P: ${{ secrets.DUMMYPW }}
     - name: Upload screenshots if available
+      if: always()
       uses: actions/upload-artifact@v6
       with:
         name: screenshots-playwright
