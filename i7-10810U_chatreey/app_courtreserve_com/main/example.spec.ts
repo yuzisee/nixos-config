@@ -6,11 +6,11 @@ const RISKY_BUT_FASTER: boolean = true;
 
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
 // "Verified Sunnyvale residents may reserve courts 8 days in advance. Unverified Residents and Non-Residents may reserve courts 7 days in advance"
-const LOOK_N_DAYS_IN_FUTURE: number = 8;
+const LOOK_N_DAYS_IN_FUTURE: number = 7;
 // e.g. queue up on Sunday evening to try and book the Monday slots 8 days later
 
 const DESIRED_AM_PM: string = 'PM';
-const EARLIEST_HOUR_TO_BOOK: number = 7;
+const EARLIEST_HOUR_TO_BOOK: number = 2;
 const FAVOURITE_TIMES_BEST_FIRST: Array<string> = ['8:30 PM', '9:00 PM', '8:00 PM'];
 
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
