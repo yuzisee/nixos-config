@@ -1,7 +1,7 @@
 import { test, expect, errors } from '@playwright/test';
 
 const LAUNCH_MODE: string = 'prod';
-//const LAUNCH_MODE: string = 'dev';
+// const LAUNCH_MODE: string = 'dev';
 const RISKY_BUT_FASTER: boolean = true;
 
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
@@ -439,7 +439,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
       return false;
     } else {
       await expect(confirmation_popup).toHaveText('Reservation Confirmed');
-      console.log('SUCCESS at ' + (await localtime_datenow(page)).toISOString());
+      console.log('SUCCESS at ' + (await localtime_datenow(p)).toISOString());
       return true;
     }
   } else {
@@ -447,6 +447,8 @@ async function fill_out_form(p: Page) : Promise<boolean> {
      totalDueAmount + ' READY TO BOOK ' +
      (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
     );
+
+    await p.screenshot({ path: 'ready.png', fullPage: true });
 
     return true;
   }
@@ -875,8 +877,13 @@ test('try booking pickleball', async ({ page }) => {
     await book_best_slot(page);
 
     if (await fill_out_form(page)) {
-      // Expect a title "to contain" a substring.
-      await expect(page).toHaveTitle('Lifetime'); // "Pickleball Reservations | powered by CourtReserve"
+
+      if (process.env.GITHUB_ACTIONS == 'true') {
+        await page.screenshot({ path: 'booked-' + LAUNCH_MODE + '.png', fullPage: true });
+      } else {
+        // Expect a title "to contain" a substring.
+        await expect(page).toHaveTitle('Lifetime'); // "Pickleball Reservations | powered by CourtReserve"
+      }
       return;
     }
   }

@@ -1,6 +1,6 @@
 name: Lifetime Activities
 
-on: 
+on:
   workflow_dispatch:
 
 jobs:
@@ -28,5 +28,18 @@ jobs:
         P: ${{ secrets.LOGIN_PROD }}
         DEV_U: ${{ secrets.LOGIN_DEV }}
         DEV_P: ${{ secrets.DUMMYPW }}
+    - name: Upload screenshots if available
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: screenshots-playwright
+        path: |
+          i7-10810U_chatreey/app_courtreserve_com/*.png
+          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.png
+        overwrite: true
+        compression-level: 9
+        retention-days: 11
+        # [!IMPORTANT]
+        # Always set retention-days (or else we'll run out of Github Actions space!!)
 
 
