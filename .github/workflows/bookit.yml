@@ -2,6 +2,10 @@ name: Lifetime Activities
 
 on:
   workflow_dispatch:
+on:
+  schedule:
+    - cron: "57 11 * * 1"
+    # run on Mondays to book the next Tuesday
 
 jobs:
   pickleball:
