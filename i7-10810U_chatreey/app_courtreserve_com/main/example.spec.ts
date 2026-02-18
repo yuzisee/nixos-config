@@ -448,7 +448,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
      (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
     );
 
-    await page.screenshot({ path: 'ready.png', fullPage: true });
+    await p.screenshot({ path: 'ready.png', fullPage: true });
 
     return true;
   }
