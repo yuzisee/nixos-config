@@ -2,26 +2,57 @@ name: Lifetime Activities
 
 on:
   workflow_dispatch:
+  schedule:
+    #           ↓↓ 19 UTC is "11 am Pacific", but during daylight savings we need 18 UTC to be "11 am Pacific" (we'll schedule both and test `$GITHUB_EVENT_NAME` via `time_zone_checker` before running, below)
+    #                  ↓ run on Mondays to book the next Tuesday
+    - cron: '51 18 * * 1'
+    - cron: '51 19 * * 1'
+    # Leave 9 minutes just in case `actions/checkout@v5` has some kind of delay or `i7-10810U_chatreey/dev-github/reinstall_playwright.sh` takes longer than expected.
 
 jobs:
-  pickleball:
+  time_zone_checker:
+    runs-on: ubuntu-latest
+    outputs:
+      localtime_current_hourstr: ${{ steps.pacifictime_reader.outputs.localtime_hr }}
+    steps:
+      - name: Check local time
+        id: pacifictime_reader
+        # Verify daylight savings
+        run: |
+          case "${GITHUB_EVENT_NAME}" in
+          schedule)
+            echo "localtime_hr=$(TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+          ;;
+          workflow_dispatch)
+            echo 'All good. You triggered manually via the web, so `pickleball_go` below will proceed regardless of time zone! However please be aware that there is still a 6 hour limit on a single Github Actions run, itself ← https://docs.github.com/en/actions/reference/limits'
+          ;;
+          *)
+            echo 1>&2 'How did you get here? The `on:` section at the top of this file (.github/workflows/bookit.yml) has no entry for ' "${GITHUB_EVENT_NAME}"
+            # man sysexits
+            exit 78 # EX_CONFIG
+          ;;
+          esac
+
+  pickleball_go:
+    needs: time_zone_checker
+    if: (github.event_name == 'workflow_dispatch') || (needs.time_zone_checker.outputs.localtime_current_hourstr == '11')
+    # Otherwise, there is another `on: … schedule: …` cron line above that we can use instead... and we can safely skip this current run for now
+    # ^^^ We are charged by the minute, and the free plan has only 2000 minutes per month, so no need to waste an entire hour waiting ← https://docs.github.com/en/get-started/learning-about-github/githubs-plans#github-free-for-personal-accounts
+
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
     environment: "Prod (Lifetime Activities Sunnyvale)"
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      timeout-minutes: 4
+      uses: actions/checkout@v6
     - name: Install Playwright
+      timeout-minutes: 4
+      run: sh i7-10810U_chatreey/dev-github/reinstall_playwright.sh
+    - name: Book within 6 hours
+      timeout-minutes: 30
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
-      run: |
-        if sudo -n -k echo 'this is most likely a Github-hosted runner, because I am able to sudo without a password, even after -k invalidates any existing credentials (and by setting STDIN to /dev/null it is impossible to enter another password)' < /dev/null; then
-          npm ci # requires that we already `npm init playwright@1.56.0` at some point
-          npx --no-install playwright install chromium
-        else
-          exit 69 # EX_UNAVAILABLE
-        fi
-    - name: Book within 24hrs
-      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
+      # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
       run: npx --no-install playwright test main/example.spec.ts
       env:
         U: ${{ secrets.ANTHONY }}
