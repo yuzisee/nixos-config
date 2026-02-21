@@ -21,7 +21,7 @@ jobs:
         run: |
           case ${GITHUB_EVENT_NAME} in
           schedule)
-            echo 'localtime_hr='$(TZ='America/Los_Angeles' date +'%H') >> "$GITHUB_OUTPUT"
+            echo "localtime_hr=$(TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
           ;;
           workflow_dispatch)
             echo 'All good. You triggered manually via the web, so `pickleball_go` below will proceed regardless of time zone! However please be aware that there is still a 6 hour limit on a single Github Actions run, itself ← https://docs.github.com/en/actions/reference/limits'
