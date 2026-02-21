@@ -808,7 +808,7 @@ test('try booking pickleball', async ({ page }) => {
 - list
  */
 
-  let pickleball_reservations_el : Locator = await get_to_pickleball_reservations(page);
+      let pickleball_reservations_el : Locator = await get_to_pickleball_reservations(page);
 
 /*
   await all_reservations_desktop_el).getByText('Pickleball Reservations').click();
@@ -820,12 +820,20 @@ test('try booking pickleball', async ({ page }) => {
   await all_reservations_desktop_el.ariaSnapshot().then(function(val) { console.log(val); } );
   // await all_reservations_desktop_el).getByText('Pickleball Reservations').click();
 */
-  await pickleball_reservations_el.hover();
-  await pickleball_reservations_el.click();
-}}
+      await pickleball_reservations_el.hover();
+      await pickleball_reservations_el.click();
+    }
+  }
 
   // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+
+  const N_DAYS_IN_FUTURE: Date = new Date((await localtime_datenow(page)).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
+  const TARGET_MONTH: QuickMonth = {
+    long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
+    short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
+  };
+  const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
 
   // ========
   // Phase 4: Sleep the thread (up to ~23hrs) until we get very very close to noon
@@ -839,7 +847,7 @@ test('try booking pickleball', async ({ page }) => {
     // Giving us 2400px of height makes it easier to see all the bookable slots at a glance
 
     while(true) {
-      console.log('Wait until almost noon... we are currently still ' + (await localtime_datenow(page)).toISOString());
+      console.log('Wait until almost noon so we can grab ' + TARGET_MONTH.long_month + ' ' + TARGET_DAY + '… we are currently still ' + (await localtime_datenow(page)).toISOString());
       if (await sleep_until_noon(page)) {
         break;
       }
@@ -847,13 +855,6 @@ test('try booking pickleball', async ({ page }) => {
   } else {
     await page.setViewportSize( { width: 616, height: 720 });
   }
-
-  const N_DAYS_IN_FUTURE: Date = new Date((await localtime_datenow(page)).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
-  const TARGET_MONTH: QuickMonth = {
-    long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
-    short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
-  };
-  const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
 
   console.log('WAKEUP: ' + (new Date().toISOString()) + ' UTC');
 
