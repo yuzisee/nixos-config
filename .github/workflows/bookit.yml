@@ -19,7 +19,7 @@ jobs:
         id: pacifictime_reader
         # Verify daylight savings
         run: |
-          case ${GITHUB_EVENT_NAME} in
+          case "${GITHUB_EVENT_NAME}" in
           schedule)
             echo "localtime_hr=$(TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
           ;;
@@ -27,7 +27,7 @@ jobs:
             echo 'All good. You triggered manually via the web, so `pickleball_go` below will proceed regardless of time zone! However please be aware that there is still a 6 hour limit on a single Github Actions run, itself ← https://docs.github.com/en/actions/reference/limits'
           ;;
           *)
-            echo 1>&2 'How did you get here? The `on:` section at the top of this file (.github/workflows/bookit.yml) has no entry for ' ${GITHUB_EVENT_NAME}
+            echo 1>&2 'How did you get here? The `on:` section at the top of this file (.github/workflows/bookit.yml) has no entry for ' "${GITHUB_EVENT_NAME}"
             # man sysexits
             exit 78 # EX_CONFIG
           ;;
