@@ -94,7 +94,7 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
     // The day is not selectable until exactly noon, so we'll need to wait just a bit more...
 
     if (countdown.local_hour == 11) {
-      if ((countdown.local_minute < 59) || countdown.local_second < 53) {
+      if ((countdown.local_minute < 59) || (countdown.local_second < 53)) {
 
         const secondsUntilNoon: number =
 //          (11 - countdown.local_hour) * 60 * 60 +
