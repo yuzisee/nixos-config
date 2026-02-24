@@ -23,6 +23,17 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6
+    - name: Install dependencies
+      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
+      run: npm ci
+    - name: "Good?"
+      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
+      run: |
+        cat node_modules/@playwright/test/package.json
+        npx playwright --version
+        ls -l node_modules/@playwright/test/index.d.ts
+        ls node_modules/@playwright/test/types
+        ls -la tsconfig.json node_modules/
     - name: Run tsc
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       run: npx tsc --noEmit
