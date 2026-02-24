@@ -40,12 +40,12 @@ async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise
 }
 
 interface SerializedDate {
-  local_valueOf: number;
   local_isoString: string;
   local_generalString: string;
-  local_hour: numer;
-  local_minute: numer;
-  local_second: numer;
+  local_hour: number;
+  local_minute: number;
+  local_second: number;
+  local_valueOf: number; // if you need the milliseconds, or something like that
 }
 // By setting `timezoneId` and implementing a `localtime_datenow` helper function, we have an easy way to do math inside a specific time zone
 // (The booking site shows times in the local time zone of the court you're trying to book, so try to match that here)
@@ -55,11 +55,11 @@ test.use({
   timezoneId: HOME_TIMEZONE,
 });
 async function localtime_datenow(p: Page): Promise<SerializedDate> {
-  const date_in_playwright: Date = await p.evaluate(
+  const date_in_playwright: SerializedDate = await p.evaluate(
     function() {
       var localtime_date = new Date();
       var localdate_serialized = {
-        local_valueOf: localtime_date.valueOf(), // uhhh isn't this completely redundant?
+        local_valueOf: localtime_date.valueOf(),
         local_isoString: localtime_date.toISOString(),
         local_generalString: localtime_date.toString(),
         local_hour: localtime_date.getHours(),
@@ -71,7 +71,7 @@ async function localtime_datenow(p: Page): Promise<SerializedDate> {
     }
   );
 
-  return new Date(date_in_playwright);
+  return date_in_playwright;
 }
 
 // Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again

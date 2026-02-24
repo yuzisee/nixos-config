@@ -1,0 +1,28 @@
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - i7-10810U_chatreey/app_courtreserve_com/main
+      - i7-10810U_chatreey/app_courtreserve_com/*.json
+      - i7-10810U_chatreey/app_courtreserve_com/*.ts
+  pull_request:
+    types: [synchronize, opened]
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onpull_requestpull_request_targetbranchesbranches-ignore
+    paths:
+      - i7-10810U_chatreey/app_courtreserve_com/main
+      - i7-10810U_chatreey/app_courtreserve_com/*.json
+      - i7-10810U_chatreey/app_courtreserve_com/*.ts
+
+jobs:
+  type_checking:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+    - name: Run tsc
+      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
+      run: npx tsc --noEmit
+
+

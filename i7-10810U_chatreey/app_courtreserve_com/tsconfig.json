@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "strict": true,
+
+    // Beyond strict:
+    "noUncheckedIndexedAccess": true,   // array[i] and obj[key] include `undefined`
+    "exactOptionalPropertyTypes": true, // distinguishes `prop?: T` from `prop: T | undefined`
+    "noImplicitReturns": true,          // errors if a code path doesn't return a value
+    "noFallthroughCasesInSwitch": true, // errors on switch fallthrough without break
+    "noUnusedLocals": true,             // errors on declared but unused variables
+    "noUnusedParameters": true,         // errors on unused function parameters
+    "noImplicitOverride": true,         // requires `override` keyword on overridden methods
+    "noPropertyAccessFromIndexSignature": true, // forces bracket notation for dynamic keys
+  }
+}
