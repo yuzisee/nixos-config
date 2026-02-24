@@ -847,7 +847,7 @@ test('try booking pickleball', async ({ page }) => {
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
   const localnoon : string = (await localtime_datenow(page)).local_isoString.split('T')[0] + 'T12:00:00';
-  const N_DAYS_IN_FUTURE: Date = new Date(new Date(localnoon).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000));
+  const N_DAYS_IN_FUTURE: Date = new Date((new Date(localnoon)).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
   const TARGET_MONTH: QuickMonth = {
     long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
     short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
