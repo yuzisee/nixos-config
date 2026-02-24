@@ -27,7 +27,7 @@ jobs:
       uses: actions/checkout@v6
     - name: Install dependencies
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
-      run: npm ci
+      run: npm ci # && npm install --save-dev typescript
     - name: "Good?"
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       run: |
@@ -40,7 +40,7 @@ jobs:
         printf '↕ '
         ls -l node_modules/playwright/package.json
         cat node_modules/playwright/package.json | grep -A 5 '"./test"'
-        npx tsc --version
+        npx --no tsc --version
         ls node_modules/@playwright/test/types || echo 'Hmm??'
     - name: Run tsc
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com

@@ -85,7 +85,7 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
 
     return false;
   } else if (countdown.local_hour == 10) {
-    console.log('countdown.getHours() is ' + countdown.local_hour + ', which is almost 11am so sleep ~30mins and check again.');
+    console.log('countdown["local_hour"] is ' + countdown.local_hour + ', which is almost 11am so sleep ~30mins and check again.');
     await p.waitForTimeout(29 * 60 * 1000.0);
 
     return false;
