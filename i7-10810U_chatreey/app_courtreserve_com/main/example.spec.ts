@@ -39,6 +39,14 @@ async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise
   }
 }
 
+interface SerializedDate {
+  local_valueOf: number;
+  local_isoString: string;
+  local_generalString: string;
+  local_hour: numer;
+  local_minute: numer;
+  local_second: numer;
+}
 // By setting `timezoneId` and implementing a `localtime_datenow` helper function, we have an easy way to do math inside a specific time zone
 // (The booking site shows times in the local time zone of the court you're trying to book, so try to match that here)
 test.use({
@@ -46,10 +54,20 @@ test.use({
   // https://playwright.dev/docs/api/class-testoptions#test-options-timezone-id
   timezoneId: HOME_TIMEZONE,
 });
-async function localtime_datenow(p: Page): Promise<Date> {
+async function localtime_datenow(p: Page): Promise<SerializedDate> {
   const date_in_playwright: Date = await p.evaluate(
     function() {
-      return new Date().toISOString();
+      var localtime_date = new Date();
+      var localdate_serialized = {
+        local_valueOf: localtime_date.valueOf(), // uhhh isn't this completely redundant?
+        local_isoString: localtime_date.toISOString(),
+        local_generalString: localtime_date.toString(),
+        local_hour: localtime_date.getHours(),
+        local_minute: localtime_date.getMinutes(),
+        local_second: localtime_date.getSeconds(),
+      };
+
+      return localdate_serialized;
     }
   );
 
@@ -58,16 +76,16 @@ async function localtime_datenow(p: Page): Promise<Date> {
 
 // Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again
 async function sleep_until_noon(p: Page): Promise<boolean> {
-  const countdown: Date = await localtime_datenow(p);
-  if ((countdown.getHours() > 12) || (countdown.getHours() < 10)) {
+  const countdown: SerializedDate = await localtime_datenow(p);
+  if ((countdown.local_hour > 12) || (countdown.local_hour < 10)) {
     // 10am or earlier?
     // 1pm or later?
-    console.log('countdown.getHours() is ' + countdown.getHours() + ' so sleep one hour and check again.');
+    console.log('countdown.local_hour is ' + countdown.local_hour + ' so sleep one hour and check again.');
     await p.waitForTimeout(60 * 60 * 1000.0);
 
     return false;
-  } else if (countdown.getHours() == 10) {
-    console.log('countdown.getHours() is ' + countdown.getHours() + ', which is almost 11am so sleep ~30mins and check again.');
+  } else if (countdown.local_hour == 10) {
+    console.log('countdown.getHours() is ' + countdown.local_hour + ', which is almost 11am so sleep ~30mins and check again.');
     await p.waitForTimeout(29 * 60 * 1000.0);
 
     return false;
@@ -75,23 +93,23 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
     // It's almost noon!
     // The day is not selectable until exactly noon, so we'll need to wait just a bit more...
 
-    if (countdown.getHours() == 11) {
-      if ((countdown.getMinutes() < 59) || countdown.getSeconds() < 53) {
+    if (countdown.local_hour == 11) {
+      if ((countdown.local_minute < 59) || countdown.local_second < 53) {
 
         const secondsUntilNoon: number =
-//          (11 - countdown.getHours()) * 60 * 60 +
-          (60 - countdown.getMinutes() - 1) * 60 +  // e.g. if it's 11:59:30, you want to wait 0 minutes and 30 seconds
-          (60 - countdown.getSeconds());
+//          (11 - countdown.local_hour) * 60 * 60 +
+          (60 - countdown.local_minute - 1) * 60 +  // e.g. if it's 11:59:30, you want to wait 0 minutes and 30 seconds
+          (60 - countdown.local_second);
 
 	console.log('Almost at time, sleep the final ' + (secondsUntilNoon / 60.0) + ' minutes until just a few seconds before noon');
         await p.waitForTimeout((secondsUntilNoon - 4.0) * 1000.0); // wait until 4 seconds left...
       }
     } else {
       // [INVARIANT] It's 12:xx PM
-      if (countdown.getMinutes() < 30) {
+      if (countdown.local_minute < 30) {
         console.warn('Are you testing for debugging purposes? You just passed noon. Proceeding anyway...');
       } else {
-        console.log('Starting now... ' + countdown.toString() + ' ▶ Continuously sleep 1 hour at a time until tomorrow!');
+        console.log('Starting now... ' + countdown.local_generalString + ' ▶ Continuously sleep 1 hour at a time until tomorrow!');
         await p.waitForTimeout(60 * 60 * 1000.0);
         return false;
       }
@@ -439,7 +457,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
       return false;
     } else {
       await expect(confirmation_popup).toHaveText('Reservation Confirmed');
-      console.log('SUCCESS at ' + (await localtime_datenow(p)).toISOString());
+      console.log('SUCCESS at ' + (await localtime_datenow(p)).local_isoString);
       return true;
     }
   } else {
@@ -828,7 +846,8 @@ test('try booking pickleball', async ({ page }) => {
   // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
-  const N_DAYS_IN_FUTURE: Date = new Date((await localtime_datenow(page)).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
+  const localnoon : string = (await localtime_datenow(page)).local_isoString.split('T')[0] + 'T12:00:00';
+  const N_DAYS_IN_FUTURE: Date = new Date(new Date(localnoon).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000));
   const TARGET_MONTH: QuickMonth = {
     long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
     short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
@@ -847,12 +866,13 @@ test('try booking pickleball', async ({ page }) => {
     // Giving us 2400px of height makes it easier to see all the bookable slots at a glance
 
     while(true) {
-      console.log('Wait until almost noon so we can grab ' + TARGET_MONTH.long_month + ' ' + TARGET_DAY + '… we are currently still ' + (await localtime_datenow(page)).toISOString());
+      console.log('Wait until almost noon so we can grab ' + TARGET_MONTH.long_month + ' ' + TARGET_DAY + '… we are currently still ' + (await localtime_datenow(page)).local_isoString);
       if (await sleep_until_noon(page)) {
         break;
       }
     }
   } else {
+    console.log('Debug mode: running at' + (await localtime_datenow(page)).local_isoString);
     await page.setViewportSize( { width: 616, height: 720 });
   }
 
