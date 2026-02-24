@@ -872,7 +872,7 @@ test('try booking pickleball', async ({ page }) => {
       }
     }
   } else {
-    console.log('Debug mode: running at' + (await localtime_datenow(page)).local_isoString);
+    console.log('Debug mode: running at ' + (await localtime_datenow(page)).local_isoString);
     await page.setViewportSize( { width: 616, height: 720 });
   }
 
