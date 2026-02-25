@@ -510,7 +510,7 @@ async function n_days_in_future_valueOf_safe(p: Page) : Promise<number> {
   const localnoon : string = local_scriptstart.local_isoString.split('T')[0] + 'T12:00:00Z'; // use "noon UTC" to avoid Daylight Savings problems when all we want to do is calculate a date (not a time)
   let n_days_from_script_launch : number = LOOK_N_DAYS_IN_FUTURE;
   if ((local_scriptstart.local_hour > 12) && (LAUNCH_MODE == 'prod')) {
-    // I suppose you're queuing up the night before
+    // I suppose you're queuing up the night before, in order to run with `--ui` or something
     n_days_from_script_launch = LOOK_N_DAYS_IN_FUTURE + 1;
   }
   return (new Date(localnoon)).valueOf() + n_days_from_script_launch * 24 * 60 * 60 * 1000;
