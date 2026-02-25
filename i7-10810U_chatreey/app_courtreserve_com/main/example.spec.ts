@@ -7,11 +7,11 @@ const RISKY_BUT_FASTER: boolean = true;
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
 // "Verified Sunnyvale residents may reserve courts 8 days in advance. Unverified Residents and Non-Residents may reserve courts 7 days in advance"
 const LOOK_N_DAYS_IN_FUTURE: number = 8;
-// e.g. queue up on Sunday evening to try and book the Monday slots 8 days later
+// e.g. queue up on Sunday evening, to run Monday at noon, to try and book the *next* Tuesday slot 8 days after that
 
 const DESIRED_AM_PM: string = 'PM';
 const EARLIEST_HOUR_TO_BOOK: number = 7;
-const FAVOURITE_TIMES_BEST_FIRST: Array<string> = ['8:30 PM', '9:00 PM', '8:00 PM'];
+const FAVOURITE_TIMES_BEST_FIRST: string[] = ['8:30 PM', '9:00 PM', '8:00 PM'];
 
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
 const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
@@ -21,8 +21,7 @@ const HOME_TIMEZONE: string = 'America/Los_Angeles';
 
 // Playwright documentation complains that if you call `isVisible()` directly that the results will be flaky...
 // So, we'll need this helper function to check if a certain element becomes visible after the page finishes loading (Playwright auto-wait)
-async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise<boolean>
-{
+async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise<boolean> {
   if ((timeout_ms === undefined) || (timeout_ms == null)) {
     throw new Error('Please call locator_visible with timeout_ms set to some value');
   }
@@ -57,19 +56,23 @@ test.use({
 async function localtime_datenow(p: Page): Promise<SerializedDate> {
   const date_in_playwright: SerializedDate = await p.evaluate(
     function() {
-      var tzoffset = new Date().getTimezoneOffset();
+      var localtime_date = new Date();
+
+      var tzoffset = localtime_date.getTimezoneOffset(); // FYI: `getTimezoneOffset` is not the offset of the DATE value itself, but rather the offset of the browser AT THE TIME the date value was instantiated.
       var tzoffset_str = '';
-      if (tzoffset != 0) {
+      if (tzoffset == 0) {
+        tzoffset_str = 'Z';
+      } else {
         var tzoffset_hour = Math.floor(Math.abs(tzoffset) / 60.0);
         var tzoffset_minute = (Math.abs(tzoffset) % 60);
         // [!TIP]
         // When you get tzoffset 480 that's actually UTC-8:00 (it's the negative direction)
-        var tzoffset_direction = ((tzoffset < 0) ? '+' : '-');
+        var tzoffset_direction = ((tzoffset <= 0) ? '+' : '-');
+        // ^^^ Technically London is "+00:00" according to https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC
 
-        tzoffset_str = tzoffset_direction + tzoffset_hour + ':' + tzoffset_minute.toString().padStart(2, '0');
+        tzoffset_str = tzoffset_direction + tzoffset_hour.toString().padStart(2, '0') + ':' + tzoffset_minute.toString().padStart(2, '0');
       }
 
-      var localtime_date = new Date();
 
       var localtime_monthnum = (localtime_date.getMonth() + 1).toString().padStart(2, '0');
       var localtime_isodate = localtime_date.getFullYear() + '-' + localtime_monthnum + '-' + localtime_date.getDate().toString().padStart(2, '0');
@@ -122,6 +125,8 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
 
 	console.log('Almost at time, sleep the final ' + (secondsUntilNoon / 60.0) + ' minutes until just a few seconds before noon');
         await p.waitForTimeout((secondsUntilNoon - 4.0) * 1000.0); // wait until 4 seconds left...
+      } else {
+        // It's 11:59:53pm~noon, so just return true and get going! Don't sleep, it's time to act!
       }
     } else {
       // [INVARIANT] It's 12:xx PM
@@ -140,7 +145,7 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
 
 // Goal: Keep refreshing the page until the target date is visible... and then select the target date.
 // Return: `true` if the date is available, `false` if we needed to refresh the page
-async function refresh_until_date_available(p: Page, year_num: number, month_zerobased: number, long_month: string, short_month: string, day_num: number): Promise<boolean> {
+async function refresh_until_date_available(p: Page, _year_num: number, _month_zerobased: number, long_month: string, short_month: string, day_num: number): Promise<boolean> {
   const short_date: string = short_month + ' ' + day_num;
 
    console.log('SEARCHING FOR ' + short_date);
@@ -204,7 +209,7 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
       // SUCCESS!
       return true;
     } else {
-      // let visibleDate: Array<string> = await page.locator('span.k-icon.k-i-calendar ~ span').allInnerTexts();
+      // let visibleDate: string[] = await page.locator('span.k-icon.k-i-calendar ~ span').allInnerTexts();
       // console.log(JSON.stringify(visibleDate));
 
       await p.locator('span.k-icon.k-i-calendar').click();
@@ -240,7 +245,7 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
 	let quickjump_day_el : Locator = day_chooser_el.getByRole('grid').locator('td.k-other-month[role=gridcell]').getByRole('link', {name: '' + day_num, exact: true});
 	let quickjump_htmltitle : string = long_month + ' ' + day_num + ',';
 	// e.g. 'Monday, February 2, 2026'
-        if ((await quickjump_day_el.isVisible()) && ((await quickjump_day_el.getAttribute('title')).indexOf(quickjump_htmltitle) != -1)) {
+        if ((await quickjump_day_el.isVisible()) && ((await quickjump_day_el.getAttribute('title'))!.indexOf(quickjump_htmltitle) != -1)) {
           // Quickly jump to the day we want, otherwise it could slow us down an extra second or two!
           await quickjump_day_el.click();
           return true;
@@ -260,7 +265,7 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
           let target_month_el: Locator = month_chooser_el.getByRole('grid').getByRole('link', {name: short_month});
           if (await target_month_el.isVisible()) {
             // Okay, it's there!
-            target_month_el.click(); // this can take +440ms though
+            await target_month_el.click(); // this can take +440ms though
           } else {
             console.log('Month ' + long_month + ' not yet selectable (did you wake from sleep too early?)... so refresh @ ' + (new Date().toISOString()) + ' UTC');
             await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
@@ -335,12 +340,16 @@ async function book_best_slot(p: Page): Promise<boolean> {
   await alreadybooked_els.or(reservable_els).first().waitFor({ state: 'visible' });
   console.log('READY: ' + (await alreadybooked_els.count()) + ' booked ↔ available ' + (await reservable_els.count()));
 
-  var reserveTimesChronological: Array<string> = [];
+  var reserveTimesChronological: string[] = [];
   // for (let r_el: Locator of (await reservable_els.all())) {
   for (let r_el of (await reservable_els.all())) {
     let reserve_btn_el: Locator = r_el.locator('xpath=..');
-    const data_time: string = await reserve_btn_el.getAttribute('data-time');
-    const data_courttype: string = await reserve_btn_el.getAttribute('data-courttype');
+    const data_time: string | null = await reserve_btn_el.getAttribute('data-time');
+    const data_courttype: string | null = await reserve_btn_el.getAttribute('data-courttype');
+
+    if (data_time === null) {
+      throw new Error("The website has changed, or we lost our connection to the internet. Either way, the script as-is won't be able to book... sorry!");
+    }
 
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
@@ -367,7 +376,7 @@ async function book_best_slot(p: Page): Promise<boolean> {
   const abort_after_ms : number = 1999;
   while(reserveTimes.length > 0) {
 
-    const earliestSatisfactoryTime: string = reserveTimes.shift(); // assuming we parse the DOM in chronological order (and why wouldn't we?)
+    const earliestSatisfactoryTime: string = reserveTimes.shift()!; // assuming we parse the DOM in chronological order (and why wouldn't we?)
 
     let ready_to_book_el: Locator = p.getByRole('application').getByRole('button', { name: ' at ' + earliestSatisfactoryTime }).getByText('Reserve');
     try {
@@ -388,7 +397,7 @@ async function book_best_slot(p: Page): Promise<boolean> {
   // [INVARIANT] If you get here, nothing was bookable for a full hour
 
   await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-  throw new Error('Nothing bookable on the target date.');
+  throw new Error('Nothing bookable on the target date. We are too late. There is nothing we can do at this point, sorry!');
 }
 
 async function fill_out_form(p: Page) : Promise<boolean> {
@@ -437,7 +446,8 @@ async function fill_out_form(p: Page) : Promise<boolean> {
   */
    // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders '' (U+F0C4) Wingdings checkmark in a span
   let stupid_checkbox_el: Locator = disclosure_agree_el.locator('~ span.check-box-helper');
-  if ((await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity)) == 0.0) {
+  // This works by accident thanks to JavaScript's type coercion ("0" == 0.0 is true)
+  if ((await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity)) as any == 0.0) {
     // Even useInnerText can't interpret opacity (which is what the page seems to use) because pseudo-elements are not part of the DOM tree
     await disclosure_agree_el.locator('xpath=..').click();
     await expect(async () => {
@@ -446,12 +456,13 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     }).toPass();
 
   } else {
-    const actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
+    const actual_style: CSSStyleDeclaration = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
+    // const actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
     const unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(actual_style);
     throw new Error(unexpected_checkmark);
   }
 
-  const totalDueAmount: string = await booking_form_el.locator('label.total-due-amount').textContent();
+  const totalDueAmount: string | null = await booking_form_el.locator('label.total-due-amount').textContent();
 
   if (LAUNCH_MODE == 'prod') {
     console.log(
@@ -495,9 +506,9 @@ async function fill_out_form(p: Page) : Promise<boolean> {
 
 function halfHourAfter(reserve_str: string): string {
   const [timestr, am_pm] = reserve_str.split(' ');
-  const [hourstr, minstr] = timestr.split(':');
+  const [hourstr, minstr] = timestr!.split(':');
   // const next_hourstr: string = (parseInt(hourstr) + 1).toString().padStart(2, '0');
-  const next_hourstr: string = (parseInt(hourstr) + 1).toString();
+  const next_hourstr: string = (parseInt(hourstr!) + 1).toString();
   // [!TIP]
   // As far as I can tell, the `data-testid="reserveBtn" data-time="..."` are not zero padded
 
@@ -553,19 +564,19 @@ test('try booking pickleball', async ({ page }) => {
   var ready_u : string | undefined = undefined;
   var ready_p : string | null = null;
   if (LAUNCH_MODE == 'prod') {
-    if(process.env.U) {
-      if(process.env.P) {
+    if(process.env['U']) {
+      if(process.env['P']) {
         start_url = HOME_URL;
-        ready_u = process.env.U
-        ready_p = process.env.P
+        ready_u = process.env['U']
+        ready_p = process.env['P']
       }
     }
   } else {
-    if(process.env.DEV_U) {
-      if(process.env.DEV_P) {
+    if(process.env['DEV_U']) {
+      if(process.env['DEV_P']) {
         start_url = HOME_URL;
-        ready_u = process.env.DEV_U
-        ready_p = process.env.DEV_P
+        ready_u = process.env['DEV_U']
+        ready_p = process.env['DEV_P']
       }
     }
   }
@@ -583,13 +594,18 @@ test('try booking pickleball', async ({ page }) => {
   // The default timeout is only 30s
   // https://playwright.dev/docs/test-timeouts
 
-  //await page.route('**/*.woff2', async function (r) {
-  //  await r.fulfill( { status: 200, contentType: 'font/woff2', body: Buffer.from('') } );
-  //});
-  await (await page.context().newCDPSession(page)).send('Network.setBlockedURLs', { urls: ['*.woff2'] });
-  // ^^^ We get too many
-  //   "The resource https://app.courtreserve.com/Content/memberportal/lib/font-awesome/webfonts/fa-*.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
-  // warnings in the console, so if it all works without these extra fonts (and it might even run faster), let's skip these downloads altogether.
+  // TODO(from joseph): If we use more than just chromium in the future...
+  // ```
+  // if (browser.browserType().name() == "chromium") {
+  // ```
+    //await page.route('**/*.woff2', async function (r) {
+    //  await r.fulfill( { status: 200, contentType: 'font/woff2', body: Buffer.from('') } );
+    //});
+    await (await page.context().newCDPSession(page)).send('Network.setBlockedURLs', { urls: ['*.woff2'] });
+    // ^^^ We get too many
+    //   "The resource https://app.courtreserve.com/Content/memberportal/lib/font-awesome/webfonts/fa-*.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+    // warnings in the console, so if it all works without these extra fonts (and it might even run faster), let's skip these downloads altogether.
+  // }
 
 
   await page.goto(start_url);
@@ -670,8 +686,8 @@ test('try booking pickleball', async ({ page }) => {
         console.log('Not logged in, need to login');
 
         // Click the get started link.
-        await username_el.fill(ready_u);
-        await passwd_el.fill(ready_p);
+        await username_el.fill(ready_u!);
+        await passwd_el.fill(ready_p!);
 	await page.getByRole('button', { name: 'Continue', exact: true }).click();
 	await expect(page.getByTestId('warning-message-block')).not.toBeVisible();
 	await expect(page.getByText('The username or password is incorrect')).not.toBeVisible();
@@ -865,11 +881,17 @@ test('try booking pickleball', async ({ page }) => {
   // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
-  const localnoon : string = (await localtime_datenow(page)).local_isoString.split('T')[0] + 'T12:00:00';
-  const N_DAYS_IN_FUTURE: Date = new Date((new Date(localnoon)).valueOf() + LOOK_N_DAYS_IN_FUTURE * 24 * 60 * 60 * 1000);
+  const local_scriptstart : SerializedDate = await localtime_datenow(page);
+  const localnoon : string = local_scriptstart.local_isoString.split('T')[0] + 'T12:00:00Z'; // use "noon UTC" to avoid Daylight Savings problems when all we want to do is calculate a date (not a time)
+  const n_days_from_script_launch : number = (local_scriptstart.local_hour < 12) ? LOOK_N_DAYS_IN_FUTURE : (LOOK_N_DAYS_IN_FUTURE + 1);
+  const N_DAYS_IN_FUTURE: Date = new Date((new Date(localnoon)).valueOf() + n_days_from_script_launch * 24 * 60 * 60 * 1000);
   const TARGET_MONTH: QuickMonth = {
+    /*
     long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
     short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
+    */
+    long_month: N_DAYS_IN_FUTURE.toLocaleString('en-US', { month: 'long' }),
+    short_month: N_DAYS_IN_FUTURE.toLocaleString('en-US', { month: 'short' })
   };
   const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
 
@@ -918,7 +940,7 @@ test('try booking pickleball', async ({ page }) => {
 
     if (await fill_out_form(page)) {
 
-      if (process.env.GITHUB_ACTIONS == 'true') {
+      if (process.env['GITHUB_ACTIONS'] == 'true') {
         await page.screenshot({ path: 'booked-' + LAUNCH_MODE + '.png', fullPage: true });
       } else {
         // Expect a title "to contain" a substring.
@@ -926,6 +948,13 @@ test('try booking pickleball', async ({ page }) => {
       }
       return;
     }
+
+    // [!TIP]
+    // If you get here, we will have failed to book our slot (e.g. maybe all the slots became full right before we clicked Save)
+    // In this case, the best thing we can do is loop again and try to book the next best available time.
+    //
+    // Every codepath of `fill_out_form` that returns `false` will also click the 'OK' button and drop you back to the main booking page.
+    // We would rather not `reload` because we want to try again as fast as possible.
   }
 });
 
