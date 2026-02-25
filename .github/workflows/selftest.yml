@@ -27,7 +27,7 @@ jobs:
       uses: actions/checkout@v6
     - name: Install dependencies
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
-      run: npm ci # && npm install --save-dev typescript
+      run: npm ci && npm install --save-dev typescript
     - name: "Good?"
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       run: |

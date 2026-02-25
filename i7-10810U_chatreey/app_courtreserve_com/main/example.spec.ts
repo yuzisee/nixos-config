@@ -57,10 +57,25 @@ test.use({
 async function localtime_datenow(p: Page): Promise<SerializedDate> {
   const date_in_playwright: SerializedDate = await p.evaluate(
     function() {
+      var tzoffset = new Date().getTimezoneOffset();
+      var tzoffset_str = '';
+      if (tzoffset != 0) {
+        var tzoffset_hour = Math.floor(Math.abs(tzoffset) / 60.0);
+        var tzoffset_minute = (Math.abs(tzoffset) % 60);
+        tzoffset_str = ((tzoffset < 0) ? '-' : '+') + tzoffset_hour + ':' + tzoffset_minute.toString().padStart(2, '0');
+      }
+
       var localtime_date = new Date();
+
+      var localtime_monthnum = (localtime_date.getMonth() + 1).toString().padStart(2, '0');
+      var localtime_isodate = localtime_date.getFullYear() + '-' + localtime_monthnum + '-' + localtime_date.getDate().toString().padStart(2, '0');
+      var localtime_isotime = localtime_date.getHours().toString().padStart(2, '0') + ':' +
+                              localtime_date.getMinutes().toString().padStart(2, '0') + ':' +
+                              localtime_date.getSeconds().toString().padStart(2, '0');
+
       var localdate_serialized = {
         local_valueOf: localtime_date.valueOf(),
-        local_isoString: localtime_date.toISOString(),
+        local_isoString: localtime_isodate + 'T' + localtime_isotime, // ugh, they give us toISOString() but that converts to UTC anyway?
         local_generalString: localtime_date.toString(),
         local_hour: localtime_date.getHours(),
         local_minute: localtime_date.getMinutes(),
