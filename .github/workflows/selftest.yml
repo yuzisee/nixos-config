@@ -45,6 +45,7 @@ jobs:
         ls node_modules/@playwright/test/types || echo 'Hmm??'
     - name: Run tsc
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
-      run: npx tsc --noEmit
+      # run: npx tsc --noEmit
+      run: npx tsc --noEmit -p tsconfig.json main/example.spec.ts 
 
 

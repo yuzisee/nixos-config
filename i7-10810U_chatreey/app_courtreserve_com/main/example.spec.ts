@@ -446,7 +446,8 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     }).toPass();
 
   } else {
-    const actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
+    const actual_style: CSSStyleDeclaration = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
+    // const actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
     const unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(actual_style);
     throw new Error(unexpected_checkmark);
   }
@@ -553,19 +554,19 @@ test('try booking pickleball', async ({ page }) => {
   var ready_u : string | undefined = undefined;
   var ready_p : string | null = null;
   if (LAUNCH_MODE == 'prod') {
-    if(process.env.U) {
-      if(process.env.P) {
+    if(process.env['U']) {
+      if(process.env['P']) {
         start_url = HOME_URL;
-        ready_u = process.env.U
-        ready_p = process.env.P
+        ready_u = process.env['U']
+        ready_p = process.env['P']
       }
     }
   } else {
-    if(process.env.DEV_U) {
-      if(process.env.DEV_P) {
+    if(process.env['DEV_U']) {
+      if(process.env['DEV_P']) {
         start_url = HOME_URL;
-        ready_u = process.env.DEV_U
-        ready_p = process.env.DEV_P
+        ready_u = process.env['DEV_U']
+        ready_p = process.env['DEV_P']
       }
     }
   }
@@ -918,7 +919,7 @@ test('try booking pickleball', async ({ page }) => {
 
     if (await fill_out_form(page)) {
 
-      if (process.env.GITHUB_ACTIONS == 'true') {
+      if (process.env['GITHUB_ACTIONS'] == 'true') {
         await page.screenshot({ path: 'booked-' + LAUNCH_MODE + '.png', fullPage: true });
       } else {
         // Expect a title "to contain" a substring.
