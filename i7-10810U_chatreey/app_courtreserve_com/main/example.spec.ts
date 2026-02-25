@@ -466,7 +466,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
 
   if (LAUNCH_MODE == 'prod') {
     console.log(
-     totalDueAmount + ' READY TO BOOK ' + (new Date().toISOString()) + ' UTC'
+     '↳ ' + totalDueAmount + ' READY TO BOOK ' + (new Date().toISOString()) + ' UTC'
     );
 
     await booking_form_el.getByRole('button', { name: 'Save' }).first().click();
@@ -492,7 +492,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     }
   } else {
     console.log(
-     totalDueAmount + ' READY TO BOOK ' +
+     '↳ ' + totalDueAmount + ' READY TO BOOK ' +
      (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
     );
 
@@ -501,7 +501,19 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     return true;
   }
 
+// end fill_out_form
+}
 
+// "safe" version of .`valueOf` in the sense that we avoid daylight savings issues and/or midnight rollover issues.
+async function n_days_in_future_valueOf_safe(p: Page) : Promise<number> {
+  const local_scriptstart : SerializedDate = await localtime_datenow(p);
+  const localnoon : string = local_scriptstart.local_isoString.split('T')[0] + 'T12:00:00Z'; // use "noon UTC" to avoid Daylight Savings problems when all we want to do is calculate a date (not a time)
+  let n_days_from_script_launch : number = LOOK_N_DAYS_IN_FUTURE;
+  if ((local_scriptstart.local_hour > 12) && (LAUNCH_MODE == 'prod')) {
+    // I suppose you're queuing up the night before, in order to run with `--ui` or something
+    n_days_from_script_launch = LOOK_N_DAYS_IN_FUTURE + 1;
+  }
+  return (new Date(localnoon)).valueOf() + n_days_from_script_launch * 24 * 60 * 60 * 1000;
 }
 
 function halfHourAfter(reserve_str: string): string {
@@ -881,10 +893,7 @@ test('try booking pickleball', async ({ page }) => {
   // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
-  const local_scriptstart : SerializedDate = await localtime_datenow(page);
-  const localnoon : string = local_scriptstart.local_isoString.split('T')[0] + 'T12:00:00Z'; // use "noon UTC" to avoid Daylight Savings problems when all we want to do is calculate a date (not a time)
-  const n_days_from_script_launch : number = (local_scriptstart.local_hour < 12) ? LOOK_N_DAYS_IN_FUTURE : (LOOK_N_DAYS_IN_FUTURE + 1);
-  const N_DAYS_IN_FUTURE: Date = new Date((new Date(localnoon)).valueOf() + n_days_from_script_launch * 24 * 60 * 60 * 1000);
+  const N_DAYS_IN_FUTURE : Date = new Date(await n_days_in_future_valueOf_safe(page));
   const TARGET_MONTH: QuickMonth = {
     /*
     long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
@@ -972,6 +981,11 @@ test('logic self-test', async ({ }) => {
 
   console.log('All pass');
 });
+
+test('timecheck', async ({ page }) => {
+  console.log('Would target ' + new Date(await n_days_in_future_valueOf_safe(page)).toString() + ' for LAUNCH_MODE=' + LAUNCH_MODE);
+});
+
 
 // Try:
 //   U=user@name.com P=passwd npx playwright test

@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - .github/workflows/selftest.yml
-      - i7-10810U_chatreey/app_courtreserve_com/main
+      - i7-10810U_chatreey/app_courtreserve_com/main/**
       - i7-10810U_chatreey/app_courtreserve_com/*.json
       - i7-10810U_chatreey/app_courtreserve_com/*.ts
   pull_request:
@@ -14,7 +14,7 @@ on:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onpull_requestpull_request_targetbranchesbranches-ignore
     paths:
       - .github/workflows/selftest.yml
-      - i7-10810U_chatreey/app_courtreserve_com/main
+      - i7-10810U_chatreey/app_courtreserve_com/main/**
       - i7-10810U_chatreey/app_courtreserve_com/*.json
       - i7-10810U_chatreey/app_courtreserve_com/*.ts
 
