@@ -462,7 +462,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     throw new Error(unexpected_checkmark);
   }
 
-  const totalDueAmount: string = await booking_form_el.locator('label.total-due-amount')!.textContent();
+  const totalDueAmount: string | null = await booking_form_el.locator('label.total-due-amount').textContent();
 
   if (LAUNCH_MODE == 'prod') {
     console.log(
@@ -886,8 +886,12 @@ test('try booking pickleball', async ({ page }) => {
   const n_days_from_script_launch : number = (local_scriptstart.local_hour < 12) ? LOOK_N_DAYS_IN_FUTURE : (LOOK_N_DAYS_IN_FUTURE + 1);
   const N_DAYS_IN_FUTURE: Date = new Date((new Date(localnoon)).valueOf() + n_days_from_script_launch * 24 * 60 * 60 * 1000);
   const TARGET_MONTH: QuickMonth = {
+    /*
     long_month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][N_DAYS_IN_FUTURE.getMonth()],
     short_month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][N_DAYS_IN_FUTURE.getMonth()]
+    */
+    long_month: N_DAYS_IN_FUTURE.toLocaleString('en-US', { month: 'long' }),
+    short_month: N_DAYS_IN_FUTURE.toLocaleString('en-US', { month: 'short' })
   };
   const TARGET_DAY: number = N_DAYS_IN_FUTURE.getDate(); // e.g. 28;
 
