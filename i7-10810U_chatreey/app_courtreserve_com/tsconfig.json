@@ -1,4 +1,6 @@
 {
+  "include": ["main/example.spec.ts"], // otherwise we get problems reported in `playwright.config.ts` and stuff which are a bit unnecessary
+
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022", "DOM"],
