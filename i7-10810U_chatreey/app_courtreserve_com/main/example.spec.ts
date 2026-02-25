@@ -1,4 +1,4 @@
-import { test, expect, errors } from '@playwright/test';
+import { test, expect, errors, type Page, type Locator } from '@playwright/test';
 
 const LAUNCH_MODE: string = 'prod';
 // const LAUNCH_MODE: string = 'dev';
