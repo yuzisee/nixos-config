@@ -245,7 +245,7 @@ async function refresh_until_date_available(p: Page, _year_num: number, _month_z
 	let quickjump_day_el : Locator = day_chooser_el.getByRole('grid').locator('td.k-other-month[role=gridcell]').getByRole('link', {name: '' + day_num, exact: true});
 	let quickjump_htmltitle : string = long_month + ' ' + day_num + ',';
 	// e.g. 'Monday, February 2, 2026'
-        if ((await quickjump_day_el.isVisible()) && ((await quickjump_day_el.getAttribute('title')).indexOf(quickjump_htmltitle) != -1)) {
+        if ((await quickjump_day_el.isVisible()) && ((await quickjump_day_el.getAttribute('title'))!.indexOf(quickjump_htmltitle) != -1)) {
           // Quickly jump to the day we want, otherwise it could slow us down an extra second or two!
           await quickjump_day_el.click();
           return true;
@@ -344,8 +344,8 @@ async function book_best_slot(p: Page): Promise<boolean> {
   // for (let r_el: Locator of (await reservable_els.all())) {
   for (let r_el of (await reservable_els.all())) {
     let reserve_btn_el: Locator = r_el.locator('xpath=..');
-    const data_time: string = await reserve_btn_el.getAttribute('data-time');
-    const data_courttype: string = await reserve_btn_el.getAttribute('data-courttype');
+    const data_time: string | null = await reserve_btn_el.getAttribute('data-time');
+    const data_courttype: string | null = await reserve_btn_el.getAttribute('data-courttype');
 
     if (data_time === null) {
       throw new Error("The website has changed, or we lost our connection to the internet. Either way, the script as-is won't be able to book... sorry!");
@@ -376,7 +376,7 @@ async function book_best_slot(p: Page): Promise<boolean> {
   const abort_after_ms : number = 1999;
   while(reserveTimes.length > 0) {
 
-    const earliestSatisfactoryTime: string = reserveTimes.shift(); // assuming we parse the DOM in chronological order (and why wouldn't we?)
+    const earliestSatisfactoryTime: string = reserveTimes.shift()!; // assuming we parse the DOM in chronological order (and why wouldn't we?)
 
     let ready_to_book_el: Locator = p.getByRole('application').getByRole('button', { name: ' at ' + earliestSatisfactoryTime }).getByText('Reserve');
     try {
@@ -447,7 +447,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
    // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders '' (U+F0C4) Wingdings checkmark in a span
   let stupid_checkbox_el: Locator = disclosure_agree_el.locator('~ span.check-box-helper');
   // This works by accident thanks to JavaScript's type coercion ("0" == 0.0 is true)
-  if ((await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity)) == 0.0) {
+  if ((await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity)) as any == 0.0) {
     // Even useInnerText can't interpret opacity (which is what the page seems to use) because pseudo-elements are not part of the DOM tree
     await disclosure_agree_el.locator('xpath=..').click();
     await expect(async () => {
@@ -462,7 +462,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     throw new Error(unexpected_checkmark);
   }
 
-  const totalDueAmount: string = await booking_form_el.locator('label.total-due-amount').textContent();
+  const totalDueAmount: string = await booking_form_el.locator('label.total-due-amount')!.textContent();
 
   if (LAUNCH_MODE == 'prod') {
     console.log(
@@ -506,9 +506,9 @@ async function fill_out_form(p: Page) : Promise<boolean> {
 
 function halfHourAfter(reserve_str: string): string {
   const [timestr, am_pm] = reserve_str.split(' ');
-  const [hourstr, minstr] = timestr.split(':');
+  const [hourstr, minstr] = timestr!.split(':');
   // const next_hourstr: string = (parseInt(hourstr) + 1).toString().padStart(2, '0');
-  const next_hourstr: string = (parseInt(hourstr) + 1).toString();
+  const next_hourstr: string = (parseInt(hourstr!) + 1).toString();
   // [!TIP]
   // As far as I can tell, the `data-testid="reserveBtn" data-time="..."` are not zero padded
 
@@ -594,7 +594,10 @@ test('try booking pickleball', async ({ page }) => {
   // The default timeout is only 30s
   // https://playwright.dev/docs/test-timeouts
 
-  if (browser.browserType().name() == "chromium") {
+  // TODO(from joseph): If we use more than just chromium in the future...
+  // ```
+  // if (browser.browserType().name() == "chromium") {
+  // ```
     //await page.route('**/*.woff2', async function (r) {
     //  await r.fulfill( { status: 200, contentType: 'font/woff2', body: Buffer.from('') } );
     //});
@@ -602,7 +605,7 @@ test('try booking pickleball', async ({ page }) => {
     // ^^^ We get too many
     //   "The resource https://app.courtreserve.com/Content/memberportal/lib/font-awesome/webfonts/fa-*.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
     // warnings in the console, so if it all works without these extra fonts (and it might even run faster), let's skip these downloads altogether.
-  }
+  // }
 
 
   await page.goto(start_url);
@@ -683,8 +686,8 @@ test('try booking pickleball', async ({ page }) => {
         console.log('Not logged in, need to login');
 
         // Click the get started link.
-        await username_el.fill(ready_u);
-        await passwd_el.fill(ready_p);
+        await username_el.fill(ready_u!);
+        await passwd_el.fill(ready_p!);
 	await page.getByRole('button', { name: 'Continue', exact: true }).click();
 	await expect(page.getByTestId('warning-message-block')).not.toBeVisible();
 	await expect(page.getByText('The username or password is incorrect')).not.toBeVisible();
