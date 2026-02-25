@@ -75,7 +75,7 @@ async function localtime_datenow(p: Page): Promise<SerializedDate> {
 
       var localdate_serialized = {
         local_valueOf: localtime_date.valueOf(),
-        local_isoString: localtime_isodate + 'T' + localtime_isotime, // ugh, they give us toISOString() but that converts to UTC anyway?
+        local_isoString: localtime_isodate + 'T' + localtime_isotime + tzoffset_str, // ugh, they give us toISOString() but that converts to UTC anyway?
         local_generalString: localtime_date.toString(),
         local_hour: localtime_date.getHours(),
         local_minute: localtime_date.getMinutes(),
