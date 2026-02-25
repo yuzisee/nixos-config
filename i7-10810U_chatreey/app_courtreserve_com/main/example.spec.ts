@@ -508,7 +508,11 @@ async function fill_out_form(p: Page) : Promise<boolean> {
 async function n_days_in_future_valueOf_safe(p: Page, n: number) : Promise<number> {
   const local_scriptstart : SerializedDate = await localtime_datenow(p);
   const localnoon : string = local_scriptstart.local_isoString.split('T')[0] + 'T12:00:00Z'; // use "noon UTC" to avoid Daylight Savings problems when all we want to do is calculate a date (not a time)
-  const n_days_from_script_launch : number = (local_scriptstart.local_hour < 12) ? LOOK_N_DAYS_IN_FUTURE : (LOOK_N_DAYS_IN_FUTURE + 1);
+  let n_days_from_script_launch : number = LOOK_N_DAYS_IN_FUTURE;
+  if ((local_scriptstart.local_hour > 12) && (LAUNCH_MODE == 'prod')) {
+    // I suppose you're queuing up the night before
+    n_days_from_script_launc = LOOK_N_DAYS_IN_FUTURE + 1;
+  }
   return (new Date(localnoon)).valueOf() + n_days_from_script_launch * 24 * 60 * 60 * 1000;
 }
 
@@ -979,7 +983,7 @@ test('logic self-test', async ({ }) => {
 });
 
 test('timecheck', async ({ page }) => {
-  console.log('Would target ' + new Date(await n_days_in_future_valueOf_safe(page, LOOK_N_DAYS_IN_FUTURE)).toString());
+  console.log('Would target ' + new Date(await n_days_in_future_valueOf_safe(page, LOOK_N_DAYS_IN_FUTURE)).toString() + ' for LAUNCH_MODE=' + LAUNCH_MODE);
 });
 
 
