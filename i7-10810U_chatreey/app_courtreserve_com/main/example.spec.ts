@@ -62,7 +62,11 @@ async function localtime_datenow(p: Page): Promise<SerializedDate> {
       if (tzoffset != 0) {
         var tzoffset_hour = Math.floor(Math.abs(tzoffset) / 60.0);
         var tzoffset_minute = (Math.abs(tzoffset) % 60);
-        tzoffset_str = ((tzoffset < 0) ? '-' : '+') + tzoffset_hour + ':' + tzoffset_minute.toString().padStart(2, '0');
+        // [!TIP]
+        // When you get tzoffset 480 that's actually UTC-8:00 (it's the negative direction)
+        var tzoffset_direction = ((tzoffset < 0) ? '+' : '-');
+
+        tzoffset_str = tzoffset_direction + tzoffset_hour + ':' + tzoffset_minute.toString().padStart(2, '0');
       }
 
       var localtime_date = new Date();
