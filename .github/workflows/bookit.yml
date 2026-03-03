@@ -2,12 +2,18 @@ name: Lifetime Activities
 
 on:
   workflow_dispatch:
-  schedule:
-    #           ↓↓ 19 UTC is "11 am Pacific", but during daylight savings we need 18 UTC to be "11 am Pacific" (we'll schedule both and test `$GITHUB_EVENT_NAME` via `time_zone_checker` before running, below)
-    #                  ↓ run on Mondays to book the next Tuesday
-    - cron: '51 18 * * 1'
-    - cron: '51 19 * * 1'
-    # Leave 9 minutes just in case `actions/checkout@v5` has some kind of delay or `i7-10810U_chatreey/dev-github/reinstall_playwright.sh` takes longer than expected.
+  # schedule:
+  # ^^^ Github's scheduler is SUPER INACCURATE with delays of dozens of minutes (sometimes more than an hour...)
+  #  - cron: '51 18 * * 1'
+  #  - cron: '51 19 * * 1'
+  # i.e. run on Mondays to book the next Tuesday
+  repository_dispatch:
+    # I suppose we'll try an external trigger (cron-job.org) instead.
+    # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#repository_dispatch
+    types: [trigger_me_to_start_booking]
+    # [!TIP]
+    # * Leave 9 minutes just in case `actions/checkout@v5` has some kind of delay or `i7-10810U_chatreey/dev-github/reinstall_playwright.sh` takes longer than expected.
+    # * 19 UTC is "11 am Pacific", but during daylight savings we need 18 UTC to be "11 am Pacific" (even if you schedule both, we still test `$GITHUB_EVENT_NAME` via `time_zone_checker` before running, below)    
 
 jobs:
   time_zone_checker:
@@ -20,7 +26,7 @@ jobs:
         # Verify daylight savings
         run: |
           case "${GITHUB_EVENT_NAME}" in
-          schedule)
+          schedule|repository_dispatch)
             echo "localtime_hr=$(TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
           ;;
           workflow_dispatch)
