@@ -6,7 +6,6 @@ on:
   # ^^^ Github's scheduler is SUPER INACCURATE with delays of dozens of minutes (sometimes more than an hour...)
   #  - cron: '51 18 * * 1'
   #  - cron: '51 19 * * 1'
-  # i.e. run on Mondays to book the next Tuesday
   repository_dispatch:
     # I suppose we'll try an external trigger (cron-job.org) instead.
     # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#repository_dispatch
@@ -27,7 +26,20 @@ jobs:
         run: |
           case "${GITHUB_EVENT_NAME}" in
           schedule|repository_dispatch)
-            echo "localtime_hr=$(TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+            case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
+            Mon)
+              # i.e. run on Mondays to book the next Tuesday
+              echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+            ;;
+            *)
+              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %d')" '=' '2026 Mar 03'; then
+                echo 'One-time recovery (running Tues to book Wed) ↓'
+                echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+              else
+                echo 'Skip.'
+              fi
+              env TZ='America/Los_Angeles' LC_ALL=C date
+            ;;
           ;;
           workflow_dispatch)
             echo 'All good. You triggered manually via the web, so `pickleball_go` below will proceed regardless of time zone! However please be aware that there is still a 6 hour limit on a single Github Actions run, itself ← https://docs.github.com/en/actions/reference/limits'
