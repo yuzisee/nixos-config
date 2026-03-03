@@ -32,7 +32,7 @@ jobs:
               echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
             ;;
             *)
-              if "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %d')" '=' '2026 Mar 03'; then
+              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %d')" '=' '2026 Mar 03'; then
                 echo 'One-time recovery (running Tues to book Wed) ↓'
                 echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
               else
