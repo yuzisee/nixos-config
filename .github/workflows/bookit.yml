@@ -28,11 +28,11 @@ jobs:
           schedule|repository_dispatch)
             case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
             Mon)
-              # i.e. run on Mondays to book the next Tuesday
+              echo 'run on Mondays to book the next Tuesday'
               echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
             ;;
             *)
-              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %d')" '=' '2026 Mar 03'; then
+              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %d')" '=' '2026 Mar 11'; then
                 echo 'One-time recovery (running Tues to book Wed) ↓'
                 echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
               else
@@ -40,6 +40,7 @@ jobs:
               fi
               env TZ='America/Los_Angeles' LC_ALL=C date
             ;;
+            esac
           ;;
           workflow_dispatch)
             echo 'All good. You triggered manually via the web, so `pickleball_go` below will proceed regardless of time zone! However please be aware that there is still a 6 hour limit on a single Github Actions run, itself ← https://docs.github.com/en/actions/reference/limits'
