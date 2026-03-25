@@ -32,8 +32,8 @@ jobs:
               echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
             ;;
             *)
-              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %d')" '=' '2026 Mar 11'; then
-                echo 'One-time recovery (running Tues to book Wed) ↓'
+              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %d')" '=' '2026 Mar 25'; then
+                echo 'One-time recovery (off-day extra booking e.g. run Wed to book Thurs) ↓'
                 echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
               else
                 echo 'Skip.'
