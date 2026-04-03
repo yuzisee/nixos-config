@@ -9,9 +9,9 @@ const RISKY_BUT_FASTER: boolean = true;
 const LOOK_N_DAYS_IN_FUTURE: number = 8;
 // e.g. queue up on Sunday evening, to run Monday at noon, to try and book the *next* Tuesday slot 8 days after that
 
-const DESIRED_AM_PM: string = 'PM';
+const DESIRED_AM_PM: string = 'AM';
 const EARLIEST_HOUR_TO_BOOK: number = 7;
-const FAVOURITE_TIMES_BEST_FIRST: string[] = ['8:30 PM', '9:00 PM', '8:00 PM'];
+const FAVOURITE_TIMES_BEST_FIRST: string[] = ['9:30 AM'];
 
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
 const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
