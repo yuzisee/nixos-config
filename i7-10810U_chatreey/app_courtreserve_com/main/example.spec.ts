@@ -9,9 +9,12 @@ const RISKY_BUT_FASTER: boolean = true;
 const LOOK_N_DAYS_IN_FUTURE: number = 8;
 // e.g. queue up on Sunday evening, to run Monday at noon, to try and book the *next* Tuesday slot 8 days after that
 
-const DESIRED_AM_PM: string = 'PM';
-const EARLIEST_HOUR_TO_BOOK: number = 7;
-const FAVOURITE_TIMES_BEST_FIRST: string[] = ['8:30 PM', '9:00 PM', '8:00 PM'];
+const DESIRED_AM_PM: 'AM' | 'PM' = 'PM'; // choose between 'AM' and 'PM'
+const EARLIEST_HOUR_TO_BOOK: number = 7; // for runtime efficiency, don't even parse times earlier than this
+const FAVOURITE_TIMES_BEST_FIRST: Record<'AM' | 'PM', string[]> = {
+  AM: ['9:30 AM'],
+  PM: ['8:30 PM', '9:00 PM', '8:00 PM']
+};
 
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
 const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
@@ -333,7 +336,7 @@ async function get_to_pickleball_reservations(p: Page): Promise<Locator> {
   }
 }
 
-async function book_best_slot(p: Page): Promise<boolean> {
+async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<boolean> {
 
   let alreadybooked_els: Locator = p.getByRole('presentation').getByRole('button').getByText('None Available');
   let reservable_els: Locator = p.getByRole('application').getByRole('button').getByText('Reserve');
@@ -354,7 +357,7 @@ async function book_best_slot(p: Page): Promise<boolean> {
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
     // *********************
-    if (data_time.indexOf(DESIRED_AM_PM) == -1) {
+    if (data_time.indexOf(target_ampm) == -1) {
       console.log(data_time + ' NOT OUR TARGET: ' + data_courttype);
     } else {
       const reserve_btn_hour: number = Number(data_time.split(':')[0]);
@@ -367,7 +370,7 @@ async function book_best_slot(p: Page): Promise<boolean> {
     }
   }
 
-  const reserveTimes: Array<string> = topPriorityFullHourReservable(reserveTimesChronological);
+  const reserveTimes: Array<string> = topPriorityFullHourReservable(reserveTimesChronological, FAVOURITE_TIMES_BEST_FIRST[target_ampm]);
 
   console.log('FULL HOUR BOOKABLE, best first = ' + JSON.stringify(reserveTimes));
 
@@ -539,14 +542,14 @@ function halfHourAfter(reserve_str: string): string {
 
 // There is a [Reserve] button for every half hour, but the point of this script is to try and get a full hour as early as we can.
 // This helper function here will narrow down the options to only the [Reserve] buttons that still have a full hour available.
-// The returned results will be chronological, EXCEPT you will have an extra copy of FAVOURITE_TIMES_BEST_FIRST at the very front, if any of them are also available for the full hour
-function topPriorityFullHourReservable(halfHourTimes: Array<string>): Array<string> {
+// The returned results will be chronological, EXCEPT you will have an extra copy of `favouriteTimes` at the very front, if any of them are also available for the full hour
+function topPriorityFullHourReservable(halfHourTimes: Array<string>, favouriteTimes: string[]): Array<string> {
   var result: Array<string> = [];
   var reserveTimesLookup: Set<string> = new Set(halfHourTimes);
-  for (let datatime_str of [...FAVOURITE_TIMES_BEST_FIRST, ...halfHourTimes]) {
+  for (let datatime_str of [...favouriteTimes, ...halfHourTimes]) {
     if (datatime_str != '11:30 PM') {
       // [!TIP]
-      // `reserveTimesLookup.has(datatime_str)` should already be true, unless we're checking one of `FAVOURITE_TIMES_BEST_FIRST`
+      // `reserveTimesLookup.has(datatime_str)` should already be true, unless we're checking one of `favouriteTimes`
       if (reserveTimesLookup.has(datatime_str) && reserveTimesLookup.has(halfHourAfter(datatime_str))) {
         // Both `datatime_str` and `halfHourAfter` are bookable! That means...
 	result.push(datatime_str);
@@ -596,6 +599,15 @@ test('try booking pickleball', async ({ page }) => {
   // await expect(start_url).notToBe('');
   if (start_url == '') {
     throw new Error('Please set U and P (or DEV_U and DEV_P) environment variables, so we have some kind of login credentials');
+  }
+
+  var overrideAmPm: 'AM' | 'PM' = DESIRED_AM_PM;
+  if(process.env['OVERRIDE_AMPM']) {
+    if(process.env['OVERRIDE_AMPM'] == 'AM' || process.env['OVERRIDE_AMPM'] == 'PM') {
+      overrideAmPm = process.env['OVERRIDE_AMPM'];
+    } else {
+      throw new Error('If you are going to OVERRIDE_AMPM it has to be either "AM" or "PM", and not ' + JSON.stringify(process.env['OVERRIDE_AMPM']));
+    }
   }
 
   // Suppose we want to launch this around 11:57am, and will leave it running at least until 12:03pm to be safe...
@@ -716,6 +728,8 @@ test('try booking pickleball', async ({ page }) => {
   // ========
 
   if (page.url().indexOf('Online/MyProfile/MyClubs') != -1) {
+    // [INVARIANT] If you get here, we are on ...Online/MyProfile/MyClubs...
+    //             ^^^ but that should be seemingly impossible because we haven't used that in HOME_URL for a long time. These days we will skip this block entirely
     let target_club: Locator = page.getByRole('heading', { name: HOME_CLUB });
     await expect(target_club).toBeVisible();
 
@@ -802,8 +816,7 @@ test('try booking pickleball', async ({ page }) => {
 - list
 
 */
-  await target_club.locator('~ div').getByRole('paragraph').getByRole('link', { name: 'VIEW' }).click();
- // TODO(from joseph): Should we just try to open 'https://app.courtreserve.com/Online/Portal/Index/13233' directly?
+    await target_club.locator('~ div').getByRole('paragraph').getByRole('link', { name: 'VIEW' }).click();
 
     await page.waitForURL('**/Online/Portal/Index**');
   }
@@ -945,7 +958,7 @@ test('try booking pickleball', async ({ page }) => {
     console.log('DATE CORRECT: ' + (new Date().toISOString()) + ' UTC');
 
     // UJS XHR POST https://app.courtreserve.com/Online/Reservations/CreateReservation/13233?start=1/29/2026%209:00%20AM&end=1/29/2026%209:30%20AM&customSchedulerId=16984&courtTypeId=9&courtType=Pickleball
-    await book_best_slot(page);
+    await book_best_slot(page, overrideAmPm);
 
     if (await fill_out_form(page)) {
 
@@ -974,9 +987,9 @@ test('logic self-test', async ({ }) => {
   }
 
   const allAvailable_in: Array<string> = ['7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM', '9:30 PM'];
-  const allAvailable_actual: Array<string> = topPriorityFullHourReservable(allAvailable_in);
+  const allAvailable_actual: Array<string> = topPriorityFullHourReservable(allAvailable_in, FAVOURITE_TIMES_BEST_FIRST['PM']);
   if (allAvailable_actual[0] != '8:30 PM') {
-    throw new Error("Why didn't " + JSON.stringify(FAVOURITE_TIMES_BEST_FIRST) + ' take priority? Instead we got ' + JSON.stringify(allAvailable_actual));
+    throw new Error("Why didn't " + JSON.stringify(FAVOURITE_TIMES_BEST_FIRST['PM']) + ' take priority? Instead we got ' + JSON.stringify(allAvailable_actual));
   }
 
   console.log('All pass');
@@ -988,7 +1001,6 @@ test('timecheck', async ({ page }) => {
 
 
 // Try:
-//   U=user@name.com P=passwd npx playwright test
-//   npx playwright test main/example.spec.ts
+//   DEV_U=user@name.com DEV_P=passwd npx playwright test --ui
+//   U=user@name.com P=passwd OVERRIDE_AMPM=PM npx playwright test main/example.spec.ts
 //   npx playwright test --headed
-//   npx playwright test --ui
