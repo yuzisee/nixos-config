@@ -9,8 +9,9 @@ const RISKY_BUT_FASTER: boolean = true;
 const LOOK_N_DAYS_IN_FUTURE: number = 8;
 // e.g. queue up on Sunday evening, to run Monday at noon, to try and book the *next* Tuesday slot 8 days after that
 
-const DESIRED_AM_PM: 'AM' | 'PM' = 'PM'; // choose between 'AM' and 'PM'
 const EARLIEST_HOUR_TO_BOOK: number = 7; // for runtime efficiency, don't even parse times earlier than this
+// [!TIP]
+// If it can't grab any of the `FAVOURITE_TIMES_BEST_FIRST[overrideAmPm]` times, it will book the earliest timeslot starting from `EARLIEST_HOUR_TO_BOOK`
 const FAVOURITE_TIMES_BEST_FIRST: Record<'AM' | 'PM', string[]> = {
   AM: ['9:30 AM'],
   PM: ['8:30 PM', '9:00 PM', '8:00 PM']
@@ -601,13 +602,11 @@ test('try booking pickleball', async ({ page }) => {
     throw new Error('Please set U and P (or DEV_U and DEV_P) environment variables, so we have some kind of login credentials');
   }
 
-  var overrideAmPm: 'AM' | 'PM' = DESIRED_AM_PM;
-  if(process.env['OVERRIDE_AMPM']) {
-    if(process.env['OVERRIDE_AMPM'] == 'AM' || process.env['OVERRIDE_AMPM'] == 'PM') {
-      overrideAmPm = process.env['OVERRIDE_AMPM'];
-    } else {
-      throw new Error('If you are going to OVERRIDE_AMPM it has to be either "AM" or "PM", and not ' + JSON.stringify(process.env['OVERRIDE_AMPM']));
-    }
+  var overrideAmPm: 'AM' | 'PM' = null;
+  if(process.env['OVERRIDE_AMPM'] == 'AM' || process.env['OVERRIDE_AMPM'] == 'PM') {
+    overrideAmPm = process.env['OVERRIDE_AMPM'];
+  } else {
+    throw new Error('If you are going to OVERRIDE_AMPM it has to be either "AM" or "PM", and not ' + JSON.stringify(process.env['OVERRIDE_AMPM']));
   }
 
   // Suppose we want to launch this around 11:57am, and will leave it running at least until 12:03pm to be safe...
@@ -1001,6 +1000,6 @@ test('timecheck', async ({ page }) => {
 
 
 // Try:
-//   DEV_U=user@name.com DEV_P=passwd npx playwright test --ui
+//   DEV_U=user@name.com DEV_P=passwd OVERRIDE_AMPM=AM npx playwright test --ui
 //   U=user@name.com P=passwd OVERRIDE_AMPM=PM npx playwright test main/example.spec.ts
 //   npx playwright test --headed
