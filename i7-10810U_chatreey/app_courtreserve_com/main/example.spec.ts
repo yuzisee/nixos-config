@@ -9,7 +9,7 @@ const RISKY_BUT_FASTER: boolean = true;
 const LOOK_N_DAYS_IN_FUTURE: number = 8;
 // e.g. queue up on Sunday evening, to run Monday at noon, to try and book the *next* Tuesday slot 8 days after that
 
-const DESIRED_AM_PM: 'AM' | 'PM' = 'AM'; // choose between 'AM' and 'PM'
+const DESIRED_AM_PM: 'AM' | 'PM' = 'PM'; // choose between 'AM' and 'PM'
 const EARLIEST_HOUR_TO_BOOK: number = 7; // for runtime efficiency, don't even parse times earlier than this
 const FAVOURITE_TIMES_BEST_FIRST: Record<'AM' | 'PM', string[]> = {
   AM: ['9:30 AM'],
@@ -728,6 +728,8 @@ test('try booking pickleball', async ({ page }) => {
   // ========
 
   if (page.url().indexOf('Online/MyProfile/MyClubs') != -1) {
+    // [INVARIANT] If you get here, we are on ...Online/MyProfile/MyClubs...
+    //             ^^^ but that should be seemingly impossible because we haven't used that in HOME_URL for a long time. These days we will skip this block entirely
     let target_club: Locator = page.getByRole('heading', { name: HOME_CLUB });
     await expect(target_club).toBeVisible();
 
@@ -814,8 +816,7 @@ test('try booking pickleball', async ({ page }) => {
 - list
 
 */
-  await target_club.locator('~ div').getByRole('paragraph').getByRole('link', { name: 'VIEW' }).click();
- // TODO(from joseph): Should we just try to open 'https://app.courtreserve.com/Online/Portal/Index/13233' directly?
+    await target_club.locator('~ div').getByRole('paragraph').getByRole('link', { name: 'VIEW' }).click();
 
     await page.waitForURL('**/Online/Portal/Index**');
   }
@@ -1000,7 +1001,6 @@ test('timecheck', async ({ page }) => {
 
 
 // Try:
-//   U=user@name.com P=passwd npx playwright test
-//   npx playwright test main/example.spec.ts
+//   DEV_U=user@name.com DEV_P=passwd npx playwright test --ui
+//   U=user@name.com P=passwd OVERRIDE_AMPM=PM npx playwright test main/example.spec.ts
 //   npx playwright test --headed
-//   npx playwright test --ui
