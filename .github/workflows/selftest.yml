@@ -40,8 +40,12 @@ jobs:
         printf '↕ '
         ls -l node_modules/playwright/package.json
         cat node_modules/playwright/package.json | grep -A 5 '"./test"'
+        echo '─────'
         npx --no tsc --version
+        echo '↑↑↑ System version of Typescript'
+        echo '↓↓↓ Project version of Typescript'
         npx tsc --version
+        echo '─────'
         ls node_modules/@playwright/test/types || echo 'Hmm??'
     - name: Run tsc
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
