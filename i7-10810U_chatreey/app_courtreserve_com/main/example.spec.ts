@@ -815,7 +815,7 @@ test('try booking pickleball', async ({ page }) => {
 
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
   if (page.url().indexOf('Online/Portal/Index') != -1) {
-    if (await locator_visible(page.getByText('BOOK A COURT'), 2000)) {
+    if (await locator_visible(page.getByText('PROGRAM REGISTRATION'), 2000)) {
 /*
 
 - banner:
