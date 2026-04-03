@@ -601,6 +601,15 @@ test('try booking pickleball', async ({ page }) => {
     throw new Error('Please set U and P (or DEV_U and DEV_P) environment variables, so we have some kind of login credentials');
   }
 
+  var overrideAmPm: 'AM' | 'PM' = DESIRED_AM_PM;
+  if(process.env['OVERRIDE_AMPM']) {
+    if(process.env['OVERRIDE_AMPM'] == 'AM' || process.env['OVERRIDE_AMPM'] == 'PM') {
+      overrideAmPm = process.env['OVERRIDE_AMPM'];
+    } else {
+      throw new Error('If you are going to OVERRIDE_AMPM it has to be either "AM" or "PM", and not ' + JSON.stringify(process.env['OVERRIDE_AMPM']));
+    }
+  }
+
   // Suppose we want to launch this around 11:57am, and will leave it running at least until 12:03pm to be safe...
   // test.setTimeout(6 * 60 * 1000);
   // Okay, now that we have the sleep, we can run this at like 9am so allow the test to run ~3hrs
@@ -948,7 +957,7 @@ test('try booking pickleball', async ({ page }) => {
     console.log('DATE CORRECT: ' + (new Date().toISOString()) + ' UTC');
 
     // UJS XHR POST https://app.courtreserve.com/Online/Reservations/CreateReservation/13233?start=1/29/2026%209:00%20AM&end=1/29/2026%209:30%20AM&customSchedulerId=16984&courtTypeId=9&courtType=Pickleball
-    await book_best_slot(page, DESIRED_AM_PM);
+    await book_best_slot(page, overrideAmPm);
 
     if (await fill_out_form(page)) {
 
