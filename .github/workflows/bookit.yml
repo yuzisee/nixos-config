@@ -34,7 +34,7 @@ jobs:
               echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
             ;;
             *)
-              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %d')" '=' '2026 Apr 3'; then
+              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %e' | tr -s ' ')" '=' '2026 Apr 4'; then
                 echo 'One-time recovery (off-day extra booking e.g. run Wed to book Thurs) ↓'
                 echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
                 echo "preset_ampm=AM" >> "$GITHUB_OUTPUT"
