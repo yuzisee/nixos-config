@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       localtime_current_hourstr: ${{ steps.pacifictime_reader.outputs.localtime_hr }}
+      override_ampm: ${{ steps.pacifictime_reader.outputs.preset_ampm }}
     steps:
       - name: Check local time
         id: pacifictime_reader
@@ -30,11 +31,13 @@ jobs:
             Mon)
               echo 'run on Mondays to book the next Tuesday'
               echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+              echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
             ;;
             *)
-              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %d')" '=' '2026 Mar 25'; then
+              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %d')" '=' '2026 Apr 3'; then
                 echo 'One-time recovery (off-day extra booking e.g. run Wed to book Thurs) ↓'
                 echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+                echo "preset_ampm=AM" >> "$GITHUB_OUTPUT"
               else
                 echo 'Skip.'
               fi
@@ -43,6 +46,7 @@ jobs:
             esac
           ;;
           workflow_dispatch)
+            echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
             echo 'All good. You triggered manually via the web, so `pickleball_go` below will proceed regardless of time zone! However please be aware that there is still a 6 hour limit on a single Github Actions run, itself ← https://docs.github.com/en/actions/reference/limits'
           ;;
           *)
@@ -78,6 +82,7 @@ jobs:
         P: ${{ secrets.LOGIN_PROD }}
         DEV_U: ${{ secrets.LOGIN_DEV }}
         DEV_P: ${{ secrets.DUMMYPW }}
+        OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
     - name: Upload screenshots if available
       if: always()
       uses: actions/upload-artifact@v6
