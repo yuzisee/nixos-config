@@ -16,6 +16,8 @@ const FAVOURITE_TIMES_BEST_FIRST: Record<'AM' | 'PM', string[]> = {
   AM: ['9:30 AM'],
   PM: ['8:30 PM', '9:00 PM', '8:00 PM']
 };
+// [!NOTE]
+// Only ONE of the FAVOURITE_TIMES_BEST_FIRST lists will be considered, based on the value of `preset_ampm` in https://github.com/yuzisee/nixos-config/blob/8b133175f158cecd1a55d5cc74fe878ffc7d45bd/.github/workflows/bookit.yml#L40-L49
 
 // const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
 const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';

@@ -38,6 +38,8 @@ jobs:
                 echo 'One-time recovery (off-day extra booking e.g. run Wed to book Thurs) ↓'
                 echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
                 echo "preset_ampm=AM" >> "$GITHUB_OUTPUT"
+                # [!CAUTION]
+                # Have in mind that we're setting AM vs. PM using the `preset_ampm` output here, but the actual times are defined during https://github.com/yuzisee/nixos-config/blob/03665fbf7137105be397ae769bef7d6182e6cb4f/i7-10810U_chatreey/app_courtreserve_com/main/example.spec.ts#L12-L18
               else
                 echo 'Skip.'
               fi
