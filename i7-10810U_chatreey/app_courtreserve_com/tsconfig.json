@@ -4,6 +4,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022", "DOM"],
+    "types": ["node"], // Needed now that we're on Typescript 6+ I guess?
     "module": "commonjs",
 
     "strict": true,
