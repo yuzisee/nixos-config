@@ -298,8 +298,9 @@ workspace_auto_back_and_forth yes
     assign [app_id="^app.zen_browser.zen$"] workspace number 3
     # assign [app_id="^firefox$"] workspace number 2
     # Wayland-native Firefox uses javscript to dynamically set its title. All windows start with "Mozilla Firefox" as the title when first spawned.
-    for_window [app_id="^firefox$" title="^Mozilla Firefox$"] move to workspace number 2
-    for_window [app_id="^firefox$" title="Mozilla Firefox Private Browsing$"] move to workspace number 4
+    assign [app_id="^firefox$" title="Mozilla Firefox$"] workspace number 2
+    # for_window [app_id="^firefox$" title="Mozilla Firefox$"] move container to workspace number 2
+    for_window [app_id="^firefox$" title="Mozilla Firefox Private Browsing$"] move container to workspace number 4
     for_window [app_id="^org.kde.kwalletd6$" title="KDE Wallet Service"] move to workspace number 4
     assign [app_id="^brave-browser$"] workspace number 4
     assign [class="^FreeTube$"] workspace number 4
@@ -408,6 +409,9 @@ bar {
     font pango:DejaVu Sans Mono, Font Awesome 6 Free 12
 
     bindsym button1 workspace next
+    # bindsym button2 exec "swaymsg '[app_id=\"^firefox$\" title=\"Mozilla Firefox$\"] move container to workspace number 2'"
+    # bindsym button2 exec "swaymsg '[app_id=\"^firefox$\" title=\"Mozilla Firefox$\"] move container to workspace number 2' && sleep 0.5 && swaymsg '[app_id=\"^firefox$\" title=\"Mozilla Firefox Private Browsing$\"] move container to workspace number 4'"
+    bindsym button2 exec "swaymsg '[app_id=\"^firefox$\" title=\"Mozilla Firefox Private Browsing$\"] move container to workspace number 4' && sleep 3.0 && swaymsg '[app_id=\"^firefox$\" title=\"Mozilla Firefox$\"] move container to workspace number 2'"
     bindsym button3 workspace prev
     bindsym button4 workspace next
     bindsym button5 workspace prev
