@@ -31,6 +31,9 @@ cmd = "sh /home/joseph/quicklaunch/epiphany_oom_friendly.sh"
 display = "Librewolf (OOM friendly) \u2446"
 cmd = "sh /home/joseph/quicklaunch/librewolf_oom_friendly.sh"
 # ⑆ U+2446
+[[block.items]]
+display = "Floorp (OOM friendly) \u25b6"
+cmd = "sh /home/joseph/quicklaunch/floorp_oom_friendly.sh"
 # ▶ U+25B6
 
 [[block]]
