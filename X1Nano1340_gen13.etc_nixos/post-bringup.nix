@@ -203,7 +203,6 @@ xkb_symbols "multi_ctrl" {
   # environment.etc."sway/config".source = lib.mkForce (pkgs.callPackage ./etc_conf/build-sway-config.nix {pkgs.writeText});
   # https://nixos.wiki/wiki/Sway
   # Added extraGroups = [ "video" ]; to joseph above
-  programs.light.enable = true;
 
   # https://nixos.wiki/wiki/Fonts
   # https://ld.reddit.com/r/NixOS/comments/lf6de0/some_config_questions/gmlzirz/
@@ -220,13 +219,16 @@ xkb_symbols "multi_ctrl" {
   # https://www.freedesktop.org/software/systemd/man/latest/systemd-sleep.conf.html#suspend-then-hibernate
   # https://www.freedesktop.org/software/systemd/man/latest/logind.conf.html
   # services.logind.settings.Login.HandleLidSwitchExternalPower = "hybrid-sleep";
-  # ^^^ Ahhhh I'm startin gto suspect that `hybrid-sleep` in a recent kernel causes both the touchpad & Wi-Fi to break upon wake...
+  # ^^^ Ahhhh I'm starting to suspect that `hybrid-sleep` in a recent kernel causes both the touchpad & Wi-Fi to break upon wake...
   # so let's just `suspend` for now
   services.logind.settings.Login.HandleLidSwitchExternalPower = "suspend";
+  # [!NOTE]
+  # In recent testing, it's wake-from-suspend that seems to be sometimes slightly finnicky. You can re-suspend and wake again and it seens to resolve itself.
+  # If it becomes a chronic issue, we could also consider just hibernate by default.
   # https://github.com/systemd/systemd/issues/25269
   services.logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
   # https://nixos.wiki/wiki/Power_Management
   # https://search.nixos.org/options?show=services.logind.lidSwitchExternalPower
   # https://search.nixos.org/options?show=services.logind.lidSwitch
-
+  services.logind.settings.Login.HandlePowerKey = "hibernate";
 }
