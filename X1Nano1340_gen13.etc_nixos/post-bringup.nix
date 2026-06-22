@@ -203,7 +203,6 @@ xkb_symbols "multi_ctrl" {
   # environment.etc."sway/config".source = lib.mkForce (pkgs.callPackage ./etc_conf/build-sway-config.nix {pkgs.writeText});
   # https://nixos.wiki/wiki/Sway
   # Added extraGroups = [ "video" ]; to joseph above
-  programs.light.enable = true;
 
   # https://nixos.wiki/wiki/Fonts
   # https://ld.reddit.com/r/NixOS/comments/lf6de0/some_config_questions/gmlzirz/
