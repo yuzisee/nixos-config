@@ -403,6 +403,91 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<boolea
   throw new Error('Nothing bookable on the target date. We are too late. There is nothing we can do at this point, sorry!');
 }
 
+/*
+ <div class="modal-dialog modal-modal1" style="max-width: 576px;"><div class="modal-content" id="modal1-container">
+
+<style>
+    .mobile-html .modal-body .spinner-container.active {
+        height: 120% !important;
+    }
+
+    .mobile-html .error-inner {
+        padding-top: 50px;
+    }
+</style>
+<div id="create-res-modal" style="">
+
+
+
+<div class="modal-outer-container" id="main-reservation-container" data-testid="create-reservation">
+    <div class="modal-outer-inner-container">
+        <div class="container">
+            <div class="modal-page-inner">
+                <form action="https://reservations.courtreserve.com//Online/ReservationsApi/CreateReservation/13233?uiCulture=en-US" data-ajax="true" data-ajax-begin="disableButtonsByClass('btn-submit')" data-ajax-method="POST" data-ajax-success="reservationFunctionSuccess(data,this)" id="createReservation-Form" method="post" novalidate="novalidate" class="lottery-msg">*
+
+	       .
+	      .
+	     .
+
+<div class="w-100 active spinner-wrapper-full" style="position:absolute!important;top:0;border-radius:4px;height:100%;background:#fff;height:100%;">
+            <div class="loader-wrapper">
+                <div class="loader-icon mb-6"><i class="fa-light fa-bolt-lightning"></i></div>
+                <div class="loader-title mb-2">Lottery in Progress</div>
+                <div class="loader-description mb-6">Randomizing reservations...</div>
+                <div class="progress-loader mb-4" data-progress="92">
+                    <div class="progress-loader-bar" style="width: 92%;"></div>
+                </div>
+
+                <div class="loader-description-seconds mb-8">Less than 2 seconds remaining</div>
+
+                <hr class="loader-description-divider mb-8">
+
+                <div class="loader-description-request mb-6">
+                   <div class="loader-description-request-wrapper">
+                       <i class="fa-regular fa-circle-check" style="color:green"></i>
+                       <span> Reservation request submitted.</span>
+                   </div>
+                </div>
+
+                <span class="loader-description-window-wrapper">
+                    <div class="loader-description-window">
+                        <div class="loader-description-window-icon">
+                            <i class="fa-regular fa-clock"></i>
+                        </div>
+                        <div class="loader-description-window-texts">
+                            <b>Keep this window open</b>
+                            <div>
+                                Final results will be display here once the lottery is complete. Closing this window may prevent updates from appearing.
+                            </div>
+                        </div>
+                    </div>
+                </span>
+            </div>
+</div>
+*/
+async function wait_for_lottery(p: Page) : Promise<boolean> {
+  var bLotteryDetected : boolean = false;
+  while(true) {
+    let lotteryCheck1 : boolean = await p.locator('form#createReservation-Form').getByText('Lottery in Progress').isVisible();
+    if (lotteryCheck1) {
+      await p.waitForTimeout(30 * 1000.0);
+    }
+    let lotteryCheck2: boolean = await p.locator('form.lottery-msg').getByText('Lottery in Progress').isVisible();
+    if (lotteryCheck2) {
+      await p.waitForTimeout(30 * 1000.0);
+    }
+
+    if (lotteryCheck1 || lotteryCheck2) {
+      bLotteryDetected = true;
+      console.log('Lottery appears to be ongoing...');
+    } else {
+      return bLotteryDetected
+    }
+  }
+
+  // end wait_for_lottery
+}
+
 async function fill_out_form(p: Page) : Promise<boolean> {
 
   let booking_form_el: Locator = p.locator('form#createReservation-Form');
@@ -473,6 +558,13 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     );
 
     await booking_form_el.getByRole('button', { name: 'Save' }).first().click();
+
+    // IF the lottery is running, we need to keep the window open long enough to participate in it fully.
+    if (await wait_for_lottery(p)) {
+      console.log('Lottery done?');
+    } else {
+      console.log('No lottery needed?');
+    }
 
     let confirmation_popup : Locator = p.getByRole('alert').getByText('Reservation Confirmed');
 
