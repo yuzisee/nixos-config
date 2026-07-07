@@ -403,6 +403,20 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<boolea
   throw new Error('Nothing bookable on the target date. We are too late. There is nothing we can do at this point, sorry!');
 }
 
+async function sleep_until_end_of_first_minute(p: Page) : Promise<number> {
+  const minute_checker: SerializedDate = await localtime_datenow(p);
+  if (minute_checker.local_minute == 0) {
+    if (minute_checker.local_second < 59) {
+      let sleep_range_millis : number = (60 - minute_checker.local_second) * 0.5;
+      console.log('Sleep half the time between now and the end of the minute... starting from ' + minute_checker.local_generalString);
+      await p.waitForTimeout(sleep_range_millis);
+      return sleep_range_millis;
+    }
+  }
+
+  return 0;
+}
+
 /*
  <div class="modal-dialog modal-modal1" style="max-width: 576px;"><div class="modal-content" id="modal1-container">
 
@@ -470,16 +484,31 @@ async function wait_for_lottery(p: Page) : Promise<boolean> {
   while(true) {
     let lotteryCheck1 : boolean = await p.locator('form#createReservation-Form').getByText('Lottery in Progress').isVisible();
     if (lotteryCheck1) {
-      await p.waitForTimeout(30 * 1000.0);
+      await sleep_until_end_of_first_minute(p);
     }
     let lotteryCheck2: boolean = await p.locator('form.lottery-msg').getByText('Lottery in Progress').isVisible();
     if (lotteryCheck2) {
-      await p.waitForTimeout(30 * 1000.0);
+      await sleep_until_end_of_first_minute(p);
     }
 
-    if (lotteryCheck1 || lotteryCheck2) {
+    /*
+            <div class="loader-wrapper">
+                <div class="loader-icon"><i class="fa-regular fa-face-smile"></i></div>
+                <div class="loader-title">Hang Tight!</div>
+                <div class="loader-description">We are finalizing your booking. This may take a few more seconds during peak times.</div>
+                <div class="progress-loader" data-progress="98">
+                    <div class="progress-loader-bar" style="width: 98%;"></div>
+                </div>
+            </div>
+    */
+    let lotteryCheck3 : boolean = await p.locator('form#createReservation-Form > .createReservation-Form-container').getByText('Hang Tight!').isVisible();
+    if (lotteryCheck3) {
+      await sleep_until_end_of_first_minute(p);
+    }
+
+    if (lotteryCheck1 || lotteryCheck2 || lotteryCheck3) {
       bLotteryDetected = true;
-      console.log('Lottery appears to be ongoing...');
+      console.log('Lottery appears to be active...');
     } else {
       return bLotteryDetected
     }
@@ -558,6 +587,15 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     );
 
     await booking_form_el.getByRole('button', { name: 'Save' }).first().click();
+// <div class="modal-header-container" data-testid="remove-or-withdraw-modal"><div class="modal-title"><span class="modal-title-span" data-testid="title">Book a reservation for 7/15/2026</span></div><div class="modal-title-buttons"><button type="reset" data-testid="close-btn-modal-header" class="btn btn-light " data-dismiss="modal">Close</button><button __playwright_target__="call@258" type="button" data-testid="save-btn" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 41px; outline: rgb(0, 106, 177) solid 2px; background-color: rgba(111, 168, 220, 0.498);"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div></div>
+// <div class="modal-title-buttons "><button type="reset" data-testid="Close" class="btn btn-light fn-reservation-create-close " data-dismiss="modal">Close</button><button data-testid="Save" type="button" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 38px;"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div>
+    let saveButtonSpinners : Locator = p.locator('div.modal-title-buttons button span.btn-active-spinner');
+// WAIT FOR THE button to submit...
+    try {
+      await expect(saveButtonSpinners).toBeHidden({timeout: 20 * 1000});
+    } catch (pw_error) {
+      console.log('If you are in the lottery, there will still be a spinner FYI. No problem, we can wait for the lottery to finish.');
+    }
 
     // IF the lottery is running, we need to keep the window open long enough to participate in it fully.
     if (await wait_for_lottery(p)) {
