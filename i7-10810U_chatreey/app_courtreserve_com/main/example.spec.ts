@@ -484,10 +484,12 @@ async function wait_for_lottery(p: Page) : Promise<boolean> {
   while(true) {
     let lotteryCheck1 : boolean = await p.locator('form#createReservation-Form').getByText('Lottery in Progress').isVisible();
     if (lotteryCheck1) {
+      console.log('Found "Lottery in Progress" message by Element ID');
       await sleep_until_end_of_first_minute(p);
     }
     let lotteryCheck2: boolean = await p.locator('form.lottery-msg').getByText('Lottery in Progress').isVisible();
     if (lotteryCheck2) {
+      console.log('Found "Lottery in Progress" message by HTML class');
       await sleep_until_end_of_first_minute(p);
     }
 
@@ -503,6 +505,7 @@ async function wait_for_lottery(p: Page) : Promise<boolean> {
     */
     let lotteryCheck3 : boolean = await p.locator('form#createReservation-Form > .createReservation-Form-container').getByText('Hang Tight!').isVisible();
     if (lotteryCheck3) {
+      console.log('Found "Hang Tight!" message; does that mean booking succeeded?');
       await sleep_until_end_of_first_minute(p);
     }
 
@@ -589,12 +592,26 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     await booking_form_el.getByRole('button', { name: 'Save' }).first().click();
 // <div class="modal-header-container" data-testid="remove-or-withdraw-modal"><div class="modal-title"><span class="modal-title-span" data-testid="title">Book a reservation for 7/15/2026</span></div><div class="modal-title-buttons"><button type="reset" data-testid="close-btn-modal-header" class="btn btn-light " data-dismiss="modal">Close</button><button __playwright_target__="call@258" type="button" data-testid="save-btn" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 41px; outline: rgb(0, 106, 177) solid 2px; background-color: rgba(111, 168, 220, 0.498);"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div></div>
 // <div class="modal-title-buttons "><button type="reset" data-testid="Close" class="btn btn-light fn-reservation-create-close " data-dismiss="modal">Close</button><button data-testid="Save" type="button" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 38px;"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div>
+    console.log( await p.locator('div.modal-title-buttons').first().evaluate(el => el.innerHTML) );
+    await p.locator('div.modal-title-buttons').first().ariaSnapshot().then(function(val) { console.log(val); } );
+    console.log( ' ↕ ↕ ');
+    console.log( ' ↕ ↕ ');
+    await p.locator('div.modal-title-buttons').last().ariaSnapshot().then(function(val) { console.log(val); } );
+    console.log( await p.locator('div.modal-title-buttons').last().evaluate(el => el.innerHTML) );
+
     let saveButtonSpinners : Locator = p.locator('div.modal-title-buttons button span.btn-active-spinner');
-// WAIT FOR THE button to submit...
-    try {
-      await expect(saveButtonSpinners).toBeHidden({timeout: 20 * 1000});
-    } catch (pw_error) {
-      console.log('If you are in the lottery, there will still be a spinner FYI. No problem, we can wait for the lottery to finish.');
+    if ((await saveButtonSpinners.count()) > 0) {
+      // [!CAUTION]
+      // Apparently, `.isVisible()` and toBeHidden() etc. all consider a spinner hidden if it's DOM height & width are 0px
+      // Hopefully, `.count()` and `toHaveCount()` will behave better.
+      try {
+        // WAIT FOR THE button to submit...
+        await expect(saveButtonSpinners).toHaveCount(0, {timeout: 20 * 1000});
+      } catch (pw_error) {
+        console.log('If you are in the lottery, there will still be a spinner FYI. No problem, we can wait for the lottery to finish.');
+      }
+    } else {
+      console.log('No spinner appeared... Did we click the [Save] button? How long does it normally take for the spinner to appear?');
     }
 
     // IF the lottery is running, we need to keep the window open long enough to participate in it fully.
