@@ -30,12 +30,21 @@ jobs:
             case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
             Mon)
               echo 'run on Mondays to book the next Tuesday'
-              # echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
-              # echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-              echo 'Disable until https://www.lifetimeactivities.com/coming-july-1-a-fairer-court-reservation-experience-sunnyvale/ runs reliably'
+              echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+              echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+            ;;
+            Tue)
+              echo 'run on Tuesdays in case we lost the lottery yesterday'
+              echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+              echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+            ;;
+            Wed)
+              echo 'if we also lost the lottery on Tues (to book Wed) try again this Wed to see if we can get next Thurs'
+              echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+              echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
             ;;
             *)
-              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %e' | tr -s ' ')" '=' '2026 Jun 3'; then
+              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %e' | tr -s ' ')" '=' '2026 Jul 9'; then
                 echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
                 echo 'One-time recovery (off-day extra booking e.g. run Wed to book Thurs) ↓'
                 echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
