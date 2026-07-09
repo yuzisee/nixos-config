@@ -407,7 +407,7 @@ async function sleep_until_end_of_first_minute(p: Page) : Promise<number> {
   const minute_checker: SerializedDate = await localtime_datenow(p);
   if (minute_checker.local_minute == 0) {
     if (minute_checker.local_second < 59) {
-      let sleep_range_millis : number = (60 - minute_checker.local_second) * 0.5;
+      let sleep_range_millis : number = 0.5 * (60 - minute_checker.local_second) * 1000;
       console.log('Sleep half the time between now and the end of the minute... starting from ' + minute_checker.local_generalString);
       await p.waitForTimeout(sleep_range_millis);
       return sleep_range_millis;
