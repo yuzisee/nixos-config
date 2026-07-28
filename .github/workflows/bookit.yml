@@ -28,6 +28,11 @@ jobs:
           case "${GITHUB_EVENT_NAME}" in
           schedule|repository_dispatch)
             case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
+            Sun)
+              echo 'run on Sundays to book the next Monday'
+              echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+              echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+            ;;
             Mon)
               echo 'run on Mondays to book the next Tuesday'
               echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
