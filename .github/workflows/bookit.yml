@@ -66,7 +66,7 @@ jobs:
           ;;
           esac
 
-  pickleball_go:
+  pickleball_go1:
     needs: time_zone_checker
     if: (github.event_name == 'workflow_dispatch') || (needs.time_zone_checker.outputs.localtime_current_hourstr == '11')
     # Otherwise, there is another `on: … schedule: …` cron line above that we can use instead... and we can safely skip this current run for now
@@ -97,15 +97,95 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v6
       with:
-        name: screenshots-playwright
+        name: screenshots_anthony-playwright-${{ github.job }}
         path: |
           i7-10810U_chatreey/app_courtreserve_com/*.png
           i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.png
           i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.md
-        overwrite: true
+        overwrite: false
         compression-level: 9
         retention-days: 11
         # [!IMPORTANT]
         # Always set retention-days (or else we'll run out of Github Actions space!!)
 
+  pickleball_go2:
+    needs: time_zone_checker
+    if: (github.event_name == 'workflow_dispatch') || (needs.time_zone_checker.outputs.localtime_current_hourstr == '11')
+    # Otherwise, there is another `on: … schedule: …` cron line above that we can use instead... and we can safely skip this current run for now
+    # ^^^ We are charged by the minute, and the free plan has only 2000 minutes per month, so no need to waste an entire hour waiting ← https://docs.github.com/en/get-started/learning-about-github/githubs-plans#github-free-for-personal-accounts
+
+    runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
+    environment: "Prod (Lifetime Activities Sunnyvale)"
+    steps:
+    - name: Checkout repository
+      timeout-minutes: 4
+      uses: actions/checkout@v6
+    - name: Install Playwright
+      timeout-minutes: 4
+      run: sh i7-10810U_chatreey/dev-github/reinstall_playwright.sh
+    - name: Book within 6 hours
+      timeout-minutes: 30
+      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
+      # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
+      run: npx --no-install playwright test main/example.spec.ts
+      env:
+        U: ${{ secrets.RAYMOND }}
+        P: ${{ secrets.LOGIN_RAYMOND_NANA }}
+        OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
+    - name: Upload screenshots if available
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: screenshots_raymond-playwright-${{ github.job }}
+        path: |
+          i7-10810U_chatreey/app_courtreserve_com/*.png
+          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.png
+          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.md
+        overwrite: false
+        compression-level: 9
+        retention-days: 11
+        # [!IMPORTANT]
+        # Always set retention-days (or else we'll run out of Github Actions space!!)
+
+
+  pickleball_go3:
+    needs: time_zone_checker
+    if: (github.event_name == 'workflow_dispatch') || (needs.time_zone_checker.outputs.localtime_current_hourstr == '11')
+    # Otherwise, there is another `on: … schedule: …` cron line above that we can use instead... and we can safely skip this current run for now
+    # ^^^ We are charged by the minute, and the free plan has only 2000 minutes per month, so no need to waste an entire hour waiting ← https://docs.github.com/en/get-started/learning-about-github/githubs-plans#github-free-for-personal-accounts
+
+    runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
+    environment: "Prod (Lifetime Activities Sunnyvale)"
+    steps:
+    - name: Checkout repository
+      timeout-minutes: 4
+      uses: actions/checkout@v6
+    - name: Install Playwright
+      timeout-minutes: 4
+      run: sh i7-10810U_chatreey/dev-github/reinstall_playwright.sh
+    - name: Book within 6 hours
+      timeout-minutes: 30
+      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
+      # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
+      run: npx --no-install playwright test main/example.spec.ts
+      env:
+        U: ${{ secrets.NANA }}
+        P: ${{ secrets.LOGIN_RAYMOND_NANA }}
+        OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
+    - name: Upload screenshots if available
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: screenshots_nana-playwright-${{ github.job }}
+        path: |
+          i7-10810U_chatreey/app_courtreserve_com/*.png
+          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.png
+          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.md
+        overwrite: false
+        compression-level: 9
+        retention-days: 11
+        # [!IMPORTANT]
+        # Always set retention-days (or else we'll run out of Github Actions space!!)
 
