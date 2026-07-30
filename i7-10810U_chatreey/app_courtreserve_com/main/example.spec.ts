@@ -419,7 +419,7 @@ async function sleep_until_end_of_first_minute(p: Page) : Promise<number> {
     console.log('→ Lottery second passed?')
   }
 
-
+  // TODO(from joseph): Can't we just sleep until whatever Locator is no longer visible?
   const sleep_nominal_to_avoid_spam_millis : number = 200; // 0.2s
   await p.waitForTimeout(sleep_nominal_to_avoid_spam_millis);
   console.log('[INVARIANT] If you get here, the lottery was still running at ' + minute_checker.local_generalString + ' even though 12:01pm has been reached...?');
@@ -743,7 +743,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     - text: "!"
     - button "OK" [active] [ref=e182] [cursor=pointer]
     */
-    let weird_lottery_confirmation_message : Locator = p.getByRole('dialog').getByText('You have been assigned to').and(
+    let weird_lottery_confirmation_message : Locator = p.getByRole('dialog').getByText('You have been assigned to Pickleball').and(
       p.getByRole('dialog').getByText('being no longer available')
     );
 
@@ -759,6 +759,9 @@ async function fill_out_form(p: Page) : Promise<boolean> {
       await failure_popup.getByRole('button', { name: 'OK' }).click();
       console.log('Sorry, no available courts for the time requested.');
       return false;
+    } else if (await weird_lottery_confirmation_message.isVisible()) {
+      console.log("I think that's it. Did the booking succeed?");
+      return true;
     } else {
       await expect(confirmation_popup).toHaveText('Reservation Confirmed');
       console.log('SUCCESS at ' + (await localtime_datenow(p)).local_isoString);
