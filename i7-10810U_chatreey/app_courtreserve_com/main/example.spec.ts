@@ -404,16 +404,25 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<boolea
 }
 
 async function sleep_until_end_of_first_minute(p: Page) : Promise<number> {
+  console.log('Hello there')
   const minute_checker: SerializedDate = await localtime_datenow(p);
+  console.log('I am about to start sleep_until_end_of_first_minute ' + minute_checker.local_generalString)
   if (minute_checker.local_minute == 0) {
+    console.log('→ Lottery minute NOW')
     if (minute_checker.local_second < 59) {
+      console.log('→ Lottery second LIVE')
       let sleep_range_millis : number = 0.5 * (60 - minute_checker.local_second) * 1000;
       console.log('Sleep half the time between now and the end of the minute... starting from ' + minute_checker.local_generalString);
       await p.waitForTimeout(sleep_range_millis);
       return sleep_range_millis;
     }
+    console.log('→ Lottery second passed?')
   }
 
+  // TODO(from joseph): Can't we just sleep until whatever Locator is no longer visible?
+  const sleep_nominal_to_avoid_spam_millis : number = 200; // 0.2s
+  await p.waitForTimeout(sleep_nominal_to_avoid_spam_millis);
+  console.log('[INVARIANT] If you get here, the lottery was still running at ' + minute_checker.local_generalString + ' even though 12:01pm has been reached...?');
   return 0;
 }
 
@@ -616,12 +625,127 @@ async function fill_out_form(p: Page) : Promise<boolean> {
 
     // IF the lottery is running, we need to keep the window open long enough to participate in it fully.
     if (await wait_for_lottery(p)) {
-      console.log('Lottery done?');
+      console.log('Lottery done? It is now ' + (await localtime_datenow(p)).local_isoString);
     } else {
       console.log('No lottery needed?');
     }
 
     let confirmation_popup : Locator = p.getByRole('alert').getByText('Reservation Confirmed');
+    /*
+- generic [ref=e1]:
+  - text:   
+  - generic [ref=e5]:
+    - text:        
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - link [ref=e9] [cursor=pointer]:
+          - /url: /Online/Portal/Index/13233
+          - img [ref=e12]
+        - link [ref=e13] [cursor=pointer]:
+          - /url: "#menu"
+          - generic [ref=e14]: 
+      - generic [ref=e16]:
+        - listitem [ref=e17]:
+          - link [ref=e18] [cursor=pointer]:
+            - /url: "#"
+            - text: Events, Camps, And Classes 
+        - listitem [ref=e19]:
+          - link [ref=e20] [cursor=pointer]:
+            - /url: "#"
+            - text: Reservations 
+        - listitem [ref=e21]:
+          - link [ref=e22] [cursor=pointer]:
+            - /url: "#"
+            - text: Nana Xu 
+          - text:     
+        - listitem [ref=e23]:
+          - link [ref=e24] [cursor=pointer]:
+            - /url: "#menu"
+    - application [ref=e35] [cursor=pointer]:
+      - toolbar [ref=e36]:
+        - generic [ref=e37]:
+          - button [ref=e38]: Today
+          - button [ref=e39]:
+            - generic [ref=e40]: 
+          - button [ref=e41]:
+            - generic [ref=e42]: 
+        - button [ref=e43]:
+          - generic [ref=e44]: 
+          - generic [ref=e45]: Thu, Aug 6
+        - generic [ref=e47]: Pickleball Reservations
+        - text: 
+      - button [ref=e50]:
+        - generic [ref=e51]: 
+      - generic [ref=e53]: Pickleball
+      - generic [ref=e54]: 8:00 AM 8:30 AM 9:00 AM 9:30 AM 10:00 AM 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM 8:00 PM 8:30 PM 9:00 PM 9:30 PM
+      - generic [ref=e55]:
+        - button [ref=e56]:
+          - generic [ref=e59]: Reserve
+        - button [ref=e60]:
+          - generic [ref=e63]: Reserve
+        - button [ref=e64]:
+          - generic [ref=e67]: Reserve
+        - button [ref=e68]:
+          - generic [ref=e71]: Reserve
+        - button [ref=e72]:
+          - generic [ref=e75]: Reserve
+        - button [ref=e76]:
+          - generic [ref=e79]: None Available
+        - button [ref=e80]:
+          - generic [ref=e83]: Reserve
+        - button [ref=e84]:
+          - generic [ref=e87]: Reserve
+        - button [ref=e88]:
+          - generic [ref=e91]: Reserve
+        - button [ref=e92]:
+          - generic [ref=e95]: Reserve
+        - button [ref=e96]:
+          - generic [ref=e99]: Reserve
+        - button [ref=e100]:
+          - generic [ref=e103]: Reserve
+        - button [ref=e104]:
+          - generic [ref=e107]: Reserve
+        - button [ref=e108]:
+          - generic [ref=e111]: Reserve
+        - button [ref=e112]:
+          - generic [ref=e115]: Reserve
+        - button [ref=e116]:
+          - generic [ref=e119]: Reserve
+        - button [ref=e120]:
+          - generic [ref=e123]: Reserve
+        - button [ref=e124]:
+          - generic [ref=e127]: Reserve
+        - button [ref=e128]:
+          - generic [ref=e131]: Reserve
+        - button [ref=e132]:
+          - generic [ref=e135]: Reserve
+        - button [ref=e136]:
+          - generic [ref=e139]: Reserve
+        - button [ref=e140]:
+          - generic [ref=e143]: Reserve
+        - button [ref=e144]:
+          - generic [ref=e147]: Reserve
+        - button [ref=e148]:
+          - generic [ref=e151]: Reserve
+        - button [ref=e152]:
+          - generic [ref=e155]: Reserve
+        - button [ref=e156]:
+          - generic [ref=e159]: Reserve
+        - button [ref=e160]:
+          - generic [ref=e163]: Reserve
+        - button [ref=e164]:
+          - generic [ref=e167]: Reserve
+  - text: 
+  - paragraph [ref=e170]: © 2026 Powered by CourtReserve
+  - text:     
+  - dialog [ref=e172]:
+    - generic [ref=e180]: You have been assigned to Pickleball G due to Pickleball H being no longer available.
+    - text: "!"
+    - button "OK" [active] [ref=e182] [cursor=pointer]
+    */
+    let weird_lottery_confirmation_message : Locator = p.getByRole('dialog').getByText('You have been assigned to Pickleball').and(
+      p.getByRole('dialog').getByText('being no longer available')
+    );
 
     // <div aria-labelledby="swal2-title" aria-describedby="swal2-html-container" class="swal2-popup swal2-modal swal2-icon-error swal2-show" tabindex="-1" role="dialog" aria-live="assertive" aria-modal="true" style="display: grid;"><button type="button" class="swal2-close" aria-label="Close this dialog" style="display: none;">×</button><ul class="swal2-progress-steps" style="display: none;"></ul><div class="swal2-icon swal2-error swal2-icon-show" style="display: flex;"><span class="swal2-x-mark">
     // <h2 class="swal2-title" id="swal2-title" style="display: block;">&#xFEFF;&#xFEFF;Reservation Notice</h2>
@@ -629,12 +753,15 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     let failure_popup : Locator = p.getByRole('dialog', { name: 'Reservation Notice', exact: false });
 
     // https://github.com/microsoft/playwright/blob/bfd1ec67a923589fd3b6ff30a6bcceba87ceaf96/packages/playwright/src/common/config.ts#L40
-    await confirmation_popup.or(failure_popup).waitFor({state: 'visible', timeout: 30000});
+    await confirmation_popup.or(weird_lottery_confirmation_message).or(failure_popup).waitFor({state: 'visible', timeout: 30000});
 
     if (await failure_popup.isVisible()) {
       await failure_popup.getByRole('button', { name: 'OK' }).click();
       console.log('Sorry, no available courts for the time requested.');
       return false;
+    } else if (await weird_lottery_confirmation_message.isVisible()) {
+      console.log("I think that's it. Did the booking succeed?");
+      return true;
     } else {
       await expect(confirmation_popup).toHaveText('Reservation Confirmed');
       console.log('SUCCESS at ' + (await localtime_datenow(p)).local_isoString);
@@ -856,16 +983,25 @@ test('try booking pickleball', async ({ page }) => {
       if (await locator_visible(passwd_el, 300)) {
         console.log('Not logged in, need to login');
 
+        await page.screenshot({ path: 'login-ready.png', fullPage: true });
+        await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+
         // Click the get started link.
         await username_el.fill(ready_u!);
         await passwd_el.fill(ready_p!);
+
+        console.log('Username and password IN');
 	await page.getByRole('button', { name: 'Continue', exact: true }).click();
+        console.log('Username and password SUBMITTED');
 	await expect(page.getByTestId('warning-message-block')).not.toBeVisible();
+        console.log('No warning, probably good?');
 	await expect(page.getByText('The username or password is incorrect')).not.toBeVisible();
+        console.log('Nobody is saying the username or password is wrong. So far so good.');
       }
     }
   }
 
+  console.log('Where are we going next?');
   await page.waitForURL(HOME_URL + '*');
 
   console.log('Ok, it seems we are logged in! ' + page.url());
@@ -1124,6 +1260,90 @@ test('try booking pickleball', async ({ page }) => {
     //
     // Every codepath of `fill_out_form` that returns `false` will also click the 'OK' button and drop you back to the main booking page.
     // We would rather not `reload` because we want to try again as fast as possible.
+
+    let close_dialog_why_is_it_still_open : Locator = page.getByRole('dialog').getByRole('button', {name: "Close"}).first();
+
+    if (await close_dialog_why_is_it_still_open.isVisible()) {
+      console.log('Ahh we lost the lottery and now the dialog is still open! Close it please.');
+      await close_dialog_why_is_it_still_open.click();
+    }
+    /*
+- generic [active] [ref=e1]:
+  - dialog [ref=e168]:
+    - generic [ref=e175]:
+      - generic [ref=e176]:
+        - generic [ref=e177]: Book a reservation for 8/6/2026
+        - generic [ref=e178]:
+          - button "Close" [ref=e179] [cursor=pointer]
+          - button "Save" [ref=e180] [cursor=pointer]
+      - separator [ref=e181]
+      - generic [ref=e182]:
+        - generic [ref=e185]:
+          - text: 
+          - generic [ref=e187]:
+            - generic [ref=e189]:
+              - generic [ref=e190] [cursor=pointer]: Reservation Type *
+              - listbox "Reservation Type *" [ref=e192] [cursor=pointer]:
+                - option "Recreational Play - Pickleball" [selected] [ref=e193]:
+                  - generic [ref=e194]: Recreational Play - Pickleball
+                - button "select" [ref=e195]:
+                  - generic [ref=e196]: 
+                - text: 
+            - generic [ref=e197]:
+              - generic [ref=e198]:
+                - generic [ref=e199] [cursor=pointer]: Start Time
+                - generic [ref=e200]: 8:30 PM
+              - generic [ref=e201]:
+                - generic [ref=e202] [cursor=pointer]: Duration *
+                - listbox "Duration *" [ref=e204] [cursor=pointer]:
+                  - option "1 hour" [selected] [ref=e205]:
+                    - generic [ref=e206]: 1 hour
+                  - button "select" [ref=e207]:
+                    - generic [ref=e208]: 
+                  - text: 
+              - generic [ref=e209]:
+                - generic [ref=e210] [cursor=pointer]: End Time
+                - textbox "End Time" [disabled] [ref=e211]: 9:30 PM
+            - text:  
+            - generic [ref=e213]:
+              - generic [ref=e214] [cursor=pointer]: Player(s)
+              - grid [ref=e219] [cursor=pointer]:
+                - rowgroup [ref=e222]:
+                  - row "# 1 Name Anthony Hsu Cost $13.00 Due $13.00" [ref=e223]:
+                    - gridcell "# 1" [ref=e224]:
+                      - generic [ref=e225]: "#"
+                      - generic [ref=e226]: "1"
+                    - gridcell "Name Anthony Hsu" [ref=e227]:
+                      - generic [ref=e228]: Name
+                      - generic [ref=e229]:
+                        - generic [ref=e230]: Anthony Hsu
+                        - text: 
+                    - gridcell "Cost $13.00" [ref=e231]:
+                      - generic [ref=e232]: Cost
+                      - generic [ref=e234]: $13.00
+                    - gridcell "Due $13.00" [ref=e235]:
+                      - generic [ref=e236]: Due
+                      - generic [ref=e237]: $13.00
+                    - gridcell [ref=e238]
+            - generic: 
+            - generic: "*"
+        - generic [ref=e240]:
+          - generic [ref=e241] [cursor=pointer]: "Total Due:"
+          - generic [ref=e242] [cursor=pointer]: $13.00
+        - generic [ref=e243]:
+          - generic [ref=e245]:
+            - generic [ref=e246] [cursor=pointer]: Court Reservations
+            - generic [ref=e247]:
+              - text: Payment is due upon check-in (at the time of your reservation.) Payment is not required at the time of booking. However, if you opt to prepay for your court time, any court reservation refunds due to cancelations will be returned as an account credit ...
+              - generic [ref=e248] [cursor=pointer]: View More
+              - text: 
+          - generic [ref=e252]:
+            - checkbox "Check to agree to above disclosure" [checked]
+            - generic [ref=e253] [cursor=pointer]: 
+            - generic [ref=e254] [cursor=pointer]: Check to agree to above disclosure
+      - separator [ref=e255]
+
+    */
   }
 });
 
