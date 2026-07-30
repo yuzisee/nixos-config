@@ -424,9 +424,18 @@ async function sleep_until_end_of_first_minute(p: Page, or_until_locator_gone : 
     // const sleep_nominal_to_avoid_spam_millis : number = 200; // 0.2s
     // await p.waitForTimeout(sleep_nominal_to_avoid_spam_millis);
   } else {
+    // TODO(from joseph): Once you've entered the lottery, could you right away refresh the page and try booking other timeslots?
     console.log('I guess just sleep until whatever Locator is no longer visible? ' + minute_checker.local_generalString);
-    await or_until_locator_gone.waitFor({ state: 'hidden', timeout: 9_000, });
-    // TODO(from joseph): Once you've entered the lottery, can you refresh the page and try booking other timeslots?
+    try {
+      await or_until_locator_gone.waitFor({ state: 'hidden', timeout: 9_000, });
+      console.log('Oh, something happened!!!');
+    } catch (error) {
+      if (error instanceof errors.TimeoutError) {
+        return 9000;
+      } else {
+        throw error;
+      }
+    }
   }
   return 0;
 }
