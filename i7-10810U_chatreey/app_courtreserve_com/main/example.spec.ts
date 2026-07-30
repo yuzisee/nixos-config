@@ -1258,7 +1258,7 @@ test('try booking pickleball', async ({ page }) => {
     // Every codepath of `fill_out_form` that returns `false` will also click the 'OK' button and drop you back to the main booking page.
     // We would rather not `reload` because we want to try again as fast as possible.
 
-    let close_dialog_why_is_it_still_open : Locator = page.getByRole('dialog').getByRole('button', name: "Close").first;
+    let close_dialog_why_is_it_still_open : Locator = page.getByRole('dialog').getByRole('button', {name: "Close"}).first();
 
     if (await close_dialog_why_is_it_still_open.isVisible()) {
       console.log('Ahh we lost the lottery and now the dialog is still open! Close it please.');
