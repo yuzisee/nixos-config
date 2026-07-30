@@ -496,15 +496,17 @@ async function sleep_until_end_of_first_minute(p: Page, or_until_locator_gone : 
 async function wait_for_lottery(p: Page) : Promise<boolean> {
   var bLotteryDetected : boolean = false;
   while(true) {
-    let lotteryCheck1 : boolean = await p.locator('form#createReservation-Form').getByText('Lottery in Progress').isVisible();
+    let lotteryEl1 : Locator = p.locator('form#createReservation-Form').getByText('Lottery in Progress');
+    let lotteryCheck1 : boolean = await lotteryEl1.isVisible();
     if (lotteryCheck1) {
       console.log('Found "Lottery in Progress" message by Element ID');
-      await sleep_until_end_of_first_minute(p, lotteryCheck1);
+      await sleep_until_end_of_first_minute(p, lotteryEl1);
     }
-    let lotteryCheck2: boolean = await p.locator('form.lottery-msg').getByText('Lottery in Progress').isVisible();
+    let lotteryEl2 : Locator = p.locator('form.lottery-msg').getByText('Lottery in Progress');
+    let lotteryCheck2 : boolean = await lotteryEl2.isVisible();
     if (lotteryCheck2) {
       console.log('Found "Lottery in Progress" message by HTML class');
-      await sleep_until_end_of_first_minute(p, lotteryCheck2);
+      await sleep_until_end_of_first_minute(p, lotteryEl2);
     }
 
     /*
