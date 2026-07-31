@@ -604,7 +604,7 @@ test('try booking pickleball', async ({ page }) => {
     throw new Error('Please set U and P (or DEV_U and DEV_P) environment variables, so we have some kind of login credentials');
   }
 
-  var overrideAmPm: 'AM' | 'PM' = null;
+  var overrideAmPm: 'AM' | 'PM';
   if(process.env['OVERRIDE_AMPM'] == 'AM' || process.env['OVERRIDE_AMPM'] == 'PM') {
     overrideAmPm = process.env['OVERRIDE_AMPM'];
   } else {
