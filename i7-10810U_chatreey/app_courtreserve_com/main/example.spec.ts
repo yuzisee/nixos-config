@@ -638,6 +638,11 @@ async function fill_out_form(p: Page) : Promise<boolean> {
         await expect(saveButtonSpinners).toHaveCount(0, {timeout: 20 * 1000});
       } catch (pw_error) {
         console.log('If you are in the lottery, there will still be a spinner FYI. No problem, we can wait for the lottery to finish.');
+		console.log( await p.locator('div.modal-title-buttons').last().evaluate(el => el.innerHTML) );
+		await page.screenshot({ path: 'lottery-state-unknown' + (new Date()).valueOf() + '.png', fullPage: true });
+		await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+        console.dir(pw_error, {showHidden: true, depth: 5})
+		console.log( await booking_form_el.first().evaluate(el => el.innerHTML) );
       }
     } else {
       console.log('No spinner appeared... Did we click the [Save] button? How long does it normally take for the spinner to appear?');
