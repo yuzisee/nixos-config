@@ -637,11 +637,12 @@ async function fill_out_form(p: Page) : Promise<boolean> {
         // WAIT FOR THE button to submit...
         await expect(saveButtonSpinners).toHaveCount(0, {timeout: 20 * 1000});
       } catch (pw_error) {
-        console.log('If you are in the lottery, there will still be a spinner FYI. No problem, we can wait for the lottery to finish.');
-		console.log( await p.locator('div.modal-title-buttons').last().evaluate(el => el.innerHTML) );
-		await p.screenshot({ path: 'lottery-state-unknown' + (new Date()).valueOf() + '.png', fullPage: true });
-		await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+		console.log('If you are in the lottery, there will still be a spinner FYI.');
         console.dir(pw_error, {showHidden: true, depth: 5})
+		await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+        await p.screenshot({ path: 'lottery-state-unknown' + (new Date()).valueOf() + '.png', fullPage: true });
+		console.log( await p.locator('div.modal-title-buttons').last().evaluate(el => el.innerHTML) );
+		console.log('But the spinner is still there after 20s? No problem, the next part will wait for the lottery to finish if the lottery is running anyways…');
 		console.log( await booking_form_el.first().evaluate(el => el.innerHTML) );
       }
     } else {
