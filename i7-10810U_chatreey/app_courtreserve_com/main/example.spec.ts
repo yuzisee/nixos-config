@@ -681,7 +681,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
         - listitem [ref=e21]:
           - link [ref=e22] [cursor=pointer]:
             - /url: "#"
-            - text: Nana Xu 
+            - text: … 
           - text:     
         - listitem [ref=e23]:
           - link [ref=e24] [cursor=pointer]:
@@ -1484,14 +1484,14 @@ test('try booking pickleball', async ({ page }) => {
               - generic [ref=e214] [cursor=pointer]: Player(s)
               - grid [ref=e219] [cursor=pointer]:
                 - rowgroup [ref=e222]:
-                  - row "# 1 Name ... Cost $13.00 Due $13.00" [ref=e223]:
+                  - row "# 1 Name … Cost $13.00 Due $13.00" [ref=e223]:
                     - gridcell "# 1" [ref=e224]:
                       - generic [ref=e225]: "#"
                       - generic [ref=e226]: "1"
-                    - gridcell "Name ..." [ref=e227]:
+                    - gridcell "Name …" [ref=e227]:
                       - generic [ref=e228]: Name
                       - generic [ref=e229]:
-                        - generic [ref=e230]: ...
+                        - generic [ref=e230]: …
                         - text: 
                     - gridcell "Cost $13.00" [ref=e231]:
                       - generic [ref=e232]: Cost
