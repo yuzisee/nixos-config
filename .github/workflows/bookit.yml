@@ -43,6 +43,11 @@ jobs:
               echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
               echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
             ;;
+            Thu)
+              echo 'For now, consider Thursday to book Friday as a desperation option if we get nothing else all week'
+              echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+              echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+            ;;
             *)
               if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %e' | tr -s ' ')" '=' '2026 Jul 9'; then
                 echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
