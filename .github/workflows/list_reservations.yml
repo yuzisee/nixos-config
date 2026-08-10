@@ -1,6 +1,7 @@
 name: Upcoming Reservations
 
 on:
+  workflow_dispatch:
   schedule:
   # ^^^ Github's scheduler is SUPER INACCURATE with delays of dozens of minutes (sometimes more than an hour...)
    - cron: '51 22 * * *'
@@ -27,15 +28,17 @@ jobs:
     - uses: actions/upload-pages-artifact@v3
       with:
         path: upcoming_reservations
+    # This last step will create `steps.read_all.outputs.page_url` presumably
 
 
   deploy:
     needs: read_all
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.read_all.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+    # I guess this will publish to https://yusizee.github.io/nixos-config/lifetime_activities.txt
 
