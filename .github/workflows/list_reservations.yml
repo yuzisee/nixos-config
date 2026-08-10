@@ -10,6 +10,9 @@ on:
 jobs:
   read_all:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    # Those are the default permissions for any Github Actions job, but we make sure to leave out `pages: write` and `id-token: write` so that we can be sure this step isn't deploying to Github Pages itself
     environment: "Prod (Lifetime Activities Sunnyvale)"
     steps:
     - name: Checkout repository
@@ -40,6 +43,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
       # I guess these two environment variables ensure that everything makes sense when it comes to the `id: deployment` step below
     runs-on: ubuntu-latest
+    # Permissions are needed to deploy Github Pages
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
@@ -47,4 +54,6 @@ jobs:
     # e.g. https://yusizee.github.io/nixos-config/lifetime_activities.txt
     # Manage this further in Github: Settings → Pages
     # e.g. https://github.com/yuzisee/nixos-config/settings/pages
+    # [PERMISSIONS]
+    # In https://github.com/yuzisee/nixos-config/settings/environments you will also see a `github-pages` environment
 
