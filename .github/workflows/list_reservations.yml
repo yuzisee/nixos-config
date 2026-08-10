@@ -25,8 +25,8 @@ jobs:
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       run: npx --no-install playwright test main/example.spec.ts --grep 'read upcoming reservations'
       env:
-        READ_USERNAMES: ${{ secrets.YIFEI }},${{ secrets.NANA }},${{ secrets.RAYMOND }},${{ secrets.ANTHONY }}
-        READ_PASSWORDS: ${{ secrets.LOGIN4 }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_PROD }}
+        READ_USERNAMES: ${{ secrets.YIFEI }},${{ secrets.RAYMOND }},${{ secrets.ANTHONY }}
+        READ_PASSWORDS: ${{ secrets.LOGIN4 }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_PROD }}
     - uses: actions/upload-pages-artifact@v3
       with:
         path: i7-10810U_chatreey/app_courtreserve_com/upcoming_reservations
@@ -45,4 +45,6 @@ jobs:
         uses: actions/deploy-pages@v4
     # This will look for a Github Artifact of a very specific filename, and publish it accordingly
     # e.g. https://yusizee.github.io/nixos-config/lifetime_activities.txt
+    # Manage this further in Github: Settings → Pages
+    # e.g. https://github.com/yuzisee/nixos-config/settings/pages
 
