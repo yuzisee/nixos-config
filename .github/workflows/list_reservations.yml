@@ -1,0 +1,41 @@
+name: Upcoming Reservations
+
+on:
+  schedule:
+  # ^^^ Github's scheduler is SUPER INACCURATE with delays of dozens of minutes (sometimes more than an hour...)
+   - cron: '51 22 * * *'
+   # So 22:51 UTC is either 3pm or 4pm Pacific (depending on daylights savings)
+
+jobs:
+  read_all:
+    runs-on: ubuntu-latest
+    environment: "Prod (Lifetime Activities Sunnyvale)"
+    steps:
+    - name: Checkout repository
+      timeout-minutes: 4
+      uses: actions/checkout@v6
+    - name: Install Playwright
+      timeout-minutes: 4
+      run: sh i7-10810U_chatreey/dev-github/reinstall_playwright.sh
+    - name: List any reservations we can find
+      timeout-minutes: 30
+      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
+      run: npx --no-install playwright test main/example.spec.ts --grep 'read upcoming reservations'
+      env:
+        READ_USERNAMES: ${{ secrets.YIFEI }},${{ secrets.NANA }},${{ secrets.RAYMOND }},${{ secrets.ANTHONY }}
+        READ_PASSWORDS: ${{ secrets.LOGIN4 }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_ANTHONY }}
+    - uses: actions/upload-pages-artifact@v3
+      with:
+        path: upcoming_reservations
+
+
+  deploy:
+    needs: read_all
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+

@@ -91,7 +91,7 @@ jobs:
       timeout-minutes: 30
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
-      run: npx --no-install playwright test main/example.spec.ts
+      run: npx --no-install playwright test main/example.spec.ts --grep 'try booking pickleball'
       env:
         U: ${{ secrets.ANTHONY }}
         P: ${{ secrets.LOGIN_PROD }}
@@ -133,7 +133,7 @@ jobs:
       timeout-minutes: 30
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
-      run: npx --no-install playwright test main/example.spec.ts
+      run: npx --no-install playwright test main/example.spec.ts --grep 'try booking pickleball'
       env:
         U: ${{ secrets.RAYMOND }}
         P: ${{ secrets.LOGIN_RAYMOND_NANA }}
@@ -174,7 +174,7 @@ jobs:
       timeout-minutes: 30
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
-      run: npx --no-install playwright test main/example.spec.ts
+      run: npx --no-install playwright test main/example.spec.ts --grep 'try booking pickleball'
       env:
         U: ${{ secrets.NANA }}
         P: ${{ secrets.LOGIN_RAYMOND_NANA }}
@@ -214,7 +214,7 @@ jobs:
       timeout-minutes: 30
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
-      run: npx --no-install playwright test main/example.spec.ts
+      run: npx --no-install playwright test main/example.spec.ts --grep 'try booking pickleball'
       env:
         U: ${{ secrets.YIFEI }}
         P: ${{ secrets.LOGIN4 }}
