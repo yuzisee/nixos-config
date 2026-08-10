@@ -1522,7 +1522,7 @@ test('read upcoming reservations', async ({ page }) => {
       } // end for i
 
       const write_timestamp: SerializedDate = await localtime_datenow(page);
-      all_bookings.push('Last updated ' + write_timestamp.local_isoString);
+      all_bookings.push('This page was last refreshed on... ' + write_timestamp.local_isoString);
 
       console.log('FOUND: ' + all_bookings.join('\n'));
 
