@@ -1366,6 +1366,9 @@ test('read upcoming reservations', async ({ page }) => {
     if(process.env['READ_PASSWORDS']) {
       const u_array : string[] = process.env['READ_USERNAMES'].split(',');
       const p_array : string[] = process.env['READ_PASSWORDS'].split(',');
+
+      expect(u_array.length, "READ_USERNAMES and READ_PASSWORDS don't match, so probably one of them has a comma ',' or else you didn't set up the Github Actions correctly").toBe(p_array.length);
+
       const all_bookings : string[] = ['Upcoming reservations:'];
       for (let i = 0; i < Math.min(u_array.length, p_array.length); i++) {
         // If you're already logged out, it will take you to the login page.
