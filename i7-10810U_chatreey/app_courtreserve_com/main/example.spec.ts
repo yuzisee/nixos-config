@@ -1441,7 +1441,7 @@ test('read upcoming reservations', async ({ page }) => {
         if (await locator_visible(login_ok_el, 6000)) {
           console.log('Login OK? ' + i);
         } else {
-          console.log('Login FAILED?? ' + i);
+          console.log('Login FAILED?? ' + i + ' but maybe we can just go directly to the target URL and it might work anyhow');
         }
 
         // "My Reservations"
