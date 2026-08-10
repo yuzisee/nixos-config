@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { test, expect, errors, type Page, type Locator } from '@playwright/test';
 
 const LAUNCH_MODE: string = 'prod';
@@ -857,7 +858,7 @@ interface QuickMonth {
   short_month: string;
 }
 
-async function login_username_password(p: Page, u_str: String, p_str: String) : Promise<boolean> {
+async function login_username_password(p: Page, u_str: string, p_str: string) : Promise<boolean> {
   // console.log('Hello hello hello');
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 /*
@@ -1445,7 +1446,7 @@ test('read upcoming reservations', async ({ page }) => {
         all_bookings.push('───');
       } // end for i
 
-      const write_timestamp: SerializedDate = await localtime_datenow(p);
+      const write_timestamp: SerializedDate = await localtime_datenow(page);
       all_bookings.push('Last updated ' + write_timestamp.local_isoString);
 
       fs.mkdirSync('upcoming_reservations', { recursive: true });
