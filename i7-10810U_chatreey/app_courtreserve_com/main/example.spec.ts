@@ -1515,7 +1515,7 @@ test('read upcoming reservations', async ({ page }) => {
 
         // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
-        let activeBookings_default: string[] = await page.locator('booking-card-desktop-content-list').allInnerTexts();
+        let activeBookings_default: string[] = await page.locator('div.booking-card-desktop-content-list').allInnerTexts();
         // TODO(from joseph): If there's any funny business with how text is rendered, use `.allTextContents()` instead to grab the raw HTML text
         all_bookings.push(...activeBookings_default);
         all_bookings.push('───');

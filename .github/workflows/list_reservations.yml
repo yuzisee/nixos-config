@@ -15,6 +15,8 @@ jobs:
     - name: Checkout repository
       timeout-minutes: 4
       uses: actions/checkout@v6
+      with:
+        persist-credentials: false
     - name: Install Playwright
       timeout-minutes: 4
       run: sh i7-10810U_chatreey/dev-github/reinstall_playwright.sh
@@ -24,21 +26,23 @@ jobs:
       run: npx --no-install playwright test main/example.spec.ts --grep 'read upcoming reservations'
       env:
         READ_USERNAMES: ${{ secrets.YIFEI }},${{ secrets.NANA }},${{ secrets.RAYMOND }},${{ secrets.ANTHONY }}
-        READ_PASSWORDS: ${{ secrets.LOGIN4 }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_ANTHONY }}
+        READ_PASSWORDS: ${{ secrets.LOGIN4 }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_PROD }}
     - uses: actions/upload-pages-artifact@v3
       with:
-        path: upcoming_reservations
-    # This last step will create `steps.read_all.outputs.page_url` presumably
+        path: i7-10810U_chatreey/app_courtreserve_com/upcoming_reservations
+    # This last step will create a Github Artifact with a very specific filename
 
 
   deploy:
     needs: read_all
     environment:
       name: github-pages
-      url: ${{ steps.read_all.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}
+      # I guess these two environment variables ensure that everything makes sense when it comes to the `id: deployment` step below
     runs-on: ubuntu-latest
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-    # I guess this will publish to https://yusizee.github.io/nixos-config/lifetime_activities.txt
+    # This will look for a Github Artifact of a very specific filename, and publish it accordingly
+    # e.g. https://yusizee.github.io/nixos-config/lifetime_activities.txt
 
