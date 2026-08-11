@@ -229,7 +229,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v6
       with:
-        name: screenshots_nana-playwright-${{ github.job }}
+        name: screenshots_yifei-playwright-${{ github.job }}
         path: |
           i7-10810U_chatreey/app_courtreserve_com/*.png
           i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.png
