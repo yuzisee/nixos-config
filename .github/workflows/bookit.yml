@@ -25,56 +25,57 @@ jobs:
         id: pacifictime_reader
         # Verify daylight savings
         run: |
-          if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y%m%d')" -le '20260814'; then
-            echo 'Skip. No need to book until at least August 14 because we already have too many bookings through the week of August 21'
-          else
-            case "${GITHUB_EVENT_NAME}" in
-            schedule|repository_dispatch)
-              case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
-              Sun)
-                echo 'run on Sundays to book the next Monday'
-                echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
-                echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-              ;;
-              Mon)
-                echo 'run on Mondays in case we lost the lottery yesterday'
-                echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
-                echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-              ;;
-              Wed)
-                echo 'if we also lost the lottery on Mon (to book Tues) try again this Wed to see if we can get next Thurs'
-                echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
-                echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-              ;;
-              Thu)
-                echo 'For now, consider Thursday to book Friday as a desperation option if we get nothing else all week'
-                echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
-                echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-              ;;
-              *)
-                # Hint: `tr -s ' '` if using `%e` because it will put extra spaces otherwise
-                if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %e' | tr -s ' ')" '=' '2026 Jul 9'; then
-                  echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-                  echo 'One-time recovery (off-day extra booking e.g. run Wed to book Thurs) ↓'
-                  echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
-                else
-                  echo 'Skip.'
-                fi
-                env TZ='America/Los_Angeles' LC_ALL=C date
-              ;;
-              esac
-            ;;
-            workflow_dispatch)
+          case "${GITHUB_EVENT_NAME}" in
+          schedule|repository_dispatch)
+            if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %e' | tr -s ' ')" '=' '2026 Jul 9'; then
+              # Hint: `tr -s ' '` if using `%e` because it will put extra spaces otherwise
               echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-              echo 'All good. You triggered manually via the web, so `pickleball_go` below will proceed regardless of time zone! However please be aware that there is still a 6 hour limit on a single Github Actions run, itself ← https://docs.github.com/en/actions/reference/limits'
-            ;;
-            *)
-              echo 1>&2 'How did you get here? The `on:` section at the top of this file (.github/workflows/bookit.yml) has no entry for ' "${GITHUB_EVENT_NAME}"
-              # man sysexits
-              exit 78 # EX_CONFIG
-            ;;
-            esac
-          fi
+              echo 'One-time recovery (special day extra booking, but remember you still need to e.g. run Wed to book next Thurs) ↓'
+              echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+            else
+              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y%m%d')" -le '20260814'; then
+                echo 'Skip. No need to book until at least August 14 because we already have too many bookings through the week of August 21'
+              else
+                  case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
+                  Sun)
+                    echo 'run on Sundays to book the next Monday'
+                    echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+                    echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+                  ;;
+                  Mon)
+                    echo 'run on Mondays in case we lost the lottery yesterday'
+                    echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+                    echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+                  ;;
+                  Wed)
+                    echo 'if we also lost the lottery on Mon (to book Tues) try again this Wed to see if we can get next Thurs'
+                    echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+                    echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+                  ;;
+                  Thu)
+                    echo 'For now, consider Thursday to book Friday as a desperation option if we get nothing else all week'
+                    echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+                    echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+                  ;;
+                  *)
+                    echo 'Skip.'
+                    env TZ='America/Los_Angeles' LC_ALL=C date
+                  ;;
+                  esac
+              fi
+            fi
+          ;;
+          workflow_dispatch)
+            echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+            echo 'All good. You triggered manually via the web, so `pickleball_go` below will proceed regardless of time zone! However please be aware that there is still a 6 hour limit on a single Github Actions run, itself ← https://docs.github.com/en/actions/reference/limits'
+          ;;
+          *)
+            echo 1>&2 'How did you get here? The `on:` section at the top of this file (.github/workflows/bookit.yml) has no entry for ' "${GITHUB_EVENT_NAME}"
+            # man sysexits
+            exit 78 # EX_CONFIG
+          ;;
+          esac
+
 
   pickleball_go1:
     needs: time_zone_checker
