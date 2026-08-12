@@ -12,7 +12,7 @@ on:
     types: [trigger_me_to_start_booking]
     # [!TIP]
     # * Leave 9 minutes just in case `actions/checkout@v5` has some kind of delay or `i7-10810U_chatreey/dev-github/reinstall_playwright.sh` takes longer than expected.
-    # * 19 UTC is "11 am Pacific", but during daylight savings we need 18 UTC to be "11 am Pacific" (even if you schedule both, we still test `$GITHUB_EVENT_NAME` via `time_zone_checker` before running, below)    
+    # * 19 UTC is "11 am Pacific", but during daylight savings we need 18 UTC to be "11 am Pacific" (even if you schedule both, we still test `$GITHUB_EVENT_NAME` via `time_zone_checker` before running, below)
 
 jobs:
   time_zone_checker:
@@ -27,38 +27,43 @@ jobs:
         run: |
           case "${GITHUB_EVENT_NAME}" in
           schedule|repository_dispatch)
-            case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
-            Sun)
-              echo 'run on Sundays to book the next Monday'
-              echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+            if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %e' | tr -s ' ')" '=' '2026 Jul 9'; then
+              # Hint: `tr -s ' '` if using `%e` because it will put extra spaces otherwise
               echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-            ;;
-            Mon)
-              echo 'run on Mondays in case we lost the lottery yesterday'
+              echo 'One-time recovery (special day extra booking, but remember you still need to e.g. run Wed to book next Thurs) ↓'
               echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
-              echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-            ;;
-            Wed)
-              echo 'if we also lost the lottery on Mon (to book Tues) try again this Wed to see if we can get next Thurs'
-              echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
-              echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-            ;;
-            Thu)
-              echo 'For now, consider Thursday to book Friday as a desperation option if we get nothing else all week'
-              echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
-              echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-            ;;
-            *)
-              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y %b %e' | tr -s ' ')" '=' '2026 Jul 9'; then
-                echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
-                echo 'One-time recovery (off-day extra booking e.g. run Wed to book Thurs) ↓'
-                echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+            else
+              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y%m%d')" -le '20260814'; then
+                echo 'Skip. No need to book until at least August 14 because we already have too many bookings through the week of August 21'
               else
-                echo 'Skip.'
+                  case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
+                  Sun)
+                    echo 'run on Sundays to book the next Monday'
+                    echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+                    echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+                  ;;
+                  Mon)
+                    echo 'run on Mondays in case we lost the lottery yesterday'
+                    echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+                    echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+                  ;;
+                  Wed)
+                    echo 'if we also lost the lottery on Mon (to book Tues) try again this Wed to see if we can get next Thurs'
+                    echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+                    echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+                  ;;
+                  Thu)
+                    echo 'For now, consider Thursday to book Friday as a desperation option if we get nothing else all week'
+                    echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+                    echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+                  ;;
+                  *)
+                    echo 'Skip.'
+                    env TZ='America/Los_Angeles' LC_ALL=C date
+                  ;;
+                  esac
               fi
-              env TZ='America/Los_Angeles' LC_ALL=C date
-            ;;
-            esac
+            fi
           ;;
           workflow_dispatch)
             echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
@@ -70,6 +75,7 @@ jobs:
             exit 78 # EX_CONFIG
           ;;
           esac
+
 
   pickleball_go1:
     needs: time_zone_checker
@@ -93,8 +99,8 @@ jobs:
       # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
       run: npx --no-install playwright test main/example.spec.ts
       env:
-        U: ${{ secrets.ANTHONY }}
-        P: ${{ secrets.LOGIN_PROD }}
+        U: ${{ secrets['ANTHONY'] }}
+        P: ${{ secrets['LOGIN_PROD'] }}
         DEV_U: ${{ secrets.LOGIN_DEV }}
         DEV_P: ${{ secrets.DUMMYPW }}
         OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
@@ -135,8 +141,8 @@ jobs:
       # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
       run: npx --no-install playwright test main/example.spec.ts
       env:
-        U: ${{ secrets.RAYMOND }}
-        P: ${{ secrets.LOGIN_RAYMOND_NANA }}
+        U: ${{ secrets['RAYMOND'] }}
+        P: ${{ secrets['LOGIN_RAYMOND_NANA'] }}
         OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
     - name: Upload screenshots if available
       if: always()
@@ -176,8 +182,8 @@ jobs:
       # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
       run: npx --no-install playwright test main/example.spec.ts
       env:
-        U: ${{ secrets.NANA }}
-        P: ${{ secrets.LOGIN_RAYMOND_NANA }}
+        U: ${{ secrets['NANA'] }}
+        P: ${{ secrets['LOGIN_RAYMOND_NANA'] }}
         OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
     - name: Upload screenshots if available
       if: always()
@@ -216,14 +222,14 @@ jobs:
       # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
       run: npx --no-install playwright test main/example.spec.ts
       env:
-        U: ${{ secrets.YIFEI }}
-        P: ${{ secrets.LOGIN4 }}
+        U: ${{ secrets['YIFEI'] }}
+        P: ${{ secrets['LOGIN4'] }}
         OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
     - name: Upload screenshots if available
       if: always()
       uses: actions/upload-artifact@v6
       with:
-        name: screenshots_nana-playwright-${{ github.job }}
+        name: screenshots_yifei-playwright-${{ github.job }}
         path: |
           i7-10810U_chatreey/app_courtreserve_com/*.png
           i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.png
