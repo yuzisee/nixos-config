@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { test, expect, errors, type Page, type Locator } from '@playwright/test';
 
 const LAUNCH_MODE: string = 'prod';
@@ -857,6 +858,93 @@ interface QuickMonth {
   short_month: string;
 }
 
+async function login_username_password(p: Page, u_str: string, p_str: string) : Promise<boolean> {
+  // console.log('Hello hello hello');
+  // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+/*
+- img
+- text: Log In to Access Your Account Don't have an account? Create Account Email
+- textbox "Enter Your Email"
+- text: Password
+- textbox "Enter Your Password"
+- img "eye"
+- checkbox "Remember Me"
+- text: Remember Me Forgot Password?
+- button "Continue"
+- separator: or
+- button "Request a Code"
+- button "Continue with Google":
+  - img
+  - text: Continue with Google
+...
+ */
+  if (
+    (await locator_visible(p.getByText('log in to access your account'), 4000))
+  ) {
+/*
+<div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 16px;">
+ <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 8px;">
+   <label for="email" class="acss-yv1n5d">Email</label>
+   <div class="ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 4px;">
+      <input autocomplete="off" name="email" autocapitalize="words" autocorrect="off" spellcheck="false" placeholder="Enter Your Email" type="text" class="ant-input css-2vbf92 ant-input-outlined acss-182ard6" value="">
+   </div>
+ </div>
+ <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 8px;">
+   <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 8px;">
+      <label for="password" class="acss-yv1n5d">Password</label>
+      <div class="ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 4px;">
+         <span class="ant-input-affix-wrapper css-2vbf92 ant-input-outlined ant-input-password acss-182ard6">
+            <input autocomplete="off" type="password" name="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Enter Your Password" class="ant-input css-2vbf92">
+            <span class="ant-input-suffix">
+               <span role="img" aria-label="eye" tabindex="-1" class="anticon anticon-eye ant-input-password-icon" style="font-size: 16px;">
+               <svg viewBox="64 64 896 896" focusable="false" data-icon="eye" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 000 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"></path></svg>
+               </span>
+            </span>
+         </span>
+      </div>
+   </div>
+   <div class="w-100 ant-flex css-2vbf92 ant-flex-align-center ant-flex-justify-space-between">
+      <label class="ant-checkbox-wrapper css-2vbf92" style="font-weight: 400;">
+         <span class="ant-checkbox ant-wave-target css-2vbf92"><input class="ant-checkbox-input" type="checkbox" value="on">
+            <span class="ant-checkbox-inner"></span>
+         </span>
+         <span class="ant-checkbox-label">Remember Me</span>
+      </label>
+      <a class="ant-typography css-2vbf92" style="padding: 5px 0px; font-size: 14px;">
+         <b style="color: rgb(22, 119, 255); font-weight: 600;">Forgot Password?</b>
+      </a>
+   </div>
+ </div>
+</div>
+ */
+    let username_el: Locator = p.getByPlaceholder('Enter Your Email', {exact: true});
+    if (await locator_visible(username_el, 300)) {
+      let passwd_el: Locator = p.getByPlaceholder('password');
+      if (await locator_visible(passwd_el, 300)) {
+        console.log('Not logged in, need to login');
+
+        await p.screenshot({ path: 'login-ready.png', fullPage: true });
+        await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+
+        // Click the get started link.
+        await username_el.fill(u_str!);
+        await passwd_el.fill(p_str!);
+
+        console.log('Username and password IN');
+	await p.getByRole('button', { name: 'Continue', exact: true }).click();
+        console.log('Username and password SUBMITTED');
+	await expect(p.getByTestId('warning-message-block')).not.toBeVisible();
+        console.log('No warning, probably good?');
+	await expect(p.getByText('The username or password is incorrect')).not.toBeVisible();
+        console.log('Nobody is saying the username or password is wrong. So far so good.');
+
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 // Overall strategy:
 // ================
 // PHASE 1: make sure you are logged in
@@ -935,87 +1023,7 @@ test('try booking pickleball', async ({ page }) => {
     // e.g. https://app.courtreserve.com/Online/Account/LogIn/13233
   }
 
-  // console.log('Hello hello hello');
-  // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-/*
-- img
-- text: Log In to Access Your Account Don't have an account? Create Account Email
-- textbox "Enter Your Email"
-- text: Password
-- textbox "Enter Your Password"
-- img "eye"
-- checkbox "Remember Me"
-- text: Remember Me Forgot Password?
-- button "Continue"
-- separator: or
-- button "Request a Code"
-- button "Continue with Google":
-  - img
-  - text: Continue with Google
-...
- */
-  if (
-    (await locator_visible(page.getByText('log in to access your account'), 4000))
-  ) {
-/*
-<div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 16px;">
- <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 8px;">
-   <label for="email" class="acss-yv1n5d">Email</label>
-   <div class="ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 4px;">
-      <input autocomplete="off" name="email" autocapitalize="words" autocorrect="off" spellcheck="false" placeholder="Enter Your Email" type="text" class="ant-input css-2vbf92 ant-input-outlined acss-182ard6" value="">
-   </div>
- </div>
- <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 8px;">
-   <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 8px;">
-      <label for="password" class="acss-yv1n5d">Password</label>
-      <div class="ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 4px;">
-         <span class="ant-input-affix-wrapper css-2vbf92 ant-input-outlined ant-input-password acss-182ard6">
-            <input autocomplete="off" type="password" name="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Enter Your Password" class="ant-input css-2vbf92">
-            <span class="ant-input-suffix">
-               <span role="img" aria-label="eye" tabindex="-1" class="anticon anticon-eye ant-input-password-icon" style="font-size: 16px;">
-               <svg viewBox="64 64 896 896" focusable="false" data-icon="eye" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 000 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"></path></svg>
-               </span>
-            </span>
-         </span>
-      </div>
-   </div>
-   <div class="w-100 ant-flex css-2vbf92 ant-flex-align-center ant-flex-justify-space-between">
-      <label class="ant-checkbox-wrapper css-2vbf92" style="font-weight: 400;">
-         <span class="ant-checkbox ant-wave-target css-2vbf92"><input class="ant-checkbox-input" type="checkbox" value="on">
-            <span class="ant-checkbox-inner"></span>
-         </span>
-         <span class="ant-checkbox-label">Remember Me</span>
-      </label>
-      <a class="ant-typography css-2vbf92" style="padding: 5px 0px; font-size: 14px;">
-         <b style="color: rgb(22, 119, 255); font-weight: 600;">Forgot Password?</b>
-      </a>
-   </div>
- </div>
-</div>
- */
-    let username_el: Locator = page.getByPlaceholder('Enter Your Email', {exact: true});
-    if (await locator_visible(username_el, 300)) {
-      let passwd_el: Locator = page.getByPlaceholder('password');
-      if (await locator_visible(passwd_el, 300)) {
-        console.log('Not logged in, need to login');
-
-        await page.screenshot({ path: 'login-ready.png', fullPage: true });
-        await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-
-        // Click the get started link.
-        await username_el.fill(ready_u!);
-        await passwd_el.fill(ready_p!);
-
-        console.log('Username and password IN');
-	await page.getByRole('button', { name: 'Continue', exact: true }).click();
-        console.log('Username and password SUBMITTED');
-	await expect(page.getByTestId('warning-message-block')).not.toBeVisible();
-        console.log('No warning, probably good?');
-	await expect(page.getByText('The username or password is incorrect')).not.toBeVisible();
-        console.log('Nobody is saying the username or password is wrong. So far so good.');
-      }
-    }
-  }
+  await login_username_password(page, ready_u!, ready_p!);
 
   console.log('Where are we going next?');
   await page.waitForURL(HOME_URL + '*');
@@ -1187,16 +1195,6 @@ test('try booking pickleball', async ({ page }) => {
 
       let pickleball_reservations_el : Locator = await get_to_pickleball_reservations(page);
 
-/*
-  await all_reservations_desktop_el).getByText('Pickleball Reservations').click();
- // let all_reservations_desktop_el: Locator = page.getByRole('listitem').filter( {has: page.getByRole('link', { name: 'Reservations'}), visible: true });
-  let all_reservations_desktop_el: Locator = page.locator('ul#respMenu');
-  await all_reservations_desktop_el.hover()
-  // await page.getByRole('listitem').getByRole('link', { name: 'Reservations'}).hover();
-  // await page.getByText('BOOK A COURT').click(); // this defaults to Tennis courts...
-  await all_reservations_desktop_el.ariaSnapshot().then(function(val) { console.log(val); } );
-  // await all_reservations_desktop_el).getByText('Pickleball Reservations').click();
-*/
       await pickleball_reservations_el.hover();
       await pickleball_reservations_el.click();
     }
@@ -1325,14 +1323,14 @@ test('try booking pickleball', async ({ page }) => {
               - generic [ref=e214] [cursor=pointer]: Player(s)
               - grid [ref=e219] [cursor=pointer]:
                 - rowgroup [ref=e222]:
-                  - row "# 1 Name Anthony Hsu Cost $13.00 Due $13.00" [ref=e223]:
+                  - row "# 1 Name ... Cost $13.00 Due $13.00" [ref=e223]:
                     - gridcell "# 1" [ref=e224]:
                       - generic [ref=e225]: "#"
                       - generic [ref=e226]: "1"
-                    - gridcell "Name Anthony Hsu" [ref=e227]:
+                    - gridcell "Name ..." [ref=e227]:
                       - generic [ref=e228]: Name
                       - generic [ref=e229]:
-                        - generic [ref=e230]: Anthony Hsu
+                        - generic [ref=e230]: ...
                         - text: 
                     - gridcell "Cost $13.00" [ref=e231]:
                       - generic [ref=e232]: Cost
@@ -1361,6 +1359,180 @@ test('try booking pickleball', async ({ page }) => {
 
     */
   }
+});
+
+test('read upcoming reservations', async ({ page }) => {
+  if(process.env['READ_USERNAMES']) {
+    if(process.env['READ_PASSWORDS']) {
+      const u_array : string[] = process.env['READ_USERNAMES'].split(',');
+      const p_array : string[] = process.env['READ_PASSWORDS'].split(',');
+
+      expect(u_array.length, "READ_USERNAMES and READ_PASSWORDS don't match, so probably one of them has a comma ',' or else you didn't set up the Github Actions correctly").toBe(p_array.length);
+
+      const all_bookings : string[] = ['Upcoming reservations:'];
+      for (let i = 0; i < Math.min(u_array.length, p_array.length); i++) {
+        // If you're already logged out, it will take you to the login page.
+        // If you're logged in, it will log you out (which takes you to the login page)
+        await page.goto('https://app.courtreserve.com/Online/Account/LogOut/13233');
+        // await page.goto('https://app.courtreserve.com/Online/Account/LogIn/13233');
+
+        await login_username_password(page, u_array[i]!, p_array[i]!);
+
+        // let login_ok_el: Locator = page.locator('h4').getByText('Hours of Availability');
+        let login_ok_el: Locator = page.getByRole('heading', {name: 'Hours of Availability'});
+	/*
+- banner:
+  - navigation:
+    - 'link "Lifetime Activities: Sunnyvale"':
+      - /url: /Online/Portal/Index/13233
+      - 'img "Lifetime Activities: Sunnyvale"'
+    - list:
+      - listitem:
+        - link "Events, Camps, And Classes ":
+          - /url: "#"
+      - listitem:
+        - link "Reservations ":
+          - /url: "#"
+...
+- listitem:
+  - link "Events, Camps, And Classes ":
+    - /url: "#"
+- listitem:
+  - link "Reservations ":
+    - /url: "#"
+...
+- listitem:
+  - link:
+    - /url: "#menu"
+- listitem
+- 'heading "Welcome to Lifetime Activities: Sunnyvale!" [level=1]'
+- heading "Summer Classes & Camps Are in Full Swing—Sign Up for Tennis or Pickleball Today!" [level=4]
+- link "BOOK A TENNIS COURT":
+  - /url: https://app.courtreserve.com/Online/Reservations/Bookings/13233
+- link "BOOK A PICKLEBALL COURT":
+  - /url: https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984
+- link "PROGRAM REGISTRATION":
+  - /url: https://app.courtreserve.com/Online/Events/List/13233
+- img "footer-logo.png"
+- paragraph: (408) 735-7285
+- paragraph: 755 S Mathilda Avenue
+- paragraph: Sunnyvale, California, 94087
+- list:
+  - listitem:
+    - link "":
+      - /url: https://www.lifetimeactivities.com
+  - listitem:
+    - link "":
+      - /url: https://www.instagram.com/lifetime.activities?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==
+- heading "Hours of Availability" [level=4]
+- list:
+  - listitem: Mon - Fri 8:00 AM - 10:00 PM
+  - listitem: Saturday 8:00 AM - 10:00 PM
+  - listitem: Sunday 8:00 AM - 8:00 PM
+- heading "Links" [level=4]
+- list:
+  - listitem:
+    - link "Looking for a different Lifetime Activities location? Click here!":
+      - /url: https://www.lifetimeactivities.com/wp-content/uploads/Lifetime-Activities-on-CourtReserve-Home-Page-Links.pdf
+- paragraph: © 2026 Powered by CourtReserve
+- list
+	*/
+        // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+        if (await locator_visible(login_ok_el, 6000)) {
+          console.log('Login OK? ' + i);
+        } else {
+          console.log('Login FAILED?? ' + i + ' but maybe we can just go directly to the target URL and it might work anyhow');
+        }
+
+        // "My Reservations"
+        await page.goto('https://app.courtreserve.com/Online/Bookings/List/13233?type=1');
+        /*
+<div class="booking-list ant-flex css-sfktup ant-flex-align-stretch ant-flex-vertical" data-testid="booking-list-active" style="width: 100%; height: 100%; gap: 12px;">
+  <div data-testid="booking-count" style="font-weight: 600; font-size: 24px; margin-bottom: 16px;">
+    1 Booking Found
+  </div>
+  <div data-testid="booking-card-wrapper-58636963">
+   <div class="booking-card-desktop booking-card-desktop-58636963" data-testid="booking-card" style="--border-color: #e1f2ae;">
+    <div class="booking-card-desktop-content ant-flex css-sfktup ant-flex-align-stretch ant-flex-vertical" data-testid="booking-card-content" style="gap: 16px;">
+     <div class="ant-flex css-sfktup ant-flex-align-center" data-testid="booking-card-header" style="gap: 16px;">
+      <div class="booking-card-desktop-header ant-flex css-sfktup ant-flex-align-center" style="gap: 8px;">
+*/
+       // The `booking-card-desktop-header-indicator` is a circle icon, essentially.
+/*
+       <div class="booking-card-desktop-header-indicator-wrapper" data-testid="type-indicator-wrapper">
+        <div class="booking-card-desktop-header-indicator" data-testid="type-indicator" style="background-color: rgb(225, 242, 174);"></div>
+       </div>
+       <h5 data-testid="type-name">Recreational Play - Pickleball</h5>
+      </div>
+      <div class="ant-flex css-sfktup ant-flex-align-center" data-testid="booking-card-badges" style="gap: 8px;"></div>
+     </div>
+     <div class="booking-card-desktop-content-list ant-flex css-sfktup ant-flex-align-stretch ant-flex-vertical" data-testid="content-list" style="gap: 8px;">
+      <div class="ant-flex css-sfktup ant-flex-wrap-wrap ant-flex-align-baseline" data-testid="row-date-and-times" style="font-size: 16px; color: rgb(117, 116, 116); gap: 8px;">
+       <i class="fa fa-light fa-calendar-clock"></i>
+       <div class="row-text ant-flex css-sfktup">Mon, Aug 17th,  8:30 PM - 9:30 PM</div>
+      </div>
+      <div class="ant-flex css-sfktup ant-flex-wrap-wrap ant-flex-align-baseline" data-testid="row-members" style="font-size: 16px; color: rgb(117, 116, 116); gap: 8px;">
+       <i class="fa fa-light fa-user-group"></i>
+       <div class="row-text ant-flex css-sfktup">
+        <div class="ant-flex css-sfktup ant-flex-wrap-wrap" data-testid="booking-tooltip">
+         <div class="ant-flex css-sfktup ant-flex-wrap-wrap ant-flex-align-center" data-testid="booking-tooltip-group-0" style="margin-right: 4px;">
+          <div class="ant-flex css-sfktup ant-flex-wrap-wrap ant-flex-align-center" data-testid="booking-tooltip-member-0-0" style="margin-right: 4px;">
+           <div class="ant-flex css-sfktup" style="gap: 4px;">...<i class="fa-solid fa-circle-dollar" data-testid="booking-tooltip-unpaid-icon-0-0" aria-describedby="_r_2_" style="color: red; font-size: 20px; cursor: pointer; display: grid; place-items: center;"></i></div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="ant-flex css-sfktup ant-flex-wrap-wrap ant-flex-align-baseline" data-testid="row-courts" style="font-size: 16px; color: rgb(117, 116, 116); gap: 8px;">
+       <i class="fa fa-light fa-table-cells-large"></i>
+       <div class="row-text ant-flex css-sfktup">Pickleball</div>
+      </div>
+     </div>
+*/
+    // This is the end of `.booking-card-desktop-content` and the rest is the [Edit Reservation] button + [Pay] button
+/*
+    </div>
+    <div class="booking-card-desktop-actions ant-flex css-sfktup ant-flex-align-stretch ant-flex-justify-center ant-flex-vertical" data-testid="booking-card-actions" style="gap: 16px;">
+     <div><a href="/Online/MyProfile/Reservation/13233/58636963" data-testid="details-btn" class="ant-btn css-sfktup ant-btn-primary ant-btn-color-primary ant-btn-variant-solid ant-btn-background-ghost m-0 w-100" tabindex="0" aria-disabled="false"><span>Edit Reservation</span></a></div>
+     <a href="/Online/MyBalance/PayMyBalance/13233?reservationId=58636963" data-testid="pay-btn" class="ant-btn css-sfktup ant-btn-primary ant-btn-color-primary ant-btn-variant-solid btn-primary m-0 w-100" tabindex="0" aria-disabled="false"><span>Pay</span></a>
+    </div>
+   </div>
+  </div>
+</div>
+        */
+        // <div class="ant-spin ant-spin-sm ant-spin-spinning css-sfktup" aria-live="polite" aria-busy="true"><span class="ant-spin-dot-holder"><span class="ant-spin-dot ant-spin-dot-spin"><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i></span></span></div>
+    let loadingSpinners : Locator = page.locator('div.ant-spin.ant-spin-spinning');
+    if ((await loadingSpinners.count()) > 0) {
+      // [!CAUTION]
+      // Apparently, `.isVisible()` and toBeHidden() etc. all consider a spinner hidden if it's DOM height & width are 0px
+      // Hopefully, `.count()` and `toHaveCount()` will behave better.
+      try {
+        // WAIT FOR THE spinner to finish...
+        await expect(loadingSpinners).toHaveCount(0, {timeout: 20 * 1000});
+      } catch (pw_error) {
+        console.log('20s and it is still loading or we failed to detect what is happening');
+      }
+    } else {
+      console.log('No spinner appeared... Did it load faster than normal or something?');
+    }
+
+        // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+
+        let activeBookings_default: string[] = await page.locator('div.booking-card-desktop-content-list').allInnerTexts();
+        // TODO(from joseph): If there's any funny business with how text is rendered, use `.allTextContents()` instead to grab the raw HTML text
+        all_bookings.push(...activeBookings_default);
+        all_bookings.push('───');
+      } // end for i
+
+      const write_timestamp: SerializedDate = await localtime_datenow(page);
+      all_bookings.push('This page was last refreshed on... ' + write_timestamp.local_isoString);
+
+      console.log('FOUND: ' + all_bookings.join('\n'));
+
+      fs.mkdirSync('upcoming_reservations', { recursive: true });
+      fs.writeFileSync('upcoming_reservations/lifetime_activities.txt', all_bookings.join('\n'), 'utf8');
+    } // end PASSWORDS
+  } // end USERNAMES
 });
 
 test('logic self-test', async ({ }) => {
