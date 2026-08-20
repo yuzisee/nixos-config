@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   schedule:
   # ^^^ Github's scheduler is SUPER INACCURATE with delays of dozens of minutes (sometimes more than an hour...)
-   - cron: '51 22 * * *'
-   # So 22:51 UTC is either 3pm or 4pm Pacific (depending on daylights savings)
+   - cron: '51 20 * * *'
+   # So 20:51 UTC is either 12:51pm or 1:51pm Pacific (depending on daylights savings)
 
 jobs:
   read_all:
