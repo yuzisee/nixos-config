@@ -28,7 +28,7 @@ jobs:
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       run: npx --no-install playwright test main/example.spec.ts --grep 'read upcoming reservations'
       env:
-        READ_USERNAMES: ${{ secrets.YIFEI }},${{ secrets.RAYMOND }},${{ secrets.ANTHONY }}
+        READ_USERNAMES: ${{ secrets.YIFEI }},${{ secrets.NANA }},${{ secrets.ANTHONY }}
         READ_PASSWORDS: ${{ secrets.LOGIN4 }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_PROD }}
     - uses: actions/upload-pages-artifact@v3
       with:
