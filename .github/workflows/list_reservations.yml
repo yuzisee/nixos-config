@@ -30,6 +30,8 @@ jobs:
       env:
         READ_USERNAMES: ${{ secrets.YIFEI }},${{ secrets.NANA }},${{ secrets.ANTHONY }}
         READ_PASSWORDS: ${{ secrets.LOGIN4 }},${{ secrets.LOGIN_RAYMOND_NANA }},${{ secrets.LOGIN_PROD }}
+        WAIVERCHECK_USERNAMES: ${{ secrets.RAYMOND }}
+        WAIVERCHECK_PASSWORDS: ${{ secrets.LOGIN_RAYMOND_NANA }}
     - uses: actions/upload-pages-artifact@v3
       with:
         path: i7-10810U_chatreey/app_courtreserve_com/upcoming_reservations
