@@ -948,6 +948,161 @@ async function login_username_password(p: Page, u_str: string, p_str: string) : 
   return false;
 }
 
+async function login_but_also_report_waiver_expiry(p: Page, u_str: string, p_str: string, expected_destination_ok_locator: Locator, all_bookings_out : string[]) : Promise<boolean> {
+
+  // If you're already logged out, it will take you to the login page.
+  // If you're logged in, it will log you out (which takes you to the login page)
+  await p.goto('https://app.courtreserve.com/Online/Account/LogOut/13233');
+
+  await login_username_password(p, u_str, p_str);
+
+  if (await locator_visible(expected_destination_ok_locator, 6000)) {
+    console.log('Login OK? ' + u_str.substring(0, 1) + '…');
+    return true;
+  } else {
+
+    let waiver_title : boolean = await p.getByText('REVIEW PARTICIPANT LIABILITY WAIVER').isVisible();
+    let waiver_checkbox : boolean = await p.getByText('I have carefully read, fully understand, and accept all the provisions and terms as stated').isVisible();
+
+    if (waiver_title || waiver_checkbox) {
+    /*
+- text: VIEW & REVIEW PARTICIPANT LIABILITY WAIVER AND HOLD HARMLESS AGREEMENT AND ASSUMPTION OF THE RISK
+- list:
+  - checkbox "I have carefully read, fully understand, and accept all the provisions and terms as stated."
+  - text:  I have carefully read, fully understand, and accept all the provisions and terms as stated. CLICK TO SIGN
+           */
+            all_bookings_out.push('WAIVER HAS EXPIRED??');
+/*
+            let waiver_user_el_by_id : Locator = p.locator('input#SigningMemberFullName')
+            let waiver_user_el_by_name : Locator =  p.locator('input[name=SigningMemberFullName]');
+            if ((await waiver_user_el_by_id.count()) == 1) {
+              all_bookings_out.push(await waiver_user_el_by_id.getAttribute('value'));
+            }
+            if ((await waiver_user_el_by_name.count()) == 1) {
+              all_bookings_out.push(await waiver_user_el_by_name.getAttribute('value'));
+            }
+*/
+
+      let waiver_needed: string[] = await p.locator('form#disclosures-form').allInnerTexts();
+      // console.log(await p.content()); // innerHTML
+      all_bookings_out.push(...waiver_needed);
+
+/*
+<div class="outer-container " id="membership-details-page">
+
+<form action="/Online/Disclosures/Pending/13233" data-ajax="true" data-ajax-begin="disableButtonsByClass('submit-btn')" data-ajax-method="POST" data-ajax-success="successfullySignDisclosures(data,this)" id="disclosures-form" method="post" novalidate="novalidate">        <input id="SigningMemberFullName" name="SigningMemberFullName" type="hidden" value="Firstname Lastname">
+        <div class="outer-inner-container">
+            <div class="container">
+                <div class="page-inner">
+                            <div class="row membership-one-item">
+                                <div class="modal-body fn-autoheight" id="disclosures-form-container">
+
+<input data-val="true" data-val-number="The field OrganizationId must be a number." id="OrganizationId" name="OrganizationId" type="hidden" value="13233">
+<input data-val="true" data-val-number="The field EventId must be a number." id="EventId" name="EventId" type="hidden" value="">
+<input id="LogInMemberIsAllowedToSign" name="LogInMemberIsAllowedToSign" type="hidden" value="True">
+<input data-val="true" data-val-number="The field ReservationId must be a number." id="ReservationId" name="ReservationId" type="hidden" value="">
+<input id="ReturnUrl" name="ReturnUrl" type="hidden" value="/Online/Portal/Index/13233">
+<input id="InitialScope" name="InitialScope" type="hidden" value="Login">
+
+
+<div class="d-grid form-container membership-list-item">
+    <div class="ef_post style2 mt30-smd mb-0 mt-0" style="padding: 10px;">
+        <div class="details job-flex-inner d-flex" style="flex-direction: column; flex-wrap: wrap; justify-content: flex-end;">
+
+            <span class="">
+                <span style="padding-bottom:;display:">
+<input id="Members_0__MemberFullName" name="Members[0].MemberFullName" type="hidden" value="Firstname Lastname"><input id="Members_0__IsAllowedToSign" name="Members[0].IsAllowedToSign" type="hidden" value="True"><input data-val="true" data-val-number="The field OrganizationMemberId must be a number." id="Members_0__OrganizationMemberId" name="Members[0].OrganizationMemberId" type="hidden" value="11227542">                        <div class="job_locate main-title-row" id="11227542_section">
+                            <p class="m-auto bold">Firstname Lastname</p>
+                        </div>
+<input id="Members_0__Disclosures_0__Name" name="Members[0].Disclosures[0].Name" type="hidden" value="Participant Liability Waiver and Hold Harmless Agreement and Assumption of the Risk"><input id="Members_0__Disclosures_0__ContentType" name="Members[0].Disclosures[0].ContentType" type="hidden" value="TypedContent"><input id="Members_0__Disclosures_0__DisclosureText" name="Members[0].Disclosures[0].DisclosureText" type="hidden" value="&lt;p class=&quot;p1&quot; style=&quot;margin-bottom:0px;font-variant-numeric:normal;font-variant-east-asian:normal;font-variant-alternates:normal;font-kerning:auto;font-optical-sizing:auto;font-feature-settings:normal;font-variation-settings:normal;font-variant-position:normal;font-size:13px;line-height:normal;&quot;&gt;&amp;nbsp;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot; id=&quot;docs-internal-guid-e57ce6ea-7fff-2740-995c-1f957437e401&quot;&gt;&lt;span style=&quot;font-size:11pt;font-weight:700;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;Please read this Waiver, Release, and Assumption of Risk carefully before signing.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I understand that participation in this activity is voluntary. By signing this waiver, I certify that I and/or my child (or minor in my care) am physically fit and able to participate.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;On behalf of myself and/or as the parent or legal guardian of the minor participant, I agree to indemnify, defend, and hold harmless Lifetime Activities LLC and Lifetime Activities Sunnyvale LLC (collectively known as &amp;ldquo;Lifetime&amp;rdquo;) and the City of Sunnyvale, including their respective officers, employees, agents, and representatives, from and against any and all claims, demands, causes of action, damages, losses, liabilities, or expenses. I hereby waive, release, and discharge Lifetime and the City of Sunnyvale from any and all claims for injury, illness, disability, death, loss, or damage of any kind, whether known or unknown, that I or the minor may suffer arising out of or related in any way to participation in this class or activity, including claims arising from the negligence or carelessness of the released parties. I understand that participation involves inherent risks, including the risk of serious injury or death. Knowing these risks, I voluntarily assume full responsibility for any such risks on behalf of myself and/or the minor participant. This waiver and release shall be binding upon my/our heirs, executors, administrators, and assigns.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I acknowledge the contagious nature of COVID-19 and voluntarily assume the risk that I and/or my child(ren) may be exposed to or infected by COVID-19 while attending Lifetime programs or venues. I understand that such exposure may result in personal injury, illness, permanent disability, or death. I further understand that the risk of exposure may result from the actions, omissions, or negligence of myself and others, including Lifetime employees, volunteers, participants, and their families.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I grant Lifetime permission to photograph and/or record video of me and/or the registered minor participant and to use, reproduce, edit, publish, distribute, and display such images or recordings for lawful promotional purposes, including but not limited to newsletters, brochures, advertisements, websites, social media, press materials, and other print or digital communications.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I understand that no compensation will be provided for such use and that this authorization shall remain in effect indefinitely unless revoked by me in writing. I waive any right to inspect or approve the final materials in which my or the minor&amp;rsquo;s likeness appears.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I acknowledge that I have read this waiver and understand that important legal rights are being waived.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:0pt;margin-bottom:0pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I further acknowledge that I have read and understand and will be subject to the &lt;/span&gt;&lt;a href=&quot;https://www.lifetimeactivities.com/policies-refunds/&quot; style=&quot;text-decoration:none;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;text-decoration:underline;text-decoration-skip-ink:none;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;registration, withdrawal and refund policies&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt; as stated on the Lifetime Activities website.&lt;/span&gt;&lt;/p&gt;&lt;p class=&quot;p1&quot; style=&quot;margin-bottom:0px;font-variant-numeric:normal;font-variant-east-asian:normal;font-variant-alternates:normal;font-kerning:auto;font-optical-sizing:auto;font-feature-settings:normal;font-variation-settings:normal;font-variant-position:normal;font-size:13px;line-height:normal;&quot;&gt;&amp;nbsp;&lt;/p&gt;"><input id="Members_0__Disclosures_0__FileGuid" name="Members[0].Disclosures[0].FileGuid" type="hidden" value=""><input id="Members_0__Disclosures_0__FileName" name="Members[0].Disclosures[0].FileName" type="hidden" value=""><input id="Members_0__Disclosures_0__RuleInstructions" name="Members[0].Disclosures[0].RuleInstructions" type="hidden" value=""><input data-val="true" data-val-number="The field Id must be a number." id="Members_0__Disclosures_0__Id" name="Members[0].Disclosures[0].Id" type="hidden" value="42136"><input id="Members_0__Disclosures_0__ReadAgreementMessage" name="Members[0].Disclosures[0].ReadAgreementMessage" type="hidden" value="I have carefully read, fully understand, and accept all the provisions and terms as stated."><input data-val="true" data-val-number="The field RequiredEventId must be a number." id="Members_0__Disclosures_0__RequiredEventId" name="Members[0].Disclosures[0].RequiredEventId" type="hidden" value=""><input class="signed-data-url" id="signature_data_url_00" name="Members[0].Disclosures[0].SignatureDataUrl" type="hidden" value="">                            <span class="fn-autoheight">
+
+<script src="https://raw.githubusercontent.com/davidjbradshaw/iframe-resizer/master/js/iframeResizer.min.js"></script>
+
+<input type="hidden" name="Org_CurrentDateTime" id="Org_CurrentDateTime" value="8/24/2026 2:03 AM">
+
+<div class="disclosure-membership-container signature-not-valid-container pointer" id="signature_00_container">
+        <!--<p style="font-size: 1.4rem;">-->
+        <!--<span style="font-size: 1rem;" class="color-org">
+            <img src="/Content/images/icons/signature_24.png" style="height: 22px; vertical-align: sub; "/>
+        </span>
+        Participant Liability Waiver and Hold Harmless Agreement and Assumption of the Risk
+        </p>-->
+        <a data-zindex="1000000" onclick="displayDisclosureDetails(42136, $(this))" class="a-modal btn btn-secondary btn-medium auto-height btn-details-page">
+            <span class="d-flex">
+                <img src="/Content/images/icons/signature_white_32.png" style="height: 22px; max-width: 40px; margin: auto;">
+                <span class="white-space">
+                    &nbsp; VIEW &amp; REVIEW PARTICIPANT LIABILITY WAIVER AND HOLD HARMLESS AGREEMENT AND ASSUMPTION OF THE RISK
+                </span>
+            </span>
+        </a>
+
+
+    <ul>
+
+
+
+                <div style="position: relative" class="mt10 rowCheckbox">
+<input data-role="checkbox" id="Members_0__Disclosures_0__AcceptAgreement" name="Members[0].Disclosures[0].AcceptAgreement" type="checkbox" value="true" class="k-checkbox k-checkbox-md k-rounded-md"><span class="check-box-helper "></span><label for="Members_0__Disclosures_0__AcceptAgreement" class="k-checkbox-label">I have carefully read, fully understand, and accept all the provisions and terms as stated.</label><input name="Members[0].Disclosures[0].AcceptAgreement" type="hidden" value="false"><script>
+	kendo.syncReady(function(){jQuery("#Members_0__Disclosures_0__AcceptAgreement").kendoCheckBox({"label":"I have carefully read, fully understand, and accept all the provisions and terms as stated."});});
+</script>                </div>
+            <div>
+                <div class="click-to-signup-container" data-zindex="1000000" id="click-to-signup-container_00" onclick="openSignatureModal('00', '42136', $(this))">
+                    <span>CLICK TO SIGN</span>
+                </div>
+                <div class="hide signature-canvas-container" id="signature-canvas_00_container">
+                    <div class="preview-signature-container" data-zindex="1000000" onclick="openSignatureModal('00', '42136', $(this))">
+                        <img id="imported_signup_00_image">
+                    </div>
+
+                    <div id="signature_00_stamp" class="signature-stamp-container">
+                        <div>
+                            <label for="Disclosures_00_SignedOn">Date Signed</label>
+
+                            <div class="d-block signature-stamp-time text-muted">
+
+                            </div>
+                        </div>
+
+                        <div class="block sign-member-details hide">
+                            <label>Signed By</label>
+                            <div class="d-block text-muted sign-member-details-value">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </ul>
+</div>
+                            </span>
+
+                </span>
+            </span>
+
+            <div class="membership-list-item-button-container " style="padding-bottom: ; ">
+                    <a onclick="saveSignedDisclosures()" class="btn btn-lg btn-block btn-org btn-submit btn-details-page" style="">
+                            <span>SAVE SIGNATURE</span>
+
+                    </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+*/
+      console.log('We got sent to the waiver signature page. Human intervention required, ' + u_str.substring(0, 1) + '…');
+      return true;
+    } else {
+
+      await p.screenshot({ path: 'login-failed.png', fullPage: true });
+      await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+      return false;
+    }
+
+  }
+
+} // end login_but_also_report_waiver_expiry
+
 // Overall strategy:
 // ================
 // PHASE 1: make sure you are logged in
@@ -1363,24 +1518,12 @@ test('try booking pickleball', async ({ page }) => {
 });
 
 test('read upcoming reservations', async ({ page }) => {
-  if(process.env['READ_USERNAMES']) {
-    if(process.env['READ_PASSWORDS']) {
-      const u_array : string[] = process.env['READ_USERNAMES'].split(',');
-      const p_array : string[] = process.env['READ_PASSWORDS'].split(',');
+  const all_bookings : string[] = ['Upcoming reservations:'];
 
-      expect(u_array.length, "READ_USERNAMES and READ_PASSWORDS don't match, so probably one of them has a comma ',' or else you didn't set up the Github Actions correctly").toBe(p_array.length);
+  test.setTimeout(120 * 1000); // Let's give it 2 minutes. Seems like the default value of 30s (https://playwright.dev/docs/test-timeouts) isn't quite enough to check 4 accounts
 
-      const all_bookings : string[] = ['Upcoming reservations:'];
-      for (let i = 0; i < Math.min(u_array.length, p_array.length); i++) {
-        // If you're already logged out, it will take you to the login page.
-        // If you're logged in, it will log you out (which takes you to the login page)
-        await page.goto('https://app.courtreserve.com/Online/Account/LogOut/13233');
-        // await page.goto('https://app.courtreserve.com/Online/Account/LogIn/13233');
-
-        await login_username_password(page, u_array[i]!, p_array[i]!);
-
-        // let login_ok_el: Locator = page.locator('h4').getByText('Hours of Availability');
-        let login_ok_el: Locator = page.getByRole('heading', {name: 'Hours of Availability'});
+  // let login_ok_el: Locator = page.locator('h4').getByText('Hours of Availability');
+  let login_ok_el: Locator = page.getByRole('heading', {name: 'Hours of Availability'});
 	/*
 - banner:
   - navigation:
@@ -1438,149 +1581,35 @@ test('read upcoming reservations', async ({ page }) => {
 - paragraph: © 2026 Powered by CourtReserve
 - list
 	*/
+
+  if(process.env['WAIVERCHECK_USERNAMES']) {
+    if(process.env['WAIVERCHECK_PASSWORDS']) {
+      const u_w : string[] = process.env['WAIVERCHECK_USERNAMES'].split(',');
+      const p_w : string[] = process.env['WAIVERCHECK_PASSWORDS'].split(',');
+
+      expect(u_w.length, 'WAIVERCHECK_USERNAMES and WAIVERCHECK_PASSWORDS mismatch, so probably one of them has a comma `,` or else you did not set up the Github Actions correctly').toBe(p_w.length);
+
+      for (let i = 0; i < Math.min(u_w.length, p_w.length); i++) {
+        await login_but_also_report_waiver_expiry(page, u_w[i]!, p_w[i]!, login_ok_el, all_bookings);
+      }
+    }
+  }
+
+  if(process.env['READ_USERNAMES']) {
+    if(process.env['READ_PASSWORDS']) {
+      const u_array : string[] = process.env['READ_USERNAMES'].split(',');
+      const p_array : string[] = process.env['READ_PASSWORDS'].split(',');
+
+      expect(u_array.length, "READ_USERNAMES and READ_PASSWORDS don't match, so probably one of them has a comma ',' or else you didn't set up the Github Actions correctly").toBe(p_array.length);
+
+      for (let i = 0; i < Math.min(u_array.length, p_array.length); i++) {
+        // await page.goto('https://app.courtreserve.com/Online/Account/LogIn/13233');
+
         // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-        let debug_login_result : boolean = false;
-        if (await locator_visible(login_ok_el, 6000)) {
-          console.log('Login OK? ' + i);
-        } else {
 
-          let waiver_title : boolean = await page.getByText('REVIEW PARTICIPANT LIABILITY WAIVER').isVisible();
-          let waiver_checkbox : boolean = await page.getByText('I have carefully read, fully understand, and accept all the provisions and terms as stated').isVisible();
-
-          if (waiver_title || waiver_checkbox) {
-          /*
-- text: VIEW & REVIEW PARTICIPANT LIABILITY WAIVER AND HOLD HARMLESS AGREEMENT AND ASSUMPTION OF THE RISK
-- list:
-  - checkbox "I have carefully read, fully understand, and accept all the provisions and terms as stated."
-  - text:  I have carefully read, fully understand, and accept all the provisions and terms as stated. CLICK TO SIGN
-           */
-            all_bookings.push('WAIVER HAS EXPIRED??');
-/*
-            let waiver_user_el_by_id : Locator = page.locator('input#SigningMemberFullName')
-            let waiver_user_el_by_name : Locator =  page.locator('input[name=SigningMemberFullName]');
-            if ((await waiver_user_el_by_id.count()) == 1) {
-              all_bookings.push(await waiver_user_el_by_id.getAttribute('value'));
-            }
-            if ((await waiver_user_el_by_name.count()) == 1) {
-              all_bookings.push(await waiver_user_el_by_name.getAttribute('value'));
-            }
-*/
-
-        let waiver_needed: string[] = await page.locator('form#disclosures-form').allInnerTexts();
-        // console.log(await page.content()); // innerHTML
-        all_bookings.push(...waiver_needed);
-
-/*
-<div class="outer-container " id="membership-details-page">
-
-<form action="/Online/Disclosures/Pending/13233" data-ajax="true" data-ajax-begin="disableButtonsByClass('submit-btn')" data-ajax-method="POST" data-ajax-success="successfullySignDisclosures(data,this)" id="disclosures-form" method="post" novalidate="novalidate">        <input id="SigningMemberFullName" name="SigningMemberFullName" type="hidden" value="Firstname Lastname">
-        <div class="outer-inner-container">
-            <div class="container">
-                <div class="page-inner">
-                            <div class="row membership-one-item">
-                                <div class="modal-body fn-autoheight" id="disclosures-form-container">
-
-<input data-val="true" data-val-number="The field OrganizationId must be a number." id="OrganizationId" name="OrganizationId" type="hidden" value="13233">
-<input data-val="true" data-val-number="The field EventId must be a number." id="EventId" name="EventId" type="hidden" value="">
-<input id="LogInMemberIsAllowedToSign" name="LogInMemberIsAllowedToSign" type="hidden" value="True">
-<input data-val="true" data-val-number="The field ReservationId must be a number." id="ReservationId" name="ReservationId" type="hidden" value="">
-<input id="ReturnUrl" name="ReturnUrl" type="hidden" value="/Online/Portal/Index/13233">
-<input id="InitialScope" name="InitialScope" type="hidden" value="Login">
-
-
-<div class="d-grid form-container membership-list-item">
-    <div class="ef_post style2 mt30-smd mb-0 mt-0" style="padding: 10px;">
-        <div class="details job-flex-inner d-flex" style="flex-direction: column; flex-wrap: wrap; justify-content: flex-end;">
-
-            <span class="">
-                <span style="padding-bottom:;display:">
-<input id="Members_0__MemberFullName" name="Members[0].MemberFullName" type="hidden" value="Firstname Lastname"><input id="Members_0__IsAllowedToSign" name="Members[0].IsAllowedToSign" type="hidden" value="True"><input data-val="true" data-val-number="The field OrganizationMemberId must be a number." id="Members_0__OrganizationMemberId" name="Members[0].OrganizationMemberId" type="hidden" value="11227542">                        <div class="job_locate main-title-row" id="11227542_section">
-                            <p class="m-auto bold">Firstname Lastname</p>
-                        </div>
-<input id="Members_0__Disclosures_0__Name" name="Members[0].Disclosures[0].Name" type="hidden" value="Participant Liability Waiver and Hold Harmless Agreement and Assumption of the Risk"><input id="Members_0__Disclosures_0__ContentType" name="Members[0].Disclosures[0].ContentType" type="hidden" value="TypedContent"><input id="Members_0__Disclosures_0__DisclosureText" name="Members[0].Disclosures[0].DisclosureText" type="hidden" value="&lt;p class=&quot;p1&quot; style=&quot;margin-bottom:0px;font-variant-numeric:normal;font-variant-east-asian:normal;font-variant-alternates:normal;font-kerning:auto;font-optical-sizing:auto;font-feature-settings:normal;font-variation-settings:normal;font-variant-position:normal;font-size:13px;line-height:normal;&quot;&gt;&amp;nbsp;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot; id=&quot;docs-internal-guid-e57ce6ea-7fff-2740-995c-1f957437e401&quot;&gt;&lt;span style=&quot;font-size:11pt;font-weight:700;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;Please read this Waiver, Release, and Assumption of Risk carefully before signing.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I understand that participation in this activity is voluntary. By signing this waiver, I certify that I and/or my child (or minor in my care) am physically fit and able to participate.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;On behalf of myself and/or as the parent or legal guardian of the minor participant, I agree to indemnify, defend, and hold harmless Lifetime Activities LLC and Lifetime Activities Sunnyvale LLC (collectively known as &amp;ldquo;Lifetime&amp;rdquo;) and the City of Sunnyvale, including their respective officers, employees, agents, and representatives, from and against any and all claims, demands, causes of action, damages, losses, liabilities, or expenses. I hereby waive, release, and discharge Lifetime and the City of Sunnyvale from any and all claims for injury, illness, disability, death, loss, or damage of any kind, whether known or unknown, that I or the minor may suffer arising out of or related in any way to participation in this class or activity, including claims arising from the negligence or carelessness of the released parties. I understand that participation involves inherent risks, including the risk of serious injury or death. Knowing these risks, I voluntarily assume full responsibility for any such risks on behalf of myself and/or the minor participant. This waiver and release shall be binding upon my/our heirs, executors, administrators, and assigns.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I acknowledge the contagious nature of COVID-19 and voluntarily assume the risk that I and/or my child(ren) may be exposed to or infected by COVID-19 while attending Lifetime programs or venues. I understand that such exposure may result in personal injury, illness, permanent disability, or death. I further understand that the risk of exposure may result from the actions, omissions, or negligence of myself and others, including Lifetime employees, volunteers, participants, and their families.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I grant Lifetime permission to photograph and/or record video of me and/or the registered minor participant and to use, reproduce, edit, publish, distribute, and display such images or recordings for lawful promotional purposes, including but not limited to newsletters, brochures, advertisements, websites, social media, press materials, and other print or digital communications.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I understand that no compensation will be provided for such use and that this authorization shall remain in effect indefinitely unless revoked by me in writing. I waive any right to inspect or approve the final materials in which my or the minor&amp;rsquo;s likeness appears.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:12pt;margin-bottom:12pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I acknowledge that I have read this waiver and understand that important legal rights are being waived.&lt;/span&gt;&lt;/p&gt;&lt;p dir=&quot;ltr&quot; style=&quot;line-height:1.38;margin-top:0pt;margin-bottom:0pt;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;I further acknowledge that I have read and understand and will be subject to the &lt;/span&gt;&lt;a href=&quot;https://www.lifetimeactivities.com/policies-refunds/&quot; style=&quot;text-decoration:none;&quot;&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;text-decoration:underline;text-decoration-skip-ink:none;vertical-align:baseline;white-space:pre-wrap;&quot;&gt;registration, withdrawal and refund policies&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot;font-size:10pt;font-variant:normal;vertical-align:baseline;white-space:pre-wrap;&quot;&gt; as stated on the Lifetime Activities website.&lt;/span&gt;&lt;/p&gt;&lt;p class=&quot;p1&quot; style=&quot;margin-bottom:0px;font-variant-numeric:normal;font-variant-east-asian:normal;font-variant-alternates:normal;font-kerning:auto;font-optical-sizing:auto;font-feature-settings:normal;font-variation-settings:normal;font-variant-position:normal;font-size:13px;line-height:normal;&quot;&gt;&amp;nbsp;&lt;/p&gt;"><input id="Members_0__Disclosures_0__FileGuid" name="Members[0].Disclosures[0].FileGuid" type="hidden" value=""><input id="Members_0__Disclosures_0__FileName" name="Members[0].Disclosures[0].FileName" type="hidden" value=""><input id="Members_0__Disclosures_0__RuleInstructions" name="Members[0].Disclosures[0].RuleInstructions" type="hidden" value=""><input data-val="true" data-val-number="The field Id must be a number." id="Members_0__Disclosures_0__Id" name="Members[0].Disclosures[0].Id" type="hidden" value="42136"><input id="Members_0__Disclosures_0__ReadAgreementMessage" name="Members[0].Disclosures[0].ReadAgreementMessage" type="hidden" value="I have carefully read, fully understand, and accept all the provisions and terms as stated."><input data-val="true" data-val-number="The field RequiredEventId must be a number." id="Members_0__Disclosures_0__RequiredEventId" name="Members[0].Disclosures[0].RequiredEventId" type="hidden" value=""><input class="signed-data-url" id="signature_data_url_00" name="Members[0].Disclosures[0].SignatureDataUrl" type="hidden" value="">                            <span class="fn-autoheight">
-
-<script src="https://raw.githubusercontent.com/davidjbradshaw/iframe-resizer/master/js/iframeResizer.min.js"></script>
-
-<input type="hidden" name="Org_CurrentDateTime" id="Org_CurrentDateTime" value="8/24/2026 2:03 AM">
-
-<div class="disclosure-membership-container signature-not-valid-container pointer" id="signature_00_container">
-        <!--<p style="font-size: 1.4rem;">-->
-        <!--<span style="font-size: 1rem;" class="color-org">
-            <img src="/Content/images/icons/signature_24.png" style="height: 22px; vertical-align: sub; "/>
-        </span>
-        Participant Liability Waiver and Hold Harmless Agreement and Assumption of the Risk
-        </p>-->
-        <a data-zindex="1000000" onclick="displayDisclosureDetails(42136, $(this))" class="a-modal btn btn-secondary btn-medium auto-height btn-details-page">
-            <span class="d-flex">
-                <img src="/Content/images/icons/signature_white_32.png" style="height: 22px; max-width: 40px; margin: auto;">
-                <span class="white-space">
-                    &nbsp; VIEW &amp; REVIEW PARTICIPANT LIABILITY WAIVER AND HOLD HARMLESS AGREEMENT AND ASSUMPTION OF THE RISK
-                </span>
-            </span>
-        </a>
-
-
-    <ul>
-
-
-
-                <div style="position: relative" class="mt10 rowCheckbox">
-<input data-role="checkbox" id="Members_0__Disclosures_0__AcceptAgreement" name="Members[0].Disclosures[0].AcceptAgreement" type="checkbox" value="true" class="k-checkbox k-checkbox-md k-rounded-md"><span class="check-box-helper "></span><label for="Members_0__Disclosures_0__AcceptAgreement" class="k-checkbox-label">I have carefully read, fully understand, and accept all the provisions and terms as stated.</label><input name="Members[0].Disclosures[0].AcceptAgreement" type="hidden" value="false"><script>
-	kendo.syncReady(function(){jQuery("#Members_0__Disclosures_0__AcceptAgreement").kendoCheckBox({"label":"I have carefully read, fully understand, and accept all the provisions and terms as stated."});});
-</script>                </div>
-            <div>
-                <div class="click-to-signup-container" data-zindex="1000000" id="click-to-signup-container_00" onclick="openSignatureModal('00', '42136', $(this))">
-                    <span>CLICK TO SIGN</span>
-                </div>
-                <div class="hide signature-canvas-container" id="signature-canvas_00_container">
-                    <div class="preview-signature-container" data-zindex="1000000" onclick="openSignatureModal('00', '42136', $(this))">
-                        <img id="imported_signup_00_image">
-                    </div>
-
-                    <div id="signature_00_stamp" class="signature-stamp-container">
-                        <div>
-                            <label for="Disclosures_00_SignedOn">Date Signed</label>
-
-                            <div class="d-block signature-stamp-time text-muted">
-
-                            </div>
-                        </div>
-
-                        <div class="block sign-member-details hide">
-                            <label>Signed By</label>
-                            <div class="d-block text-muted sign-member-details-value">
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-    </ul>
-</div>
-                            </span>
-
-                </span>
-            </span>
-
-            <div class="membership-list-item-button-container " style="padding-bottom: ; ">
-                    <a onclick="saveSignedDisclosures()" class="btn btn-lg btn-block btn-org btn-submit btn-details-page" style="">
-                            <span>SAVE SIGNATURE</span>
-
-                    </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-*/
-          } else {
-            debug_login_result = true;
-
-            await page.screenshot({ path: 'login-failed.png', fullPage: true });
-            await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-            console.log('Login FAILED?? … during `u_array/p_array[' + i + ']` but maybe we can just go directly to the target URL and it might work anyhow');
-          }
-
+        let debug_login_result : boolean = !(await login_but_also_report_waiver_expiry(page, u_array[i]!, p_array[i]!, login_ok_el, all_bookings));
+        if (debug_login_result) {
+          console.log('Login FAILED?? … during `u_array/p_array[' + i + ']` but maybe we can just go directly to the target URL and it might work anyhow');
         }
 
         // "My Reservations"
