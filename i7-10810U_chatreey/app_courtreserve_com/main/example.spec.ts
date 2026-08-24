@@ -1517,6 +1517,7 @@ test('try booking pickleball', async ({ page }) => {
 });
 
 test('read upcoming reservations', async ({ page }) => {
+  const all_bookings : string[] = ['Upcoming reservations:'];
 
   // let login_ok_el: Locator = page.locator('h4').getByText('Hours of Availability');
   let login_ok_el: Locator = page.getByRole('heading', {name: 'Hours of Availability'});
@@ -1585,7 +1586,6 @@ test('read upcoming reservations', async ({ page }) => {
 
       expect(u_w.length, 'WAIVERCHECK_USERNAMES and WAIVERCHECK_PASSWORDS mismatch, so probably one of them has a comma `,` or else you did not set up the Github Actions correctly').toBe(p_w.length);
 
-      const all_bookings : string[] = ['Upcoming reservations:'];
       for (let i = 0; i < Math.min(u_w.length, p_w.length); i++) {
         await login_but_also_report_waiver_expiry(page, u_w[i]!, p_w[i]!, login_ok_el, all_bookings);
       }
@@ -1599,14 +1599,13 @@ test('read upcoming reservations', async ({ page }) => {
 
       expect(u_array.length, "READ_USERNAMES and READ_PASSWORDS don't match, so probably one of them has a comma ',' or else you didn't set up the Github Actions correctly").toBe(p_array.length);
 
-      const all_bookings : string[] = ['Upcoming reservations:'];
       for (let i = 0; i < Math.min(u_array.length, p_array.length); i++) {
         // await page.goto('https://app.courtreserve.com/Online/Account/LogIn/13233');
 
         // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
         let debug_login_result : boolean = !(await login_but_also_report_waiver_expiry(page, u_array[i]!, p_array[i]!, login_ok_el, all_bookings));
-        if (!debug_login_result) {
+        if (debug_login_result) {
           console.log('Login FAILED?? … during `u_array/p_array[' + i + ']` but maybe we can just go directly to the target URL and it might work anyhow');
         }
 
