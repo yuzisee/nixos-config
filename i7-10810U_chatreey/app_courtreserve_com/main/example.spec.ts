@@ -1443,11 +1443,27 @@ test('read upcoming reservations', async ({ page }) => {
         if (await locator_visible(login_ok_el, 6000)) {
           console.log('Login OK? ' + i);
         } else {
-          debug_login_result = true;
 
-          await page.screenshot({ path: 'login-failed.png', fullPage: true });
-          await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-          console.log('Login FAILED?? … during `u_array/p_array[' + i + ']` but maybe we can just go directly to the target URL and it might work anyhow');
+          let waiver_title : boolean = await page.getByText('REVIEW PARTICIPANT LIABILITY WAIVER').isVisible();
+          let waiver_checkbox : boolean = await page.getByText('I have carefully read, fully understand, and accept all the provisions and terms as stated').isVisible();
+
+          if (waiver_title || waiver_checkbox) {
+          /*
+- text: VIEW & REVIEW PARTICIPANT LIABILITY WAIVER AND HOLD HARMLESS AGREEMENT AND ASSUMPTION OF THE RISK
+- list:
+  - checkbox "I have carefully read, fully understand, and accept all the provisions and terms as stated."
+  - text:  I have carefully read, fully understand, and accept all the provisions and terms as stated. CLICK TO SIGN
+           */
+            all_bookings.push('WAIVER HAS EXPIRED');
+            console.log(await page.content()); // innerHTML
+          } else {
+            debug_login_result = true;
+
+            await page.screenshot({ path: 'login-failed.png', fullPage: true });
+            await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+            console.log('Login FAILED?? … during `u_array/p_array[' + i + ']` but maybe we can just go directly to the target URL and it might work anyhow');
+          }
+
         }
 
         // "My Reservations"
