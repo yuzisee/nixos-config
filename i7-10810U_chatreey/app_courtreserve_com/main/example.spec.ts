@@ -1439,14 +1439,14 @@ test('read upcoming reservations', async ({ page }) => {
 - list
 	*/
         // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-        var debug_login_result : boolean = false;
+        let debug_login_result : boolean = false;
         if (await locator_visible(login_ok_el, 6000)) {
           console.log('Login OK? ' + i);
         } else {
           debug_login_result = true;
 
-          await p.screenshot({ path: 'login-failed.png', fullPage: true });
-          await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+          await page.screenshot({ path: 'login-failed.png', fullPage: true });
+          await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
           console.log('Login FAILED?? … during `u_array/p_array[' + i + ']` but maybe we can just go directly to the target URL and it might work anyhow');
         }
 
@@ -1506,12 +1506,6 @@ test('read upcoming reservations', async ({ page }) => {
   </div>
 </div>
         */
-    if (debug_login_result) {
-      console.log('So what is happening now?');
-      await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-      await p.screenshot({ path: 'login-result_unknown.png', fullPage: true });
-    }
-
         // <div class="ant-spin ant-spin-sm ant-spin-spinning css-sfktup" aria-live="polite" aria-busy="true"><span class="ant-spin-dot-holder"><span class="ant-spin-dot ant-spin-dot-spin"><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i></span></span></div>
     let loadingSpinners : Locator = page.locator('div.ant-spin.ant-spin-spinning');
     if ((await loadingSpinners.count()) > 0) {
@@ -1534,6 +1528,18 @@ test('read upcoming reservations', async ({ page }) => {
         // TODO(from joseph): If there's any funny business with how text is rendered, use `.allTextContents()` instead to grab the raw HTML text
         all_bookings.push(...activeBookings_default);
         all_bookings.push('───');
+
+        if (debug_login_result) {
+          console.log('So what is happening now?');
+          await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+          await page.screenshot({ path: 'login-result_unknown.png', fullPage: true });
+          if (activeBookings_default.length == 0) {
+            console.log();
+            throw new Error("Okay at this point we can't trust the result. Fail fast.");
+          }
+        }
+
+
       } // end for i
 
       const write_timestamp: SerializedDate = await localtime_datenow(page);
