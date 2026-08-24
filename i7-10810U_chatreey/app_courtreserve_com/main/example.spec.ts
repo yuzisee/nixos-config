@@ -1187,10 +1187,20 @@ test('try booking pickleball', async ({ page }) => {
 
   await login_username_password(page, ready_u!, ready_p!);
 
-  console.log('Where are we going next?');
-  await page.waitForURL(HOME_URL + '*');
+  console.log('Where are we going next? If the next step takes more than 15s maybe we got redirected? Did your waiver expire???');
+  try {
+    await page.waitForURL(start_url + '*', {timeout: 15 * 1000});
+    console.log('Ok, it seems we are logged in! ' + page.url());
+  } catch (e) {
+    if (e instanceof errors.TimeoutError) {
+      console.log("We didn't make it to → " + start_url + ' … so I guess we got redirected to ' + page.url());
+      // Maybe we can force it now that we are logged in??
+      await page.goto(start_url);
+    } else {
+      throw e;
+    }
+  }
 
-  console.log('Ok, it seems we are logged in! ' + page.url());
 
   // ========
   // Phase 2: In case you end up at https://app.courtreserve.com/Online/MyProfile/MyClubs/13233 navigate to the `HOME_CLUB`'s page as quickly as possible
