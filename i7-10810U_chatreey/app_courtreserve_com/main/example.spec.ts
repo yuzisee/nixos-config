@@ -1090,6 +1090,7 @@ async function login_but_also_report_waiver_expiry(p: Page, u_str: string, p_str
 </div>
 
 */
+      console.log('We got sent to the waiver signature page. Human intervention required, ' + u_str.substring(0, 1) + '…');
       return true;
     } else {
 
@@ -1518,6 +1519,8 @@ test('try booking pickleball', async ({ page }) => {
 
 test('read upcoming reservations', async ({ page }) => {
   const all_bookings : string[] = ['Upcoming reservations:'];
+
+  test.setTimeout(120 * 1000); // Let's give it 2 minutes. Seems like the default value of 30s (https://playwright.dev/docs/test-timeouts) isn't quite enough to check 4 accounts
 
   // let login_ok_el: Locator = page.locator('h4').getByText('Hours of Availability');
   let login_ok_el: Locator = page.getByRole('heading', {name: 'Hours of Availability'});
