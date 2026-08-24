@@ -1454,7 +1454,7 @@ test('read upcoming reservations', async ({ page }) => {
   - checkbox "I have carefully read, fully understand, and accept all the provisions and terms as stated."
   - text:  I have carefully read, fully understand, and accept all the provisions and terms as stated. CLICK TO SIGN
            */
-            all_bookings.push('WAIVER HAS EXPIRED');
+            all_bookings.push('WAIVER HAS EXPIRED??');
 /*
             let waiver_user_el_by_id : Locator = page.locator('input#SigningMemberFullName')
             let waiver_user_el_by_name : Locator =  page.locator('input[name=SigningMemberFullName]');
@@ -1467,6 +1467,7 @@ test('read upcoming reservations', async ({ page }) => {
 */
 
         let waiver_needed: string[] = await page.locator('form#disclosures-form').allInnerTexts();
+        // console.log(await page.content()); // innerHTML
         all_bookings.push(...waiver_needed);
 
 /*
@@ -1572,7 +1573,6 @@ test('read upcoming reservations', async ({ page }) => {
 </div>
 
 */
-            console.log(await page.content()); // innerHTML
           } else {
             debug_login_result = true;
 
