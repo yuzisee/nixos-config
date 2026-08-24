@@ -50,5 +50,9 @@ jobs:
     - name: Run tsc
       working-directory: ./i7-10810U_chatreey/app_courtreserve_com
       run: npx tsc --noEmit
+    - name: Run self-test
+      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
+      run: npx --no-install playwright test main/example.spec.ts --grep 'logic self-test'
+
 
 

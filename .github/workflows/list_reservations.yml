@@ -33,7 +33,21 @@ jobs:
     - uses: actions/upload-pages-artifact@v3
       with:
         path: i7-10810U_chatreey/app_courtreserve_com/upcoming_reservations
-    # This last step will create a Github Artifact with a very specific filename
+    # ^^^ This step will create a Github Artifact with a very specific filename
+    - name: Upload screenshots if problems found
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: screenshots_DEBUG-playwright-${{ github.job }}
+        path: |
+          i7-10810U_chatreey/app_courtreserve_com/*.png
+          i7-10810U_chatreey/app_courtreserve_com/test-results/example-read-upcoming-reservations-chromium/*.png
+          i7-10810U_chatreey/app_courtreserve_com/test-results/example-read-upcoming-reservations-chromium/*.md
+        overwrite: false
+        compression-level: 9
+        retention-days: 11
+        # [!IMPORTANT]
+        # Always set retention-days (or else we'll run out of Github Actions space!!)
 
 
   deploy:
