@@ -33,8 +33,8 @@ jobs:
               echo 'One-time recovery (special day extra booking, but remember you still need to e.g. run Wed to book next Thurs) ↓'
               echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
             else
-              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y%m%d')" -le '20260814'; then
-                echo 'Skip. No need to book until at least August 14 because we already have too many bookings through the week of August 21'
+              if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y%m%d')" -le '20260828'; then
+                echo 'Skip. No need to book until after August 28 because we already have too many bookings through the week of Sept 3'
               else
                   case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
                   Sun)
