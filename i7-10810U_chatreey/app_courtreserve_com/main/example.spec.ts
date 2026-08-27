@@ -637,7 +637,13 @@ async function fill_out_form(p: Page) : Promise<boolean> {
         // WAIT FOR THE button to submit...
         await expect(saveButtonSpinners).toHaveCount(0, {timeout: 20 * 1000});
       } catch (pw_error) {
-        console.log('If you are in the lottery, there will still be a spinner FYI. No problem, we can wait for the lottery to finish.');
+		console.log('If you are in the lottery, there will still be a spinner FYI.');
+        console.dir(pw_error, {showHidden: true, depth: 5})
+		await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+        await p.screenshot({ path: 'lottery-state-unknown' + (new Date()).valueOf() + '.png', fullPage: true });
+		console.log( await p.locator('div.modal-title-buttons').last().evaluate(el => el.innerHTML) );
+		console.log('But the spinner is still there after 20s? No problem, the next part will wait for the lottery to finish if the lottery is running anyways…');
+		console.log( await booking_form_el.first().evaluate(el => el.innerHTML) );
       }
     } else {
       console.log('No spinner appeared... Did we click the [Save] button? How long does it normally take for the spinner to appear?');
@@ -676,7 +682,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
         - listitem [ref=e21]:
           - link [ref=e22] [cursor=pointer]:
             - /url: "#"
-            - text: Nana Xu 
+            - text: … 
           - text:     
         - listitem [ref=e23]:
           - link [ref=e24] [cursor=pointer]:
@@ -1181,10 +1187,20 @@ test('try booking pickleball', async ({ page }) => {
 
   await login_username_password(page, ready_u!, ready_p!);
 
-  console.log('Where are we going next?');
-  await page.waitForURL(HOME_URL + '*');
+  console.log('Where are we going next? If the next step takes more than 15s maybe we got redirected? Did your waiver expire???');
+  try {
+    await page.waitForURL(start_url + '*', {timeout: 15 * 1000});
+    console.log('Ok, it seems we are logged in! ' + page.url());
+  } catch (e) {
+    if (e instanceof errors.TimeoutError) {
+      console.log("We didn't make it to → " + start_url + ' … so I guess we got redirected to ' + page.url());
+      // Maybe we can force it now that we are logged in??
+      await page.goto(start_url);
+    } else {
+      throw e;
+    }
+  }
 
-  console.log('Ok, it seems we are logged in! ' + page.url());
 
   // ========
   // Phase 2: In case you end up at https://app.courtreserve.com/Online/MyProfile/MyClubs/13233 navigate to the `HOME_CLUB`'s page as quickly as possible
@@ -1479,14 +1495,14 @@ test('try booking pickleball', async ({ page }) => {
               - generic [ref=e214] [cursor=pointer]: Player(s)
               - grid [ref=e219] [cursor=pointer]:
                 - rowgroup [ref=e222]:
-                  - row "# 1 Name ... Cost $13.00 Due $13.00" [ref=e223]:
+                  - row "# 1 Name … Cost $13.00 Due $13.00" [ref=e223]:
                     - gridcell "# 1" [ref=e224]:
                       - generic [ref=e225]: "#"
                       - generic [ref=e226]: "1"
-                    - gridcell "Name ..." [ref=e227]:
+                    - gridcell "Name …" [ref=e227]:
                       - generic [ref=e228]: Name
                       - generic [ref=e229]:
-                        - generic [ref=e230]: ...
+                        - generic [ref=e230]: …
                         - text: 
                     - gridcell "Cost $13.00" [ref=e231]:
                       - generic [ref=e232]: Cost
