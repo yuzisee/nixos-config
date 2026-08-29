@@ -77,7 +77,7 @@ jobs:
           esac
 
 
-  pickleball_go1:
+  pickleball_go:
     needs: time_zone_checker
     if: (github.event_name == 'workflow_dispatch') || (needs.time_zone_checker.outputs.localtime_current_hourstr == '11')
     # Otherwise, there is another `on: … schedule: …` cron line above that we can use instead... and we can safely skip this current run for now
@@ -86,6 +86,24 @@ jobs:
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
     environment: "Prod (Lifetime Activities Sunnyvale)"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - screenshot_name: screenshots_anthony
+            username_varname: ANTHONY
+            password_varname: LOGIN_PROD
+          - screenshot_name: screenshots_raymond
+            username_varname: RAYMOND
+            password_varname: LOGIN_RAYMOND_NANA
+          - screenshot_name: screenshots_nana
+            username_varname: NANA
+            password_varname: LOGIN_RAYMOND_NANA
+          - screenshot_name: screenshots_yifei
+            username_varname: YIFEI
+            password_varname: LOGIN4
+
     steps:
     - name: Checkout repository
       timeout-minutes: 4
@@ -99,137 +117,16 @@ jobs:
       # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
       run: npx --no-install playwright test main/example.spec.ts --grep 'try booking pickleball'
       env:
-        U: ${{ secrets['ANTHONY'] }}
-        P: ${{ secrets['LOGIN_PROD'] }}
-        DEV_U: ${{ secrets.LOGIN_DEV }}
-        DEV_P: ${{ secrets.DUMMYPW }}
+        U: ${{ secrets[matrix.username_varname] }}
+        P: ${{ secrets[matrix.password_varname] }}
+        DEV_U: ${{ secrets['LOGIN_DEV'] }}
+        DEV_P: ${{ secrets['DUMMYPW'] }}
         OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
     - name: Upload screenshots if available
       if: always()
       uses: actions/upload-artifact@v6
       with:
-        name: screenshots_anthony-playwright-${{ github.job }}
-        path: |
-          i7-10810U_chatreey/app_courtreserve_com/*.png
-          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.png
-          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.md
-        overwrite: false
-        compression-level: 9
-        retention-days: 11
-        # [!IMPORTANT]
-        # Always set retention-days (or else we'll run out of Github Actions space!!)
-
-  pickleball_go2:
-    needs: time_zone_checker
-    if: (github.event_name == 'workflow_dispatch') || (needs.time_zone_checker.outputs.localtime_current_hourstr == '11')
-    # Otherwise, there is another `on: … schedule: …` cron line above that we can use instead... and we can safely skip this current run for now
-    # ^^^ We are charged by the minute, and the free plan has only 2000 minutes per month, so no need to waste an entire hour waiting ← https://docs.github.com/en/get-started/learning-about-github/githubs-plans#github-free-for-personal-accounts
-
-    runs-on: ubuntu-latest
-    # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
-    environment: "Prod (Lifetime Activities Sunnyvale)"
-    steps:
-    - name: Checkout repository
-      timeout-minutes: 4
-      uses: actions/checkout@v6
-    - name: Install Playwright
-      timeout-minutes: 4
-      run: sh i7-10810U_chatreey/dev-github/reinstall_playwright.sh
-    - name: Book within 6 hours
-      timeout-minutes: 30
-      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
-      # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
-      run: npx --no-install playwright test main/example.spec.ts --grep 'try booking pickleball'
-      env:
-        U: ${{ secrets['RAYMOND'] }}
-        P: ${{ secrets['LOGIN_RAYMOND_NANA'] }}
-        OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
-    - name: Upload screenshots if available
-      if: always()
-      uses: actions/upload-artifact@v6
-      with:
-        name: screenshots_raymond-playwright-${{ github.job }}
-        path: |
-          i7-10810U_chatreey/app_courtreserve_com/*.png
-          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.png
-          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.md
-        overwrite: false
-        compression-level: 9
-        retention-days: 11
-        # [!IMPORTANT]
-        # Always set retention-days (or else we'll run out of Github Actions space!!)
-
-
-  pickleball_go3:
-    needs: time_zone_checker
-    if: (github.event_name == 'workflow_dispatch') || (needs.time_zone_checker.outputs.localtime_current_hourstr == '11')
-    # Otherwise, there is another `on: … schedule: …` cron line above that we can use instead... and we can safely skip this current run for now
-    # ^^^ We are charged by the minute, and the free plan has only 2000 minutes per month, so no need to waste an entire hour waiting ← https://docs.github.com/en/get-started/learning-about-github/githubs-plans#github-free-for-personal-accounts
-
-    runs-on: ubuntu-latest
-    # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
-    environment: "Prod (Lifetime Activities Sunnyvale)"
-    steps:
-    - name: Checkout repository
-      timeout-minutes: 4
-      uses: actions/checkout@v6
-    - name: Install Playwright
-      timeout-minutes: 4
-      run: sh i7-10810U_chatreey/dev-github/reinstall_playwright.sh
-    - name: Book within 6 hours
-      timeout-minutes: 30
-      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
-      # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
-      run: npx --no-install playwright test main/example.spec.ts --grep 'try booking pickleball'
-      env:
-        U: ${{ secrets['NANA'] }}
-        P: ${{ secrets['LOGIN_RAYMOND_NANA'] }}
-        OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
-    - name: Upload screenshots if available
-      if: always()
-      uses: actions/upload-artifact@v6
-      with:
-        name: screenshots_nana-playwright-${{ github.job }}
-        path: |
-          i7-10810U_chatreey/app_courtreserve_com/*.png
-          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.png
-          i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.md
-        overwrite: false
-        compression-level: 9
-        retention-days: 11
-        # [!IMPORTANT]
-        # Always set retention-days (or else we'll run out of Github Actions space!!)
-
-  pickleball_go4:
-    needs: time_zone_checker
-    if: (github.event_name == 'workflow_dispatch') || (needs.time_zone_checker.outputs.localtime_current_hourstr == '11')
-    # Otherwise, there is another `on: … schedule: …` cron line above that we can use instead... and we can safely skip this current run for now
-    # ^^^ We are charged by the minute, and the free plan has only 2000 minutes per month, so no need to waste an entire hour waiting ← https://docs.github.com/en/get-started/learning-about-github/githubs-plans#github-free-for-personal-accounts
-
-    runs-on: ubuntu-latest
-    # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
-    environment: "Prod (Lifetime Activities Sunnyvale)"
-    steps:
-    - name: Checkout repository
-      timeout-minutes: 4
-      uses: actions/checkout@v6
-    - name: Install Playwright
-      timeout-minutes: 4
-      run: sh i7-10810U_chatreey/dev-github/reinstall_playwright.sh
-    - name: Book within 6 hours
-      timeout-minutes: 30
-      working-directory: ./i7-10810U_chatreey/app_courtreserve_com
-      # [INVARIANT] If you get here, we're cleared to proceed. Run booking!!
-      run: npx --no-install playwright test main/example.spec.ts --grep 'try booking pickleball'
-      env:
-        U: ${{ secrets['YIFEI'] }}
-        P: ${{ secrets['LOGIN4'] }}
-        OVERRIDE_AMPM: ${{ needs.time_zone_checker.outputs.override_ampm }}
-    - name: Upload screenshots if available
-      if: always()
-      uses: actions/upload-artifact@v6
-      with:
-        name: screenshots_yifei-playwright-${{ github.job }}
+        name: ${{ matrix.screenshot_name }}-playwright-${{ github.job }}
         path: |
           i7-10810U_chatreey/app_courtreserve_com/*.png
           i7-10810U_chatreey/app_courtreserve_com/test-results/example-try-booking-pickleball-chromium/*.png
