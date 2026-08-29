@@ -82,7 +82,7 @@
       # qutebrowser # This is the "vim-like" one with keyboard navigation
       epiphany # Wayland epiphany has some serious memory leaks (like 7GiB+), it's essentially unusuable
       doublecmd
-      scid-vs-pc
+      # scid-vs-pc # Waiting for https://github.com/NixOS/nixpkgs/pull/524572 to be released, I guess
       mupdf
       geeqie
       duc # disk usage visualizer
