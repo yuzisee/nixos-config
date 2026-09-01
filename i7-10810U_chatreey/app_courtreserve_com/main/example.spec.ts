@@ -3,7 +3,6 @@ import { test, expect, errors, type Page, type Locator } from '@playwright/test'
 
 const LAUNCH_MODE: string = 'prod';
 // const LAUNCH_MODE: string = 'dev';
-const RISKY_BUT_FASTER: boolean = true;
 
 // https://www.lifetimeactivities.com/sunnyvale/court-reservations-policies/
 // "Verified Sunnyvale residents may reserve courts 8 days in advance. Unverified Residents and Non-Residents may reserve courts 7 days in advance"
@@ -210,6 +209,10 @@ async function refresh_until_date_available(p: Page, _year_num: number, _month_z
 
    // k-scheduler-toolbar
    await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
+
+    // Case study: August 1, 2026 was on a Saturday, so it reads Sunday 2nd, Sunday 9th, Sunday 16th, Sunday 23nd, Sunday 30th... leaving Monday Aug 31 on the bottom row of the calendar.
+    // Case study: The only worse scenario would be if the 1st was a Sunday and the month has 31 days. That would make Tuesday the 31st, and we'd only be able to access the first 5 days of next month in RISKY_BUT_FASTER mode.
+    let RISKY_BUT_FASTER: boolean = ((day_num < 6) || (8 < day_num));
 
     // k-sm-date-format
     if (await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: short_date, exact: false}).isVisible()) {
