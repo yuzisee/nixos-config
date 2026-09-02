@@ -848,6 +848,7 @@ function halfHourAfter(reserve_str: string): string {
 // The returned results will be chronological, EXCEPT you will have an extra copy of `favouriteTimes` at the very front, if any of them are also available for the full hour
 function topPriorityFullHourReservable(halfHourTimes: Array<string>, favouriteTimes: string[]): Array<string> {
   var result: Array<string> = [];
+  var alreadyTimes: Set<string> = new Set();
   var reserveTimesLookup: Set<string> = new Set(halfHourTimes);
   for (let datatime_str of [...favouriteTimes, ...halfHourTimes]) {
     if (datatime_str != '11:30 PM') {
@@ -855,8 +856,11 @@ function topPriorityFullHourReservable(halfHourTimes: Array<string>, favouriteTi
       // `reserveTimesLookup.has(datatime_str)` should already be true, unless we're checking one of `favouriteTimes`
       if (reserveTimesLookup.has(datatime_str) && reserveTimesLookup.has(halfHourAfter(datatime_str))) {
         // Both `datatime_str` and `halfHourAfter` are bookable! That means...
-	result.push(datatime_str);
-	// ... `datatime_str` will let you book a full hour
+        if (!alreadyTimes.has(datatime_str)) {
+          alreadyTimes.add(datatime_str);
+          result.push(datatime_str);
+        }
+        // ... `datatime_str` will let you book a full hour
       }
     }
 
