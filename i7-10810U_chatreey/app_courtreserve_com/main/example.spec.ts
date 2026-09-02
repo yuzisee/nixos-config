@@ -13,7 +13,7 @@ const EARLIEST_HOUR_TO_BOOK: number = 7; // for runtime efficiency, don't even p
 // [!TIP]
 // If it can't grab any of the `FAVOURITE_TIMES_BEST_FIRST[overrideAmPm]` times, it will book the earliest timeslot starting from `EARLIEST_HOUR_TO_BOOK`
 const FAVOURITE_TIMES_BEST_FIRST: Record<'AM' | 'PM', string[]> = {
-  AM: ['9:30 AM'],
+  AM: ['9:00 AM', '9:30 AM'],
   PM: ['8:30 PM', '9:00 PM', '8:00 PM']
 };
 // [!NOTE]
@@ -845,9 +845,10 @@ function halfHourAfter(reserve_str: string): string {
 
 // There is a [Reserve] button for every half hour, but the point of this script is to try and get a full hour as early as we can.
 // This helper function here will narrow down the options to only the [Reserve] buttons that still have a full hour available.
-// The returned results will be chronological, EXCEPT you will have an extra copy of `favouriteTimes` at the very front, if any of them are also available for the full hour
+// The returned results will be chronological, EXCEPT the values of `favouriteTimes` will be at the very front, if any of them are available for their full hour
 function topPriorityFullHourReservable(halfHourTimes: Array<string>, favouriteTimes: string[]): Array<string> {
   var result: Array<string> = [];
+  var alreadyTimes: Set<string> = new Set();
   var reserveTimesLookup: Set<string> = new Set(halfHourTimes);
   for (let datatime_str of [...favouriteTimes, ...halfHourTimes]) {
     if (datatime_str != '11:30 PM') {
@@ -855,8 +856,11 @@ function topPriorityFullHourReservable(halfHourTimes: Array<string>, favouriteTi
       // `reserveTimesLookup.has(datatime_str)` should already be true, unless we're checking one of `favouriteTimes`
       if (reserveTimesLookup.has(datatime_str) && reserveTimesLookup.has(halfHourAfter(datatime_str))) {
         // Both `datatime_str` and `halfHourAfter` are bookable! That means...
-	result.push(datatime_str);
-	// ... `datatime_str` will let you book a full hour
+        if (!alreadyTimes.has(datatime_str)) {
+          alreadyTimes.add(datatime_str);
+          result.push(datatime_str);
+        }
+        // ... `datatime_str` will let you book a full hour
       }
     }
 
@@ -1745,6 +1749,11 @@ test('logic self-test', async ({ }) => {
   if (allAvailable_actual[0] != '8:30 PM') {
     throw new Error("Why didn't " + JSON.stringify(FAVOURITE_TIMES_BEST_FIRST['PM']) + ' take priority? Instead we got ' + JSON.stringify(allAvailable_actual));
   }
+
+ if (new Set(allAvailable_actual).size !== allAvailable_actual.length) {
+    throw new Error('Is this supposed to be unique or what: ' + JSON.stringify(allAvailable_actual));
+  }
+
 
   console.log('All pass');
 });
