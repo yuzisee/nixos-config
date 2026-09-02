@@ -845,7 +845,7 @@ function halfHourAfter(reserve_str: string): string {
 
 // There is a [Reserve] button for every half hour, but the point of this script is to try and get a full hour as early as we can.
 // This helper function here will narrow down the options to only the [Reserve] buttons that still have a full hour available.
-// The returned results will be chronological, EXCEPT you will have an extra copy of `favouriteTimes` at the very front, if any of them are also available for the full hour
+// The returned results will be chronological, EXCEPT the values of `favouriteTimes` will be at the very front, if any of them are available for their full hour
 function topPriorityFullHourReservable(halfHourTimes: Array<string>, favouriteTimes: string[]): Array<string> {
   var result: Array<string> = [];
   var alreadyTimes: Set<string> = new Set();
