@@ -36,9 +36,9 @@ jobs:
               if test "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%Y%m%d')" -le '20260828'; then
                 echo 'Skip. No need to book until after August 28 because we already have too many bookings through the week of Sept 3'
               else
-                  case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
+                case "$(env TZ='America/Los_Angeles' LC_ALL=C date +'%a')" in
                   Sun)
-                    echo 'run on Sundays to book the next Monday'
+                   echo 'run on Sundays to book the next Monday'
                     echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
                     echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
                   ;;
@@ -56,6 +56,11 @@ jobs:
                     echo 'For now, consider Thursday to book Friday as a desperation option if we get nothing else all week'
                     echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
                     echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
+                  ;;
+                  Fri)
+                   echo 'on Fridays e try and book next Saturday MORNING'
+                    echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
+                    echo "preset_ampm=AM" >> "$GITHUB_OUTPUT"
                   ;;
                   *)
                     echo 'Skip.'
