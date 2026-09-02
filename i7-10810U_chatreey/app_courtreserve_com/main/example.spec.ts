@@ -1746,6 +1746,11 @@ test('logic self-test', async ({ }) => {
     throw new Error("Why didn't " + JSON.stringify(FAVOURITE_TIMES_BEST_FIRST['PM']) + ' take priority? Instead we got ' + JSON.stringify(allAvailable_actual));
   }
 
+ if (new Set(allAvailable_actual).size !== allAvailable_actual.length) {
+    throw new Error('Is this supposed to be unique or what: ' + JSON.stringify(allAvailable_actual));
+  }
+
+
   console.log('All pass');
 });
 
