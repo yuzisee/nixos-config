@@ -13,7 +13,7 @@ const EARLIEST_HOUR_TO_BOOK: number = 7; // for runtime efficiency, don't even p
 // [!TIP]
 // If it can't grab any of the `FAVOURITE_TIMES_BEST_FIRST[overrideAmPm]` times, it will book the earliest timeslot starting from `EARLIEST_HOUR_TO_BOOK`
 const FAVOURITE_TIMES_BEST_FIRST: Record<'AM' | 'PM', string[]> = {
-  AM: ['9:30 AM'],
+  AM: ['9:00 AM', '9:30 AM'],
   PM: ['8:30 PM', '9:00 PM', '8:00 PM']
 };
 // [!NOTE]
