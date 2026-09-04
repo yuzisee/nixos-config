@@ -57,8 +57,8 @@ jobs:
                     echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
                     echo "preset_ampm=PM" >> "$GITHUB_OUTPUT"
                   ;;
-                  Fri)
-                   echo 'on Fridays e try and book next Saturday MORNING'
+                  Sat)
+                   echo 'on Saturday we want to try and book next Sunday MORNING'
                     echo "localtime_hr=$(env TZ='America/Los_Angeles' date +'%H')" >> "$GITHUB_OUTPUT"
                     echo "preset_ampm=AM" >> "$GITHUB_OUTPUT"
                   ;;
