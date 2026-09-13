@@ -396,6 +396,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<boolea
     } catch (e) {
       if (e instanceof errors.TimeoutError) {
 	console.log("Wasn't able to click " + earliestSatisfactoryTime + ' after ' + abort_after_ms + 'ms...');
+        await p.screenshot({ path: 'why-not-click_' + (new Date()).valueOf() + '.png', fullPage: true });
       } else {
         throw e;
       }
@@ -622,6 +623,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
     );
 
     await booking_form_el.getByRole('button', { name: 'Save' }).first().click();
+    await p.screenshot({ path: 'immediately-after-save' + (new Date()).valueOf() + '.png', fullPage: true });
 // <div class="modal-header-container" data-testid="remove-or-withdraw-modal"><div class="modal-title"><span class="modal-title-span" data-testid="title">Book a reservation for 7/15/2026</span></div><div class="modal-title-buttons"><button type="reset" data-testid="close-btn-modal-header" class="btn btn-light " data-dismiss="modal">Close</button><button __playwright_target__="call@258" type="button" data-testid="save-btn" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 41px; outline: rgb(0, 106, 177) solid 2px; background-color: rgba(111, 168, 220, 0.498);"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div></div>
 // <div class="modal-title-buttons "><button type="reset" data-testid="Close" class="btn btn-light fn-reservation-create-close " data-dismiss="modal">Close</button><button data-testid="Save" type="button" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 38px;"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div>
     console.log( await p.locator('div.modal-title-buttons').first().evaluate(el => el.innerHTML) );
