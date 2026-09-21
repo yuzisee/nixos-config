@@ -383,7 +383,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<boolea
 
   // let randomTimeForTest: string = reserveTimes[Math.floor(Math.random() * reserveTimes.length)];
   // await p.getByRole('application').getByRole('button', { name: ' at ' + randomTimeForTest }).getByText('Reserve').click();
-  const abort_after_ms : number = 1999;
+  const abort_after_ms : number = 2999;
   while(reserveTimes.length > 0) {
 
     const earliestSatisfactoryTime: string = reserveTimes.shift()!; // assuming we parse the DOM in chronological order (and why wouldn't we?)
@@ -392,10 +392,10 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<boolea
     try {
       await ready_to_book_el.click({timeout: abort_after_ms});
       // SUCCESS!
-      return true;
+      return earliestSatisfactoryTime;
     } catch (e) {
       if (e instanceof errors.TimeoutError) {
-	console.log("Wasn't able to click " + earliestSatisfactoryTime + ' after ' + abort_after_ms + 'ms...');
+	console.log("Wasn't able to click " + earliestSatisfactoryTime + ' after ' + abort_after_ms + 'ms... but if the why-not-click_*.png screenshot looks good, maybe bump abort_after_ms higher?');
         await p.screenshot({ path: 'why-not-click_' + (new Date()).valueOf() + '.png', fullPage: true });
       } else {
         throw e;
@@ -553,7 +553,7 @@ async function wait_for_lottery(p: Page) : Promise<boolean> {
   // end wait_for_lottery
 }
 
-async function fill_out_form(p: Page) : Promise<boolean> {
+async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
 
   let booking_form_el: Locator = p.locator('form#createReservation-Form');
   await booking_form_el.getByText('End Time').waitFor({state: 'visible'});
@@ -619,7 +619,7 @@ async function fill_out_form(p: Page) : Promise<boolean> {
 
   if (LAUNCH_MODE == 'prod') {
     console.log(
-     '↳ ' + totalDueAmount + ' READY TO BOOK ' + (new Date().toISOString()) + ' UTC'
+     '↳ ' + totalDueAmount + ' READY TO BOOK ' + (new Date().toISOString()) + ' UTC, ' + dbg_msg
     );
 
     await booking_form_el.getByRole('button', { name: 'Save' }).first().click();
@@ -642,13 +642,24 @@ async function fill_out_form(p: Page) : Promise<boolean> {
         // WAIT FOR THE button to submit...
         await expect(saveButtonSpinners).toHaveCount(0, {timeout: 20 * 1000});
       } catch (pw_error) {
-		console.log('If you are in the lottery, there will still be a spinner FYI.');
-        console.dir(pw_error, {showHidden: true, depth: 5})
+		console.log('');
+		console.log(' % % % ');
+		console.log('');
+         // console.dir(pw_error, {showHidden: true, depth: 3})
 		await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+		console.log('');
+		console.log('↓ But the spinner is still there after 20s? ↑');
+		console.log('');
         await p.screenshot({ path: 'lottery-state-unknown' + (new Date()).valueOf() + '.png', fullPage: true });
 		console.log( await p.locator('div.modal-title-buttons').last().evaluate(el => el.innerHTML) );
-		console.log('But the spinner is still there after 20s? No problem, the next part will wait for the lottery to finish if the lottery is running anyways…');
+		console.log('');
+		console.log('↑ If you are in the lottery, there will still be a spinner FYI.');
+		console.log(' % % % ');
+		console.log('::group::');
 		console.log( await booking_form_el.first().evaluate(el => el.innerHTML) );
+		console.log('::::endgroup::')
+		console.log(' % % % ');
+                console.log('No problem, the next part will wait for the lottery to finish if the lottery is running anyways… ↓');
       }
     } else {
       console.log('No spinner appeared... Did we click the [Save] button? How long does it normally take for the spinner to appear?');
@@ -1436,9 +1447,9 @@ test('try booking pickleball', async ({ page }) => {
     console.log('DATE CORRECT: ' + (new Date().toISOString()) + ' UTC');
 
     // UJS XHR POST https://app.courtreserve.com/Online/Reservations/CreateReservation/13233?start=1/29/2026%209:00%20AM&end=1/29/2026%209:30%20AM&customSchedulerId=16984&courtTypeId=9&courtType=Pickleball
-    await book_best_slot(page, overrideAmPm);
+    let probably_time : string = await book_best_slot(page, overrideAmPm);
 
-    if (await fill_out_form(page)) {
+    if (await fill_out_form(page, 'Trying ' + probably_time + ' I think')) {
 
       if (process.env['GITHUB_ACTIONS'] == 'true') {
         await page.screenshot({ path: 'booked-' + LAUNCH_MODE + '.png', fullPage: true });
