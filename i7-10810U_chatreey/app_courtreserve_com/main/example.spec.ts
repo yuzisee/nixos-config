@@ -343,7 +343,7 @@ async function get_to_pickleball_reservations(p: Page): Promise<Locator> {
   }
 }
 
-async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<boolean> {
+async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string> {
 
   let alreadybooked_els: Locator = p.getByRole('presentation').getByRole('button').getByText('None Available');
   let reservable_els: Locator = p.getByRole('application').getByRole('button').getByText('Reserve');
