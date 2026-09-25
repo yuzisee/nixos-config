@@ -1143,16 +1143,16 @@ interface InterpretExistingBooking {
 // FIRSTNAME LASTNAME
 // Pickleball
 // """
-function interpret_existing_booking(given_innertext : string, given_ariasnapshot : string, given_innerhtml : string) : InterpretExistingBooking[] {
+function interpret_existing_booking(given_innertext : string, given_ariasnapshot : string, given_innerhtml : string) : InterpretExistingBooking {
   const separate_lines : string[] = given_innertext.split(/\r?\n/);
-  const booking_desc : string = separate_lines[0];
+  const booking_desc : string = separate_lines[0] ?? '';
 
   return {
     raw_text_lines: separate_lines,
     raw_ariasnapshot: given_ariasnapshot,
     raw_innerhtml: given_innerhtml,
-    booking_person_fullname: separate_lines[1],
-    booking_day_desc: booking_desc.substring(0, str.lastIndexOf(',')),
+    booking_person_fullname: separate_lines[1] ?? '???',
+    booking_day_desc: booking_desc.substring(0, booking_desc.lastIndexOf(',')),
     booking_time_desc: booking_desc.split(',').pop()?.trim() ?? "<unknown>"
   };
 }
@@ -1583,7 +1583,7 @@ test('try booking pickleball', async ({ page }) => {
 
 test('read upcoming reservations', async ({ page }) => {
   const all_bookings : string[] = ['Upcoming reservations:'];
-  const all_bookings_by_username : Map<string, InterpretExistingBooking[]> = Map.new;
+  const all_bookings_by_username : Map<string, InterpretExistingBooking[]> = new Map<string, InterpretExistingBooking[]>();
 
   test.setTimeout(120 * 1000); // Let's give it 2 minutes. Seems like the default value of 30s (https://playwright.dev/docs/test-timeouts) isn't quite enough to check 4 accounts
 
@@ -1750,7 +1750,6 @@ test('read upcoming reservations', async ({ page }) => {
       console.log('No spinner appeared... Did it load faster than normal or something?');
     }
 
-        all_bookings_by_username[cur_username] = [];
         // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
         let activeBooking_els : Locator = page.locator('div.booking-card-desktop-content-list');
@@ -1759,9 +1758,11 @@ test('read upcoming reservations', async ({ page }) => {
         all_bookings.push(...activeBookings_default);
         all_bookings.push('───');
 
+        let parsed_bookings : InterpretExistingBooking[] = new Array<InterpretExistingBooking>();
         for (const activeBooking_one of await activeBooking_els.all()) {
-          all_bookings_by_username[cur_username].push(interpret_existing_booking(await activeBooking_one.innerText(), await activeBooking_one.ariaSnapshot(), await activeBooking_one.innerHTML()));
+          parsed_bookings.push(interpret_existing_booking(await activeBooking_one.innerText(), await activeBooking_one.ariaSnapshot(), await activeBooking_one.innerHTML()));
         }
+        all_bookings_by_username.set(cur_username, parsed_bookings);
 
         if (debug_login_result) {
           console.log('So what is happening now?');
@@ -1806,7 +1807,7 @@ test('logic self-test', async ({ }) => {
  const test_existingbooking : string = `Tue, Sep 29th, 8:30 PM - 9:30 PM
 FIRSTNAME LASTNAME
 Pickleball`;
-  const actual_booking : InterpretExistingBooking = interpret_existing_booking(text_existingbooking, 'test1', 'test2');
+  const actual_booking : InterpretExistingBooking = interpret_existing_booking(test_existingbooking, 'test1', 'test2');
   if (actual_booking.booking_person_fullname != 'FIRSTNAME LASTNAME') {
     throw new Error('Name detection made a mistake during self-test' + JSON.stringify(actual_booking));
   }
