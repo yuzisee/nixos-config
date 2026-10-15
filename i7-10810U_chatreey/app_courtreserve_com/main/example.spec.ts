@@ -1129,6 +1129,34 @@ async function login_but_also_report_waiver_expiry(p: Page, u_str: string, p_str
 
 } // end login_but_also_report_waiver_expiry
 
+interface InterpretExistingBooking {
+  raw_text_lines: string[];
+  raw_ariasnapshot: string;
+  raw_innerhtml: string;
+  booking_person_fullname: string;
+  booking_day_desc: string;
+  booking_time_desc: string;
+}
+// e.g.
+// """
+// Tue, Sep 29th, 8:30 PM - 9:30 PM
+// FIRSTNAME LASTNAME
+// Pickleball
+// """
+function interpret_existing_booking(given_innertext : string, given_ariasnapshot : string, given_innerhtml : string) : InterpretExistingBooking {
+  const separate_lines : string[] = given_innertext.split(/\r?\n/);
+  const booking_desc : string = separate_lines[0] ?? '';
+
+  return {
+    raw_text_lines: separate_lines,
+    raw_ariasnapshot: given_ariasnapshot,
+    raw_innerhtml: given_innerhtml,
+    booking_person_fullname: separate_lines[1] ?? '???',
+    booking_day_desc: booking_desc.substring(0, booking_desc.lastIndexOf(',')),
+    booking_time_desc: booking_desc.split(',').pop()?.trim() ?? "<unknown>"
+  };
+}
+
 // Overall strategy:
 // ================
 // PHASE 1: make sure you are logged in
@@ -1555,6 +1583,7 @@ test('try booking pickleball', async ({ page }) => {
 
 test('read upcoming reservations', async ({ page }) => {
   const all_bookings : string[] = ['Upcoming reservations:'];
+  const all_bookings_by_username : Map<string, InterpretExistingBooking[]> = new Map<string, InterpretExistingBooking[]>();
 
   test.setTimeout(120 * 1000); // Let's give it 2 minutes. Seems like the default value of 30s (https://playwright.dev/docs/test-timeouts) isn't quite enough to check 4 accounts
 
@@ -1643,7 +1672,8 @@ test('read upcoming reservations', async ({ page }) => {
 
         // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
-        let debug_login_result : boolean = !(await login_but_also_report_waiver_expiry(page, u_array[i]!, p_array[i]!, login_ok_el, all_bookings));
+        const cur_username : string = u_array[i]!;
+        let debug_login_result : boolean = !(await login_but_also_report_waiver_expiry(page, cur_username, p_array[i]!, login_ok_el, all_bookings));
         if (debug_login_result) {
           console.log('Login FAILED?? … during `u_array/p_array[' + i + ']` but maybe we can just go directly to the target URL and it might work anyhow');
         }
@@ -1722,10 +1752,17 @@ test('read upcoming reservations', async ({ page }) => {
 
         // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
-        let activeBookings_default: string[] = await page.locator('div.booking-card-desktop-content-list').allInnerTexts();
+        let activeBooking_els : Locator = page.locator('div.booking-card-desktop-content-list');
+        let activeBookings_default: string[] = await activeBooking_els.allInnerTexts();
         // TODO(from joseph): If there's any funny business with how text is rendered, use `.allTextContents()` instead to grab the raw HTML text
         all_bookings.push(...activeBookings_default);
         all_bookings.push('───');
+
+        let parsed_bookings : InterpretExistingBooking[] = new Array<InterpretExistingBooking>();
+        for (const activeBooking_one of await activeBooking_els.all()) {
+          parsed_bookings.push(interpret_existing_booking(await activeBooking_one.innerText(), await activeBooking_one.ariaSnapshot(), await activeBooking_one.innerHTML()));
+        }
+        all_bookings_by_username.set(cur_username, parsed_bookings);
 
         if (debug_login_result) {
           console.log('So what is happening now?');
@@ -1767,6 +1804,19 @@ test('logic self-test', async ({ }) => {
     throw new Error('Is this supposed to be unique or what: ' + JSON.stringify(allAvailable_actual));
   }
 
+ const test_existingbooking : string = `Tue, Sep 29th, 8:30 PM - 9:30 PM
+FIRSTNAME LASTNAME
+Pickleball`;
+  const actual_booking : InterpretExistingBooking = interpret_existing_booking(test_existingbooking, 'test1', 'test2');
+  if (actual_booking.booking_person_fullname != 'FIRSTNAME LASTNAME') {
+    throw new Error('Name detection made a mistake during self-test' + JSON.stringify(actual_booking));
+  }
+  if (actual_booking.booking_day_desc != 'Tue, Sep 29th') {
+    throw new Error('Day detection made a mistake during self-test' + JSON.stringify(actual_booking));
+  }
+  if (actual_booking.booking_time_desc != '8:30 PM - 9:30 PM') {
+    throw new Error('Time detection made a mistake during self-test' + JSON.stringify(actual_booking));
+  }
 
   console.log('All pass');
 });
