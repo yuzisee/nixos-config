@@ -11,6 +11,8 @@ cd "$GIT_ROOT"
 if sudo -n -k echo 'this is most likely a Github-hosted runner, because I am able to sudo without a password, even after -k invalidates any existing credentials (and by setting STDIN to /dev/null it is impossible to enter another password)' < /dev/null; then
   cd i7-10810U_chatreey/app_courtreserve_com
 
+  echo '[!WARNING]'
+  echo 'In order to be "Ubuntu 26" proof, we need to bump to at least v1.61.0 or newer'
   npm ci # requires that we already `npm install --save-dev @playwright/test@1.56.0` at some point
   npx --no-install playwright install chromium
 else
