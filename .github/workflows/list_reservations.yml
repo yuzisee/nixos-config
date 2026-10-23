@@ -9,7 +9,7 @@ on:
 
 jobs:
   read_all:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     # Those are the default permissions for any Github Actions job, but we make sure to leave out `pages: write` and `id-token: write` so that we can be sure this step isn't deploying to Github Pages itself
