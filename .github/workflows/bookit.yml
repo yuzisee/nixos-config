@@ -142,3 +142,17 @@ jobs:
         # [!IMPORTANT]
         # Always set retention-days (or else we'll run out of Github Actions space!!)
 
+  show_github_job_cancelled:
+    needs: time_zone_checker
+    if: (needs.time_zone_checker.outputs.localtime_current_hourstr == '') || (needs.time_zone_checker.outputs.override_ampm == '')
+    name: 'If time_zone_checker tells us not to run, use andymckay/cancel-action to show this entire run as skipped'
+    runs-on: 'ubuntu-latest'
+    permissions:
+      actions: write
+      # ^^^ needed for `andymckay/cancel-action`
+    steps:
+    - name: "Overwrite github workflow status as cancelled"
+      uses: andymckay/cancel-action@0.5
+    - name: 'Delay a bit for andymckay/cancel-action to work'
+      timeout-minutes: 2
+      run: sleep 30.0
