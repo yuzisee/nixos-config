@@ -329,6 +329,7 @@ async function get_to_pickleball_reservations(p: Page): Promise<Locator> {
   } else {
     let hover_el : Locator = p.locator('nav ul#respMenu a.parent-header-link').getByText('Reservations', { exact: true });
     console.log('Hovering ace-responsive-menu...');
+    await p.screenshot({ path: 'get_to_pickleball_reservations-' + (new Date()).valueOf() + '.png', fullPage: true });
     await hover_el.hover();
     await p.waitForTimeout(200);
     // ^^^ wait for Javascript animation
@@ -1767,7 +1768,7 @@ test('read upcoming reservations', async ({ page }) => {
         if (debug_login_result) {
           console.log('So what is happening now?');
           await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-          await page.screenshot({ path: 'login-result_unknown.png', fullPage: true });
+          await page.screenshot({ path: 'login-result_unknown.' + cur_username.substring(0, 1) + i + '.png', fullPage: true });
           if (activeBookings_default.length == 0) {
             console.log();
             throw new Error("Okay at this point we can't trust the result. Fail fast.");
