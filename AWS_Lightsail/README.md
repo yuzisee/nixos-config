@@ -140,3 +140,38 @@ http://huang.bot/register
 - `vi .env`
 ALLOW_REGISTRATION=false
 
+
+## Better conversation search
+
+https://www.librechat.ai/docs/configuration/meilisearch
+
+```sh
+openssl rand -base64 32
+vi .env
+```
+
+- SEARCH=true
+- MEILI_NO_ANALYTICS=true
+- MEILI_MASTER_KEY=<your_master_key>
+
+## Web search
+https://www.librechat.ai/docs/features/web_search
+https://www.librechat.ai/docs/configuration/librechat_yaml/object_structure/web_search
+
+Let's try Serper + Firecrawl, and a re-ranker
+
+https://admin.huang.bot/configuration?tab=features
+https://jina.ai/api-dashboard/pricing/
+
+and append
+
+```yaml
+preset:
+  useResponsesApi: true
+```
+
+to librechat.yaml
+
+### Billing
+
+TODO(from joseph): Add credit card to Serper, Firecrawl (Github), Jina.ai
