@@ -303,10 +303,12 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
     // Are we already on the correct date?
     const mobile_date_format : Locator = date_picker.getByText(short_date, {exact: false});
     const desktop_date_format : Locator = date_picker.getByText(long_date, {exact: false});
-    if (await mobile_date_format.or(desktop_date_format)).isVisible()) {
+    if (await (mobile_date_format.or(desktop_date_format).isVisible())) {
       // SUCCESS!
       return true;
-    } else {
+    }
+
+
       // let visibleDate: string[] = await page.locator('span.k-icon.k-i-calendar ~ span').allInnerTexts();
       // console.log(JSON.stringify(visibleDate));
 
@@ -315,17 +317,121 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
       await calendar_el.waitFor({state: 'visible'});
 
       await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+      /*
+- banner:
+  - button ""
+  - text: Pickleball Reservations
+- text: ↓
+- main:
+  - button "Today"
+  - button "" [disabled]
+  - text:  Sun, Nov 1
+  - button ""
+  - button "Refresh scheduler": 
+  - text: Pickleball 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+  - text: None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+- contentinfo:
+  - button "Home"
+  - button "Calendar"
+  - button "Select Action": +
+  - button "Alerts"
+  - button "More"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- button "Last year (Control + left)"
+- button "Previous month (PageUp)"
+- button "Choose a month": Nov
+- button "Choose a year": "2026"
+- button "Next month (PageDown)"
+- button "Next year (Control + right)"
+- table:
+  - rowgroup:
+    - row "Su Mo Tu We Th Fr Sa":
+      - columnheader "Su"
+      - columnheader "Mo"
+      - columnheader "Tu"
+      - columnheader "We"
+      - columnheader "Th"
+      - columnheader "Fr"
+      - columnheader "Sa"
+  - rowgroup:
+    - row "1 2 3 4 5 6 7":
+      - cell "1"
+      - cell "2"
+      - cell "3"
+      - cell "4"
+      - cell "5"
+      - cell "6"
+      - cell "7"
+    - row "8 9 10 11 12 13 14":
+      - cell "8"
+      - cell "9"
+      - cell "10"
+      - cell "11"
+      - cell "12"
+      - cell "13"
+      - cell "14"
+    - row "15 16 17 18 19 20 21":
+      - cell "15"
+      - cell "16"
+      - cell "17"
+      - cell "18"
+      - cell "19"
+      - cell "20"
+      - cell "21"
+    - row "22 23 24 25 26 27 28":
+      - cell "22"
+      - cell "23"
+      - cell "24"
+      - cell "25"
+      - cell "26"
+      - cell "27"
+      - cell "28"
+    - row "29 30 1 2 3 4 5":
+      - cell "29"
+      - cell "30"
+      - cell "1"
+      - cell "2"
+      - cell "3"
+      - cell "4"
+      - cell "5"
+    - row "6 7 8 9 10 11 12":
+      - cell "6"
+      - cell "7"
+      - cell "8"
+      - cell "9"
+      - cell "10"
+      - cell "11"
+      - cell "12"
+- list:
+  - listitem: Today
 
-      let day_chooser_el: Locator = calendar_el.locator('div.k-calendar-monthview');
+       */
 
-      let correct_month_shown: Locator = calendar_el.getByRole('button', {name: long_month, exact: false});
-      if (!(await correct_month_shown.isVisible())) {
+      let day_chooser_el: Locator = calendar_el.locator('tbody');
+      let quickjump_day_el : Locator = day_chooser_el.getByTitle(yyyy_mm_dd);
+
+      let month_chooser_el: Locator = p.locator('div.ant-picker-header');
+      let correct_month_shown: Locator = month_chooser_el.getByRole('button', {name: 'Choose a month'});
+      let month_shown : string = await correct_month_shown.textContent();
+      if ((month_shown != short_month) && (month_shown != long_month)) {
         // [INVARIANT]: A different month is showing than the one we want. Try to switch using the switcher.
 
-	let quickjump_day_el : Locator = day_chooser_el.getByRole('grid').locator('td.k-other-month[role=gridcell]').getByRole('link', {name: '' + day_num, exact: true});
-	let quickjump_htmltitle : string = long_month + ' ' + day_num + ',';
+	let quickjump_day_el_disabled : boolean = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
+        // await locator.evaluate(el => el.classList.contains('ant-picker-cell-disabled'));
+
 	// e.g. 'Monday, February 2, 2026'
-        if ((await quickjump_day_el.isVisible()) && ((await quickjump_day_el.getAttribute('title'))!.indexOf(quickjump_htmltitle) != -1)) {
+        if ((await quickjump_day_el.isVisible()) && !quickjump_day_el_disabled) {
           // Quickly jump to the day we want, otherwise it could slow us down an extra second or two!
           await quickjump_day_el.click();
           return true;
@@ -337,18 +443,16 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
             return false;
           }
 
-          // Switch months the slow way, then...
+          // Switch months the fragile way, then...
 
-          await calendar_el.locator('a[data-action=nav-up][role=button]').click(); // this can take ~300ms+ though
-          let month_chooser_el: Locator = calendar_el.locator('div.k-calendar-yearview');
-          await month_chooser_el.waitFor({state: 'visible'});
-          let target_month_el: Locator = month_chooser_el.getByRole('grid').getByRole('link', {name: short_month});
-          if (await target_month_el.isVisible()) {
-            // Okay, it's there!
-            await target_month_el.click(); // this can take +440ms though
-          } else {
-            console.log('Month ' + long_month + ' not yet selectable (did you wake from sleep too early?)... so refresh @ ' + (new Date().toISOString()) + ' UTC');
+          // <button type="button" aria-label="Next month (PageDown)" tabindex="-1" class="ant-picker-header-next-btn"><span class="ant-picker-next-icon"></span></button>
+	  // <button type="button" aria-label="Next month (PageDown)" tabindex="-1" class="ant-picker-header-next-btn"><span class="ant-picker-next-icon"></span></button>
+          await month_chooser_el.getByRole('button', {name: 'Next month', exact: false}).click();
+          let target_month : string = await correct_month_shown.textContent();
+          if ((target_month != short_month) && (month_shown != long_month)) {
             await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
+            console.log('Month ' + long_month + ' not yet selectable (did you wake from sleep too early?)... so refresh @ ' + (new Date().toISOString()) + ' UTC');
+            await calendar_el.ariaSnapshot().then(function(val) { console.log(val); } );
             await p.reload();
             return false;
           }
@@ -358,20 +462,20 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
       }
 
       // [INVARIANT]: OK good! We're should be on the correct month now.
-      await expect(correct_month_shown).toBeVisible(); // this sometimes waits ~900ms (or maybe longer??)
-      await expect(day_chooser_el).toBeVisible();
+      await expect(quickjump_day_el).toBeVisible();
 
-      let target_day_el: Locator = day_chooser_el.getByRole('grid').getByRole('link', {name: '' + day_num, exact: true});
-      if (await target_day_el.isVisible()) {
+      let target_day_el_disabled : boolean = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
+      if ((await quickjump_day_el.isVisible()) && !target_day_el_disabled) {
         await target_day_el.click();
         return true;
       } else {
+        await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
         console.log('Day ' + day_num + ' not yet selectable (did you wake from sleep too early?), refresh @ ' + (new Date().toISOString()) + ' UTC');
-        await day_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
+        await calendar_el.ariaSnapshot().then(function(val) { console.log(val); } );
         await p.reload();
         return false;
       }
-    }
+
 }
 
 interface BookingSlotPayload {
