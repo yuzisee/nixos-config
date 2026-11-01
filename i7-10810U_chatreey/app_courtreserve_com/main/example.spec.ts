@@ -173,95 +173,148 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
 
    console.log('SEARCHING FOR ' + short_date + ' or ' + long_date);
    console.log('Quickjump if possible to ' + yyyy_mm_dd);
+
+   const mobile_reservations : Locator = p.getByRole('banner').getByText('Pickleball Reservations');
  /*
-
 - banner:
-  - navigation:
-    - 'link "Lifetime Activities: Sunnyvale"':
-      - /url: /Online/Portal/Index/13233
-      - 'img "Lifetime Activities: Sunnyvale"'
-    - list:
-      - listitem:
-        - link "Events, Camps, And Classes ":
-          - /url: "#"
-      - listitem:
-        - link "Reservations ":
-          - /url: "#"
-      - listitem:
-        - link "Announcements":
-          - /url: /Online/Announcement/Index/13233
-      - listitem:
-        - link:
-          - /url: "#menu"
-      - listitem
-- listitem:
-  - link "Events, Camps, And Classes ":
-    - /url: "#"
-- listitem:
-  - link "Reservations ":
-    - /url: "#"
-- listitem:
-  - link "Announcements":
-    - /url: /Online/Announcement/Index/13233
-- listitem:
-  - link "firstname lastname ":
-    - /url: "#"
-- listitem:
-  - link:
-    - /url: "#menu"
-- listitem
-- application:
-  - toolbar:
-    - button "Today"
-    - button "Previous": 
-    - button "Next": 
-    - button " Mon, Jan 19"
-    - text: Pickleball Reservations
-  - text: Pickleball 8:00 AM 8:30 AM 9:00 AM 9:30 AM 10:00 AM 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM 8:00 PM 8:30 PM 9:00 PM 9:30 PM
-  - alert: Loading...
-- paragraph: © 2026 Powered by CourtReserve
-- list
+  - button ""
+  - text: Scheduler
+- text: ↓
+- main
+- contentinfo:
+  - button "Home"
+  - button "Calendar"
+  - button "Select Action": +
+  - button "Alerts"
+  - button "More"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+*/
 
+   const desktop_reservations : Locator = p.getByTestId('scheduler-toolbar-title');
+   await mobile_reservations.or(desktop_reservations).waitFor({state: 'visible'});
+
+  /*
+  <div class="acss-oev34">
+    <div class="ant-spin ant-spin-sm ant-spin-spinning ant-spin-section css-ry7cab css-var-_r_3_" aria-live="polite" aria-busy="true">
+      <span class="ant-spin-dot-holder"><span class="ant-spin-dot ant-spin-dot-spin">
+        <i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i>
+      </span></span>
+    </div>
+  </div>
+
+  :vellip
+
+  <div class="acss-695egb">
+    <div class="ant-spin ant-spin-lg ant-spin-spinning ant-spin-section css-ry7cab css-var-_r_3_" aria-live="polite" aria-busy="true">
+      <span class="ant-spin-dot-holder"><span class="ant-spin-dot ant-spin-dot-spin">
+        <i class="ant-spin-dot-item"></i>
+	<i class="ant-spin-dot-item"></i>
+	<i class="ant-spin-dot-item"></i>
+	<i class="ant-spin-dot-item"></i>
+      </span></span>
+    </div>
+  </div>
   */
+   await expect(p.locator('div.ant-spin > span.ant-spin-dot-holder > span.ant-spin-dot')).toHaveCount(0, {timeout: 9 * 1000});
 
-   // k-scheduler-toolbar
-   await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
+   // DESKTOP
+   /*
+- banner:
+  - 'img "Lifetime Activities: Sunnyvale"'
+  - text: Events, Camps, And Classes  Reservations  :hellip 
+- main:
+  - button "Today"
+  - button "Previous day" [disabled]: 
+  - button "Next day": 
+  - text:  Sunday, November 1
+  - textbox "Select date": 11/01/2026
+  - text: Pickleball Reservations
+  - button "Refresh scheduler": 
+  - text: Pickleball 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM
+  - button "Reserve"
+  - text: None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+  - text: None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+    */
+
+   // MOBILE
+   /*
+- banner:
+  - button ""
+  - text: Pickleball Reservations
+- text: ↓
+- main:
+  - button "Today"
+  - button "" [disabled]
+  - text:  Sun, Nov 1
+  - button ""
+  - button "Refresh scheduler": 
+  - text: Pickleball 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM
+  - button "Reserve"
+  - text: None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+  - text: None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+- contentinfo:
+  - button "Home"
+  - button "Calendar"
+  - button "Select Action": +
+  - button "Alerts"
+  - button "More"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+
+    */
+
+   // On Mobile it goes 'div[data-testid="scheduler-date-wrap"] > span[data-testid="scheduler-date-label"]' but
+   // ...on Desktop it's 'div[data-testid="scheduler-date-label-wrap"] > span[data-testid="scheduler-date-label"]'
+   const date_picker : Locator = p.getByTestId('scheduler-date-label');
+   // so 'scheduler-date-label' is the testid for both mobile & desktop view.
+   await date_picker.waitFor({state: 'visible'});
 
     // Case study: August 1, 2026 was on a Saturday, so it reads Sunday 2nd, Sunday 9th, Sunday 16th, Sunday 23nd, Sunday 30th... leaving Monday Aug 31 on the bottom row of the calendar.
     // Case study: The only worse scenario would be if the 1st was a Sunday and the month has 31 days. That would make Tuesday the 31st, and we'd only be able to access the first 5 days of next month in RISKY_BUT_FASTER mode.
     let RISKY_BUT_FASTER: boolean = ((day_num < 6) || (8 < day_num));
 
-    // k-sm-date-format
-    if (await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: short_date, exact: false}).isVisible()) {
+    // Are we already on the correct date?
+    const mobile_date_format : Locator = date_picker.getByText(short_date, {exact: false});
+    const desktop_date_format : Locator = date_picker.getByText(long_date, {exact: false});
+    if (await mobile_date_format.or(desktop_date_format)).isVisible()) {
       // SUCCESS!
       return true;
     } else {
       // let visibleDate: string[] = await page.locator('span.k-icon.k-i-calendar ~ span').allInnerTexts();
       // console.log(JSON.stringify(visibleDate));
 
-      await p.locator('span.k-icon.k-i-calendar').click();
-      let calendar_el: Locator = p.locator('div[data-role=calendar]');
+      await date_picker.click();
+      let calendar_el: Locator = p.locator('table.ant-picker-content');
       await calendar_el.waitFor({state: 'visible'});
 
-      // TODO(from joseph): This seems like it should work, but if you hit right on the boundary I think something quirky happens with the loading... so revisit if we need to be faster
-      /*
-      if (RISKY_BUT_FASTER) {
-        let force_date_data : string = year_num + '/' + month_zerobased + '/' + day_num;
-	let force_feed_commandeer : Locator = p.locator('td.k-calendar-td:not(.k-state-selected):not([aria-selected])').getByRole('link').first();
-        // await force_feed_commandeer.waitFor({state: 'visible'});
-        const force_feed_result : string = await force_feed_commandeer.evaluate(
-          function (force_el, new_data_val) {
-            force_el.dataset.value = new_data_val;
-	    var commandeer_result = force_el.outerHTML;
-	    force_el.click();
-            return commandeer_result;
-          }, force_date_data
-        );
-        console.log('Force feed ' + force_feed_result + ' at ' + (new Date().toISOString()) + ' UTC');
-        // await force_feed_commandeer.click();
-        return false;
-      }
-      */
+      await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
       let day_chooser_el: Locator = calendar_el.locator('div.k-calendar-monthview');
 
@@ -949,7 +1002,7 @@ async function login_username_password(p: Page, u_str: string, p_str: string) : 
 ...
  */
   if (
-    (await locator_visible(p.getByText('log in to access your account'), 9000)) // It really takes a LONG time for some reason. Maybe it's loading the entire React single-page-app...?
+    (await locator_visible(p.getByText('log in to access your account'), 12000)) // It really takes a LONG time for some reason. Maybe it's loading the entire React single-page-app...?
   ) {
 /*
 <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 16px;">
@@ -1267,11 +1320,11 @@ test('try booking pickleball', async ({ page }) => {
   // PHASE 1: make sure you are logged in
   // ====================================
 
-  let need_login_btn: Locator = page.locator('nav ul#respMenu').getByRole('listitem').getByRole('link', {name: 'LOG IN', exact: true});
-  if (await locator_visible(need_login_btn, 2000)) {
+  let need_login_btn: Locator = page.getByTestId('header-login-btn'); // locator('header[data-testid="portal-header"]').getByRole('link', {name: 'Log In', exact: true});
+  if (await locator_visible(need_login_btn, 3500)) { // Ever since they switched to ShellSkeleton or ant-skeleton or something, it got slower. Used to be 2000ms
     await need_login_btn.click();
-    await page.waitForURL('**Account/LogIn**');
-    // e.g. https://app.courtreserve.com/Online/Account/LogIn/13233
+    await page.waitForURL('**/Online/Account/Login/**');
+    // e.g. https://app.courtreserve.com/Online/Account/Login/13233
   }
 
   await login_username_password(page, ready_u!, ready_p!);
@@ -1285,6 +1338,7 @@ test('try booking pickleball', async ({ page }) => {
       console.log("We didn't make it to → " + start_url + ' … so I guess we got redirected to ' + page.url());
       // Maybe we can force it now that we are logged in??
       await page.goto(start_url);
+      // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
     } else {
       throw e;
     }
