@@ -306,17 +306,16 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
     if (await (mobile_date_format.or(desktop_date_format).isVisible())) {
       // SUCCESS!
       return true;
+      // ^^^ EARLY RETURN
+      // ==============================================================
     }
 
-
-      // let visibleDate: string[] = await page.locator('span.k-icon.k-i-calendar ~ span').allInnerTexts();
-      // console.log(JSON.stringify(visibleDate));
 
       await date_picker.click();
       let calendar_el: Locator = p.locator('table.ant-picker-content');
       await calendar_el.waitFor({state: 'visible'});
 
-      await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+      //await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
       /*
 - banner:
   - button ""
@@ -419,11 +418,12 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
        */
 
       let day_chooser_el: Locator = calendar_el.locator('tbody');
-      let quickjump_day_el : Locator = day_chooser_el.getByTitle(yyyy_mm_dd);
+      let quickjump_day_el : Locator = day_chooser_el.getByTitle(yyyy_mm_dd).first();
 
       let month_chooser_el: Locator = p.locator('div.ant-picker-header');
       let correct_month_shown: Locator = month_chooser_el.getByRole('button', {name: 'Choose a month'});
       let month_shown : string = await correct_month_shown.textContent();
+      //console.log("Current month: " + JSON.stringify(month_shown) + " vs. " + long_month + "/" + short_month);
       if ((month_shown != short_month) && (month_shown != long_month)) {
         // [INVARIANT]: A different month is showing than the one we want. Try to switch using the switcher.
 
@@ -461,12 +461,18 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
 	// end if different month
       }
 
+      /*
+      console.log(
+        "Ready for " + yyyy_mm_dd + "\r\n\r\n" +
+        (await day_chooser_el.first().evaluate(el => el.innerHTML))
+      );
+     */
       // [INVARIANT]: OK good! We're should be on the correct month now.
       await expect(quickjump_day_el).toBeVisible();
 
       let target_day_el_disabled : boolean = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
       if ((await quickjump_day_el.isVisible()) && !target_day_el_disabled) {
-        await target_day_el.click();
+        await quickjump_day_el.click();
         return true;
       } else {
         await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
@@ -543,33 +549,66 @@ interface ReadConsolidated {
 
 async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string> {
 
-  let alreadybooked_els: Locator = p.getByRole('presentation').getByRole('button').getByText('None Available');
-  let reservable_els: Locator = p.getByRole('application').getByRole('button').getByText('Reserve');
-  await alreadybooked_els.or(reservable_els).first().waitFor({ state: 'visible' });
-  console.log('READY: ' + (await alreadybooked_els.count()) + ' booked ↔ available ' + (await reservable_els.count()));
+  let booking_parent : Locator = p.getByTestId('scheduler-refresh-btn').locator('xpath=..').locator('xpath=..');
+  let booking_el : Locator = booking_parent.locator('> :last-child');
+
+  let schedule_el : Locator[] = await booking_el.locator('> *').all();
+
+  if (schedule_el.length != 2) {
+    await booking_el.ariaSnapshot().then(function(val) { console.log(val); } );
+    throw new Error('Oh? So far we assume there are two columns: One for times and one for reserve buttons ' + schedule_el.innerHTML());
+  }
+
+  let time_start_els : Locator[] = await schedule_el[0].allTextContents();
+  let matching_btn_els : Locator[] = await schedule_el[1].all();
+
+  if (time_start_els.length != matching_btn_els.length) {
+    await schedule_el[0].ariaSnapshot().then(function(val) { console.warn(val); } );
+    console.warn('Hmm, is there no way to easily describe each reserve link with its timeslot?');
+    await schedule_el[1].ariaSnapshot().then(function(val) { console.warn(val); } );
+    console.warn(schedule_el[0].innerHTML() + "\r\n\r\n COMPARING:");
+    throw new Error("I hope there is a reliable solution to this! .... \r\n\r\n" + schedule_el[1].innerHTML());
+  }
+
+  let alreadybooked_els: BookingSlot[] = [];
+  let reservable_els: Map<string, BookingSlot> = new Map<string, BookingSlot>();
+  for(var reserve_idx=0; reserve_idx < matching_btn_els.length; ++reserve_idx) {
+    let data_time: string = time_start_els[reserve_idx];
+
+    if ((reserve_idx == 0) && (!str || str.trim().length == 0)) {
+      console.log("That's okay. The first element is a " + '"height: 0px;" element for some reason. Continue!');
+    } else {
+      let r_el : Locator = matching_btn_els[reserve_idx];
+      switch (await r_el.innerText()) {
+        case 'Reserve':
+          reservable_els.set(data_time, {time_start_str: data_time, reserve_btn_el: r_el})
+          break;
+        case 'None Available':
+          reservable_els.set(data_time, {time_start_str: data_time, reserve_btn_el: undefined})
+          break;
+        default:
+          await r_el.ariaSnapshot().then(function(val) { console.warn(val); } );
+          throw new Error("The website has changed, or we lost our connection to the internet. Either way, the script as-is won't be able to book " + data_time + " ... sorry! \r\n\r\n" + r_el);
+      }
+    }
+  } // end for reserve_idx
+
+  console.log('READY: ' + (alreadybooked_els.length) + ' booked ↔ available ' + (reservable_els.length));
 
   var reserveTimesChronological: string[] = [];
-  // for (let r_el: Locator of (await reservable_els.all())) {
-  for (let r_el of (await reservable_els.all())) {
-    let reserve_btn_el: Locator = r_el.locator('xpath=..');
-    const data_time: string | null = await reserve_btn_el.getAttribute('data-time');
-    const data_courttype: string | null = await reserve_btn_el.getAttribute('data-courttype');
-
-    if (data_time === null) {
-      throw new Error("The website has changed, or we lost our connection to the internet. Either way, the script as-is won't be able to book... sorry!");
-    }
+  for (const [data_time, r_el]: [string, BookingSlot] of reservable_els.entries()) {
 
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
     // *********************
     if (data_time.indexOf(target_ampm) == -1) {
-      console.log(data_time + ' NOT OUR TARGET: ' + data_courttype);
+      console.log(data_time + ' NOT OUR TARGET: ' + r_el.innerHTML());
     } else {
       const reserve_btn_hour: number = Number(data_time.split(':')[0]);
       if ((reserve_btn_hour == 12) || (reserve_btn_hour < EARLIEST_HOUR_TO_BOOK)) {
-        console.log(data_time + ' TOO EARLY: ' + data_courttype);
+        console.log(data_time + ' TOO EARLY: ' + r_el.innerHTML());
       } else {
-        console.log(data_time + ' RESERVABLE: ' + data_courttype);
+        console.log(data_time + ' RESERVABLE: ' + r_el.innerHTML());
         reserveTimesChronological.push(data_time);
       }
     }
@@ -586,7 +625,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
     const earliestSatisfactoryTime: string = reserveTimes.shift()!; // assuming we parse the DOM in chronological order (and why wouldn't we?)
 
-    let ready_to_book_el: Locator = p.getByRole('application').getByRole('button', { name: ' at ' + earliestSatisfactoryTime }).getByText('Reserve');
+    let ready_to_book_el: Locator = reservable_els.get(earliestSatisfactoryTime).reserve_btn_el;
     try {
       await ready_to_book_el.click({timeout: abort_after_ms});
       // SUCCESS!
