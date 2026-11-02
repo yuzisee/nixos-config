@@ -220,7 +220,7 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
     </div>
   </div>
   */
-   await expect(p.locator('div.ant-spin > span.ant-spin-dot-holder > span.ant-spin-dot')).toHaveCount(0, {timeout: 9 * 1000});
+   await expect(p.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 9 * 1000});
 
    // DESKTOP
    /*
@@ -549,25 +549,37 @@ interface ReadConsolidated {
 
 async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string> {
 
-  let booking_parent : Locator = p.getByTestId('scheduler-refresh-btn').locator('xpath=..').locator('xpath=..');
-  let booking_el : Locator = booking_parent.locator('> :last-child');
+  await expect(p.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 7 * 1000}); // Just make sure we aren't still loading. We need all the rows to be populated before we continue.
 
-  let schedule_el : Locator[] = await booking_el.locator('> *').all();
+  let schedule_parent : Locator = p.getByTestId('scheduler-refresh-btn').locator('xpath=..').locator('xpath=..');
+  let schedule_el : Locator = schedule_parent.locator('> :last-child'); // <div class="acss-1q66mfy" style="position: relative;">
 
-  if (schedule_el.length != 2) {
-    await booking_el.ariaSnapshot().then(function(val) { console.log(val); } );
-    throw new Error('Oh? So far we assume there are two columns: One for times and one for reserve buttons ' + schedule_el.innerHTML());
+  let schedule_two_columns : [Locator, Locator] = await schedule_el.locator('> *').all(); // all children
+  // e.g.
+  // <div class="acss-1wvjhs3"> ... </div>
+  // <div class="acss-5hxkkc" style="flex: 1 0 160px;"> ... </div>
+
+  if (schedule_two_columns.length != 2) {
+    await schedule_el.ariaSnapshot().then(function(val) { console.log(val); } );
+    throw new Error('Oh? So far we assume there are two columns: One for times and one for reserve buttons ' + (await schedule_two_columns.innerHTML()));
   }
+  // console.log('schedule_parent: ' + (await schedule_parent.getAttribute('style')));
+  // console.log('schedule_el: ' + (await schedule_el.getAttribute('class')) + " ... " + (await schedule_el.getAttribute('style')));
+  // console.log('schedule_two_columns[0]: ' + (await schedule_two_columns[0].getAttribute('class')));
+  // console.log('schedule_two_columns[1]: ' + (await schedule_two_columns[1].getAttribute('class')) + ' ... ' + (await schedule_two_columns[1].getAttribute('style')));
 
-  let time_start_els : Locator[] = await schedule_el[0].allTextContents();
-  let matching_btn_els : Locator[] = await schedule_el[1].all();
+  let time_start_els : string[] = await schedule_two_columns[0].locator('> *').allTextContents();
+  let matching_btn_els : Locator[] = await schedule_two_columns[1].locator('> *').all(); // all children
+
+  // console.log('time_start_els: ' + JSON.stringify(time_start_els));
+  // console.log('matching_btn_els.length = ' + matching_btn_els.length);
 
   if (time_start_els.length != matching_btn_els.length) {
-    await schedule_el[0].ariaSnapshot().then(function(val) { console.warn(val); } );
+    await schedule_two_columns[0].ariaSnapshot().then(function(val) { console.warn(val); } );
     console.warn('Hmm, is there no way to easily describe each reserve link with its timeslot?');
-    await schedule_el[1].ariaSnapshot().then(function(val) { console.warn(val); } );
-    console.warn(schedule_el[0].innerHTML() + "\r\n\r\n COMPARING:");
-    throw new Error("I hope there is a reliable solution to this! .... \r\n\r\n" + schedule_el[1].innerHTML());
+    await schedule_two_columns[1].ariaSnapshot().then(function(val) { console.warn(val); } );
+    console.warn((await schedule_two_columns[0].innerHTML()) + "\r\n\r\n COMPARING:");
+    throw new Error("I hope there is a reliable solution to this! .... \r\n\r\n" + (await schedule_two_columns[1].innerHTML()));
   }
 
   let alreadybooked_els: BookingSlot[] = [];
@@ -575,40 +587,43 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
   for(var reserve_idx=0; reserve_idx < matching_btn_els.length; ++reserve_idx) {
     let data_time: string = time_start_els[reserve_idx];
 
-    if ((reserve_idx == 0) && (!str || str.trim().length == 0)) {
+    let is_first : bool = (reserve_idx == 0);
+    let is_blank : bool = (!data_time || data_time.trim().length == 0);
+    if (is_first && is_blank) {
       console.log("That's okay. The first element is a " + '"height: 0px;" element for some reason. Continue!');
     } else {
       let r_el : Locator = matching_btn_els[reserve_idx];
       switch (await r_el.innerText()) {
         case 'Reserve':
-          reservable_els.set(data_time, {time_start_str: data_time, reserve_btn_el: r_el})
+          reservable_els.set(data_time, {time_start_str: data_time, reserve_btn_el: r_el});
           break;
         case 'None Available':
-          reservable_els.set(data_time, {time_start_str: data_time, reserve_btn_el: undefined})
+          alreadybooked_els.push({time_start_str: data_time, reserve_btn_el: undefined});
           break;
         default:
           await r_el.ariaSnapshot().then(function(val) { console.warn(val); } );
-          throw new Error("The website has changed, or we lost our connection to the internet. Either way, the script as-is won't be able to book " + data_time + " ... sorry! \r\n\r\n" + r_el);
+          throw new Error("The website has changed (idx " + reserve_idx + "), or we lost our connection to the internet. Either way, the script as-is won't be able to book " + data_time + " ... sorry! \r\n\r\n" + (await r_el.innerHTML()));
       }
     }
   } // end for reserve_idx
 
-  console.log('READY: ' + (alreadybooked_els.length) + ' booked ↔ available ' + (reservable_els.length));
+  console.log('READY: ' + (alreadybooked_els.length) + ' booked ↔ available ' + (reservable_els.size));
 
   var reserveTimesChronological: string[] = [];
-  for (const [data_time, r_el]: [string, BookingSlot] of reservable_els.entries()) {
+  for (const [data_time, r_slot]: [string, BookingSlot] of reservable_els.entries()) {
+    let r_el : Locator = r_slot.reserve_btn_el;
 
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
     // *********************
     if (data_time.indexOf(target_ampm) == -1) {
-      console.log(data_time + ' NOT OUR TARGET: ' + r_el.innerHTML());
+      console.log(data_time + ' NOT OUR TARGET: ' + (await r_el.innerHTML()));
     } else {
       const reserve_btn_hour: number = Number(data_time.split(':')[0]);
       if ((reserve_btn_hour == 12) || (reserve_btn_hour < EARLIEST_HOUR_TO_BOOK)) {
-        console.log(data_time + ' TOO EARLY: ' + r_el.innerHTML());
+        console.log(data_time + ' TOO EARLY: ' + (await r_el.innerHTML()));
       } else {
-        console.log(data_time + ' RESERVABLE: ' + r_el.innerHTML());
+        console.log(data_time + ' RESERVABLE: ' + (await r_el.innerHTML()));
         reserveTimesChronological.push(data_time);
       }
     }
@@ -792,74 +807,64 @@ async function wait_for_lottery(p: Page) : Promise<boolean> {
 
 async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
 
-  let booking_form_el: Locator = p.locator('form#createReservation-Form');
-  await booking_form_el.getByText('End Time').waitFor({state: 'visible'});
-  // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
-  /*
-- text: Book a reservation for 1/27/2026
-- button "Close"
-- button "Save"
-- separator
-- text: Reservation Type *
-- listbox "Reservation Type *":
-  - option "Recreational Play - Pickleball" [selected]
-  - button "select": 
-- text: Start Time 8:30 AM Duration *
-- listbox "Duration *":
-  - option "1 hour" [selected]
-  - button "select": 
-- text: End Time
-- textbox "End Time" [disabled]: 9:30 AM
-- text: Player(s)
-- grid:
-  - rowgroup:
-    - row "# 1 Name firstname lastname Cost $7.00 Due $7.00":
-      - gridcell "# 1"
-      - gridcell "Name firstname lastname"
-      - gridcell "Cost $7.00"
-      - gridcell "Due $7.00"
-      - gridcell
-- text: "Total Due: $7.00 Court Reservations Payment is due upon check-in (at the time of your reservation.) Payment is not required at the time of booking. However, if you opt to prepay for your court time, any court reservation refunds due to cancelations will be returned as an account credit ... View More"
-- checkbox "Check to agree to above disclosure"
-- text:  Check to agree to above disclosure
-- separator
-- button "Close"
-- button "Save"
-   */
-  await expect(booking_form_el.getByRole('textbox', { name: 'End Time' })).toBeDisabled();
+  // On mobile, we have:
+  // div[data-testid=reservation-create-overlay]
+  //   div
+  //     div[data-testid=reservation-create-page]
+  //       div[data-testid=reservation-create-page-inner]
+  //         form[data-testid=reservation-form]
+  //           div[data-testid="reservation-card]
+  //   div
+  //     div[data-testid=reservation-mobile-footer]
 
-  let disclosure_agree_el: Locator = booking_form_el.getByRole('checkbox', { name: 'Check to agree to above disclosure' });
+  // On desktop, we have:
+  // div[role=dialog]
+  //   div.ant-modal-header
+  //     div.ant-modal-title
+  //   div.ant-modal-body
+  //     div
+  //       div[data-testid=reservation-create-page]
+  //         div[data-testid=reservation-create-page-inner]
+  //           form[data-testid=reservation-form]
+  //             div[data-testid="reservation-card]
+  //   div.ant-modal-footer
+  //     div[data-testid=reservation-mobile-footer]
+
+  let booking_form_el: Locator = p.getByTestId('reservation-create-page').getByRole('form').getByTestId('reservation-card');
+  await booking_form_el.getByText('Order Summary').waitFor({state: 'visible'});
+
+  await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+  /*
+
+   */
+
+  let disclosure_agree_el: Locator = booking_form_el.getByTestId('reservation-section-disclosure');
   /*
   await disclosure_agree_el.waitFor( {state: 'visible'} );
   await expect(disclosure_agree_el).not.toBeChecked();
   await disclosure_agree_el.check();
   */
-   // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders '' (U+F0C4) Wingdings checkmark in a span
-  let stupid_checkbox_el: Locator = disclosure_agree_el.locator('~ span.check-box-helper');
-  // This works by accident thanks to JavaScript's type coercion ("0" == 0.0 is true)
-  if ((await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity)) as any == 0.0) {
-    // Even useInnerText can't interpret opacity (which is what the page seems to use) because pseudo-elements are not part of the DOM tree
-    await disclosure_agree_el.locator('xpath=..').click();
-    await expect(async () => {
-      const checkmarkOpacity: number = await stupid_checkbox_el.evaluate(el => parseFloat(window.getComputedStyle(el, '::after').opacity));
-      expect(checkmarkOpacity).toBeGreaterThanOrEqual(1.0);
-    }).toPass();
-
+   // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders an SVG checkbox
+  let stupid_checkbox_el: Locator = disclosure_agree_el.getByRole('checkbox', {name: 'I agree to the terms above'});
+  let initial_checked : string = (await stupid_checkbox_el.getAttribute('aria-checked'));
+  if (initial_checked == 'false') {
+    await stupid_checkbox_el.click();
+    await expect(stupid_checkbox_el.toHaveAttribute('aria-checked', 'true'));
   } else {
-    const actual_style: CSSStyleDeclaration = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
-    // const actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
-    const unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(actual_style);
+    const unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(initial_checked);
     throw new Error(unexpected_checkmark);
   }
 
-  const totalDueAmount: string | null = await booking_form_el.locator('label.total-due-amount').textContent();
+  const totalDueAmount: string | null = await booking_form_el.getByTestId('reservation-cost-summary').textContent();
+
+  let booking_form_submit : Locator = p.getByTestId('reservation-mobile-footer').getByTestId('reservation-mobile-submit-btn');
 
   if (LAUNCH_MODE == 'prod') {
     console.log(
-     '↳ ' + totalDueAmount + ' READY TO BOOK ' + (new Date().toISOString()) + ' UTC, ' + dbg_msg
+     '↳ ' + totalDueAmount + ' READY TO BOOK ' + (new Date().toISOString()) + ' UTC, ' + (await booking_form_submit.innerHTML()) + "\r\n\r\n" + dbg_msg
     );
 
-    await booking_form_el.getByRole('button', { name: 'Save' }).first().click();
+    await booking_form_submit.click();
     await p.screenshot({ path: 'immediately-after-save' + (new Date()).valueOf() + '.png', fullPage: true });
 // <div class="modal-header-container" data-testid="remove-or-withdraw-modal"><div class="modal-title"><span class="modal-title-span" data-testid="title">Book a reservation for 7/15/2026</span></div><div class="modal-title-buttons"><button type="reset" data-testid="close-btn-modal-header" class="btn btn-light " data-dismiss="modal">Close</button><button __playwright_target__="call@258" type="button" data-testid="save-btn" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 41px; outline: rgb(0, 106, 177) solid 2px; background-color: rgba(111, 168, 220, 0.498);"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div></div>
 // <div class="modal-title-buttons "><button type="reset" data-testid="Close" class="btn btn-light fn-reservation-create-close " data-dismiss="modal">Close</button><button data-testid="Save" type="button" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 38px;"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div>
@@ -1145,7 +1150,7 @@ async function login_username_password(p: Page, u_str: string, p_str: string) : 
 ...
  */
   if (
-    (await locator_visible(p.getByText('log in to access your account'), 12000)) // It really takes a LONG time for some reason. Maybe it's loading the entire React single-page-app...?
+    (await locator_visible(p.getByText('log in to access your account'), 9000)) // It really takes a LONG time for some reason. Maybe it's loading the entire React single-page-app...?
   ) {
 /*
 <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 16px;">
@@ -1466,7 +1471,7 @@ test('try booking pickleball', async ({ page }) => {
   let need_login_btn: Locator = page.getByTestId('header-login-btn'); // locator('header[data-testid="portal-header"]').getByRole('link', {name: 'Log In', exact: true});
   if (await locator_visible(need_login_btn, 3500)) { // Ever since they switched to ShellSkeleton or ant-skeleton or something, it got slower. Used to be 2000ms
     await need_login_btn.click();
-    await page.waitForURL('**/Online/Account/Login/**');
+    await page.waitForURL('**/Online/Account/Login/**'); // by default, waitForURL does not timeout... https://playwright.dev/docs/test-timeouts#advanced-low-level-timeouts
     // e.g. https://app.courtreserve.com/Online/Account/Login/13233
   }
 
