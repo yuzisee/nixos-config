@@ -116,7 +116,6 @@ async function localtime_slotstart(p: Page, b: BookingSlotPayload): Promise<Seri
   return localtime_datenow(p, millis_int);
 }
 
-
 // Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again
 async function sleep_until_noon(p: Page): Promise<boolean> {
   const countdown: SerializedDate = await localtime_datenow(p, undefined);
@@ -648,6 +647,18 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
   await expect(p.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 4 * 1000}); // Just make sure we aren't still loading. We need all the rows to be populated before we continue.
 
+  const interceptSlotsData : Promise<Response> = p.waitForResponse(response =>
+    // https://mobileapp.courtreserve.com/Online/Reservations/ReadConsolidated/13233?page=1&pageSize=1000&take=1000&skip=0&jsonData={"orgId":13233,"timeZone":"America/Los_Angeles","browserTimeZone":"America/Vancouver","uiCulture":"en-US","costTypeId":141205,"customSchedulerId":16984,"reservationMinInterval":30,"selectedCourtIds":"52055,52038,52039,52051,52052,52033,52034,52056,52057,52041,52042,52049","selectedInstructorIds":"","memberIds":"","memberFamilyId":null,"embedCodeId":null,"isAdmin":false,"hideReservationDetailsOnMemberPortalScheduler":true,"openMatchesOnly":false,"requestData":"xuwoikBZZJqPUChS7Y2y4%2fkr8SExSV6J5Tsl7DiCX08aTtYL4kHc%2fPsTCemfz9KaXC0rCKGtuIEKfjEwqo4tixjft3qctZElQaeiZz29g4H%2fgxWocPJyy0WoEljrjxnVu1wTRmGztq5%2fzZXKC5ygEgC85wwyeiszSh6oCC7SCKpDq2K99GR0gXtcsyE3OrVHsV3ED%2bPCN3g%3d","shortDto":true,"kendoDate":{"year":2026,"month":11,"day":4}}
+    (response.url().indexOf('mobileapp.courtreserve.com/Online/Reservations/ReadConsolidated') != -1) && (response.status() === 200) && (response.request().method() === 'GET')
+  );
+  await p.getByTestId('scheduler-refresh-btn').click();
+  const slotsDataJsonObj : Response = await interceptSlotsData;
+  console.log('What is the response type ' + slotsDataJsonObj);
+  console.log('What is the response content ' + (await slotsDataJsonObj.body()));
+  const read_consolidated : ReadConsolidated = await slotsDataJsonObj.json();
+
+  const matching_btn_els_orig_count : number = read_consolidated.Data.length;
+
   let schedule_parent : Locator = p.getByTestId('scheduler-refresh-btn').locator('xpath=..').locator('xpath=..');
   let schedule_el : Locator = schedule_parent.locator('> :last-child'); // <div class="acss-1q66mfy" style="position: relative;">
 
@@ -665,79 +676,67 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
   // console.log('schedule_two_columns[0]: ' + (await schedule_two_columns[0].getAttribute('class')));
   // console.log('schedule_two_columns[1]: ' + (await schedule_two_columns[1].getAttribute('class')) + ' ... ' + (await schedule_two_columns[1].getAttribute('style')));
 
-  let time_start_els : string[] = await schedule_two_columns[0].locator('> *').allInnerTexts();
+  let time_start_els : string[] = await schedule_two_columns[0].locator('> *'); // all children
   const matching_btn_els : Locator = await schedule_two_columns[1].locator('> *'); // all children
+/*
   const matching_btn_els_orig_count : number = await matching_btn_els.count();
 
-  // console.log('time_start_els: ' + JSON.stringify(time_start_els));
+  // console.log('time_start_txts: ' + JSON.stringify(time_start_txts));
   // console.log('matching_btn_els.length = ' + matching_btn_els_orig_count);
 
-  if (time_start_els.length != matching_btn_els_orig_count) {
+  if (time_start_txts.length != matching_btn_els_orig_count) {
+    // Scroll in case the rows load lazily
+    await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     try {
       await expect(schedule_two_columns[0].locator('> *')).toHaveCount(matching_btn_els_orig_count, {timeout: 17 * 1000});
-      // Okay, well sometimes the time_start_els column is a little slower to load?
+      // Okay, well sometimes the time_start_txts column is a little slower to load?
       // Let's wait to see if it finishes loading.
     } catch (error) {
       await schedule_two_columns[0].ariaSnapshot().then(function(val) { console.warn(val); } );
-      /*
-      <div style="height: 0px;"></div><div class="acss-15qz5nd acss-1rw8q4s acss-if1fbc" style="height: 46px;">8:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">8:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">9:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">9:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">10:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">10:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">11:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">11:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">12:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">12:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">1:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">1:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">2:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">2:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">3:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">3:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">4:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">4:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">5:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">5:30 PM</div>
-      (but it should go to 7:30pm so something is wrong) vs.
-      <div style="height: 0px;"></div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-15n11k0" style="height: 46px;">None Available</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-15n11k0" style="height: 46px;">None Available</div>
-       */
-      console.log(':uarr ' + time_start_els.length + ' Hmm, is there no way to easily describe each reserve link with its timeslot? ' + matching_btn_els_orig_count + ' :darr'); // I guess maybe one of them didn't finish loading yet?
+
+      // <div style="height: 0px;"></div><div class="acss-15qz5nd acss-1rw8q4s acss-if1fbc" style="height: 46px;">8:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">8:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">9:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">9:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">10:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">10:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">11:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">11:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">12:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">12:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">1:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">1:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">2:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">2:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">3:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">3:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">4:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">4:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">5:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">5:30 PM</div>
+      // (but it should go to 7:30pm so something is wrong) vs.
+      // <div style="height: 0px;"></div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-15n11k0" style="height: 46px;">None Available</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-15n11k0" style="height: 46px;">None Available</div>
+
+      console.log(':uarr ' + time_start_txts.length + ' Hmm, is there no way to easily describe each reserve link with its timeslot? ' + matching_btn_els_orig_count + ' :darr'); // I guess maybe one of them didn't finish loading yet?
       await schedule_two_columns[1].ariaSnapshot().then(function(val) { console.warn(val); } );
       console.warn((await schedule_two_columns[0].innerHTML()) + "\r\n\r\n COMPARING: " + (await schedule_two_columns[0].locator('> *').count()));
       throw new Error(error.message + " I hope there is a reliable solution to this! .... \r\n\r\n" + (await schedule_two_columns[1].innerHTML()));
       // if (error.message.includes('Timed out') && error.message.includes('toHaveCount')) {
     }
 
-    time_start_els = await schedule_two_columns[0].locator('> *').allInnerTexts();
+    time_start_txts = await schedule_two_columns[0].locator('> *').allInnerTexts();
   }
-  // INVARIANT: If you get here, hopefully we see time_start_els with the same length as matching_btn_els
+  // INVARIANT: If you get here, hopefully we see time_start_txts with the same length as matching_btn_els
+  */
 
-  let alreadybooked_els: BookingSlot[] = [];
-  let reservable_els: Map<string, BookingSlot> = new Map<string, BookingSlot>();
-  for(var reserve_idx=0; reserve_idx < matching_btn_els_orig_count; ++reserve_idx) {
-    let data_time: string = time_start_els[reserve_idx];
-
-    let is_first : bool = (reserve_idx == 0);
-    let is_blank : bool = (!data_time || data_time.trim().length == 0);
-    if (is_first && is_blank) {
-      console.log("That's okay. The first element is a " + '"height: 0px;" element for some reason. Continue ' + matching_btn_els.length + ':times ' + );
+  let alreadybooked_num: number = 0;
+  let reservable_slots: Map<string, BookingSlotData> = new Map<string, BookingSlotData>();
+  // for(var reserve_idx=0; reserve_idx < matching_btn_els_orig_count; ++reserve_idx) {
+  for (const each_slot: BookingSlotData of read_consolidated.Data) {
+    if (each_slot.AvailableCourts == 0) {
+      alreadybooked_num += 1;
     } else {
-      let r_el : Locator = matching_btn_els.nth(reserve_idx);
-      console.warn('At ' + reserve_idx + ' ' + (await r_el.innerHTML()));
-      switch (await r_el.textContent()) {
-        case 'Reserve':
-          reservable_els.set(data_time, {time_start_str: data_time, reserve_btn_nth: reserve_idx});
-          break;
-        case 'None Available':
-          alreadybooked_els.push({time_start_str: data_time, reserve_btn_nth: undefined});
-          break;
-        default:
-          await r_el.ariaSnapshot().then(function(val) { console.warn(val); } );
-          throw new Error("The website has changed (idx " + reserve_idx + "), or we lost our connection to the internet. Either way, the script as-is won't be able to book " + data_time + " ... sorry! \r\n\r\n" + (await r_el.innerHTML()));
-      }
+      reservable_slots.set((await localtime_slotstart(p, each_slot)).local_shortTime, each_slot);
     }
-  } // end for reserve_idx
+  } // end for each_slot
 
-  console.log('READY: ' + (alreadybooked_els.length) + ' booked ↔ available ' + (reservable_els.size));
+  console.log('READY: ' + (alreadybooked_num) + ' booked ↔ available ' + (reservable_slots.size));
 
   var reserveTimesChronological: string[] = [];
   for (const [data_time, r_slot]: [string, BookingSlot] of reservable_els.entries()) {
-    let r_el : Locator = matching_btn_els.nth(r_slot.reserve_btn_nth);
-
+    let log_msg : string = r_slot.CourtType + '.' + r_slot.Id + ' | :times' + r_slot.AvailableCourts + ' @ ' + r_slot.Start + ' :rarr ' + r_slot.End;
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
     // *********************
     if (data_time.indexOf(target_ampm) == -1) {
-      console.log(data_time + ' NOT OUR TARGET: ' + (await r_el.innerHTML()));
+      console.log(data_time + ' NOT OUR TARGET: ' + log_msg);
     } else {
       const reserve_btn_hour: number = Number(data_time.split(':')[0]);
       if ((reserve_btn_hour == 12) || (reserve_btn_hour < EARLIEST_HOUR_TO_BOOK)) {
-        console.log(data_time + ' TOO EARLY: ' + (await r_el.innerHTML()));
+        console.log(data_time + ' TOO EARLY: ' + log_msg);
       } else {
-        console.log(data_time + ' RESERVABLE: ' + (await r_el.innerHTML()));
+        console.log(data_time + ' RESERVABLE: ' + log_msg);
         reserveTimesChronological.push(data_time);
       }
     }
@@ -754,7 +753,16 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
     const earliestSatisfactoryTime: string = reserveTimes.shift()!; // assuming we parse the DOM in chronological order (and why wouldn't we?)
 
-    let ready_to_book_el: Locator = matching_btn_els.nth(reservable_els.get(earliestSatisfactoryTime).reserve_btn_nth);
+    const lefthand_match : Locator = time_start_els.getByText(earliestSatisfactoryTime);
+    while (!(await lefthand_match.isVisible())) {
+      time_start_els.last().scrollIntoViewIfNeeded();
+    }
+    const visible_row_times : string[] = time_start_els.allTextContents();
+    const target_row_ordinal : number = visible_row_times.indexOf(earliestSatisfactoryTime);
+
+    console.log('Found row containing ' + earliestSatisfactoryTime + ' currently rendered at n=' + target_row_ordinal);
+
+    const ready_to_book_el: Locator = matching_btn_els.nth(target_row_ordinal);
     try {
       await ready_to_book_el.click({timeout: abort_after_ms});
       // SUCCESS!
@@ -982,7 +990,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
   let initial_checked : string = (await stupid_checkbox_el.getAttribute('aria-checked'));
   if (initial_checked == 'false') {
     await stupid_checkbox_el.click();
-    await expect(stupid_checkbox_el.toHaveAttribute('aria-checked', 'true'));
+    await expect(stupid_checkbox_el).toHaveAttribute('aria-checked', 'true');
   } else {
     const unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(initial_checked);
     throw new Error(unexpected_checkmark);
@@ -1674,9 +1682,9 @@ test('try booking pickleball', async ({ page }) => {
   } else {
     console.log('Debug mode: running at ' + (await localtime_datenow(page, undefined)).local_isoString);
     // At 768px width and smaller, we'll get the mobile view instead
-    //await page.setViewportSize( { width: 768, height: 720 }); // :larr Mobile
+    await page.setViewportSize( { width: 768, height: 720 }); // :larr Mobile
     // At 769px width and larger, we get the desktop view
-    await page.setViewportSize( { width: 769, height: 720 }); // :larr Desktop
+    //await page.setViewportSize( { width: 769, height: 720 }); // :larr Desktop
   }
 
   console.log('WAKEUP: ' + (new Date().toISOString()) + ' UTC');
