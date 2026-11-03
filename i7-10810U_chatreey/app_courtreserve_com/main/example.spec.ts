@@ -315,7 +315,100 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
       let calendar_el: Locator = p.locator('table.ant-picker-content');
       await calendar_el.waitFor({state: 'visible'});
 
+      //console.log('MOBILE OR DESKTOP?');
       //await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+      // DESKTOP
+      /*
+
+- banner:
+  - 'img "Lifetime Activities: Sunnyvale"'
+  - text: Events, Camps, And Classes  Reservations  Yuzisee Playwright 
+- main:
+  - button "Today"
+  - button "Previous day" [disabled]: 
+  - button "Next day": 
+  - text:  Sunday, November 1
+  - textbox "Select date": 11/01/2026
+  - text: Pickleball Reservations
+  - button "Refresh scheduler": 
+  - text: Pickleball 8:00 AM 8:30 AM 9:00 AM 9:30 AM 10:00 AM 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- button "Last year (Control + left)"
+- button "Previous month (PageUp)"
+- button "Choose a month": Nov
+- button "Choose a year": "2026"
+- button "Next month (PageDown)"
+- button "Next year (Control + right)"
+- table:
+  - rowgroup:
+    - row "Su Mo Tu We Th Fr Sa":
+      - columnheader "Su"
+      - columnheader "Mo"
+      - columnheader "Tu"
+      - columnheader "We"
+      - columnheader "Th"
+      - columnheader "Fr"
+      - columnheader "Sa"
+  - rowgroup:
+    - row "1 2 3 4 5 6 7":
+      - cell "1"
+      - cell "2"
+      - cell "3"
+      - cell "4"
+      - cell "5"
+      - cell "6"
+      - cell "7"
+    - row "8 9 10 11 12 13 14":
+      - cell "8"
+      - cell "9"
+      - cell "10"
+      - cell "11"
+      - cell "12"
+      - cell "13"
+      - cell "14"
+    - row "15 16 17 18 19 20 21":
+      - cell "15"
+      - cell "16"
+      - cell "17"
+      - cell "18"
+      - cell "19"
+      - cell "20"
+      - cell "21"
+    - row "22 23 24 25 26 27 28":
+      - cell "22"
+      - cell "23"
+      - cell "24"
+      - cell "25"
+      - cell "26"
+      - cell "27"
+      - cell "28"
+    - row "29 30 1 2 3 4 5":
+      - cell "29"
+      - cell "30"
+      - cell "1"
+      - cell "2"
+      - cell "3"
+      - cell "4"
+      - cell "5"
+    - row "6 7 8 9 10 11 12":
+      - cell "6"
+      - cell "7"
+      - cell "8"
+      - cell "9"
+      - cell "10"
+      - cell "11"
+      - cell "12"
+- list:
+  - listitem: Today
+
+       */
+
+      // MOBILE
       /*
 - banner:
   - button ""
@@ -473,6 +566,10 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
       let target_day_el_disabled : boolean = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
       if ((await quickjump_day_el.isVisible()) && !target_day_el_disabled) {
         await quickjump_day_el.click();
+        if (await desktop_reservations.isVisible()) {
+	  await desktop_reservations.click(); // On mobile, the datepicker closes by itself. On desktop, this de-focuses the date-picker so it goes away.
+	}
+        // await expect(calendar_el).toHaveCount(0, {timeout: 1.5 * 1000}); // Shouldn't take more than 1.5 seconds to close the date-picker?
         return true;
       } else {
         await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
@@ -549,7 +646,7 @@ interface ReadConsolidated {
 
 async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string> {
 
-  await expect(p.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 7 * 1000}); // Just make sure we aren't still loading. We need all the rows to be populated before we continue.
+  await expect(p.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 4 * 1000}); // Just make sure we aren't still loading. We need all the rows to be populated before we continue.
 
   let schedule_parent : Locator = p.getByTestId('scheduler-refresh-btn').locator('xpath=..').locator('xpath=..');
   let schedule_el : Locator = schedule_parent.locator('> :last-child'); // <div class="acss-1q66mfy" style="position: relative;">
@@ -568,37 +665,54 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
   // console.log('schedule_two_columns[0]: ' + (await schedule_two_columns[0].getAttribute('class')));
   // console.log('schedule_two_columns[1]: ' + (await schedule_two_columns[1].getAttribute('class')) + ' ... ' + (await schedule_two_columns[1].getAttribute('style')));
 
-  let time_start_els : string[] = await schedule_two_columns[0].locator('> *').allTextContents();
-  let matching_btn_els : Locator[] = await schedule_two_columns[1].locator('> *').all(); // all children
+  let time_start_els : string[] = await schedule_two_columns[0].locator('> *').allInnerTexts();
+  const matching_btn_els : Locator = await schedule_two_columns[1].locator('> *'); // all children
+  const matching_btn_els_orig_count : number = await matching_btn_els.count();
 
   // console.log('time_start_els: ' + JSON.stringify(time_start_els));
-  // console.log('matching_btn_els.length = ' + matching_btn_els.length);
+  // console.log('matching_btn_els.length = ' + matching_btn_els_orig_count);
 
-  if (time_start_els.length != matching_btn_els.length) {
-    await schedule_two_columns[0].ariaSnapshot().then(function(val) { console.warn(val); } );
-    console.warn('Hmm, is there no way to easily describe each reserve link with its timeslot?');
-    await schedule_two_columns[1].ariaSnapshot().then(function(val) { console.warn(val); } );
-    console.warn((await schedule_two_columns[0].innerHTML()) + "\r\n\r\n COMPARING:");
-    throw new Error("I hope there is a reliable solution to this! .... \r\n\r\n" + (await schedule_two_columns[1].innerHTML()));
+  if (time_start_els.length != matching_btn_els_orig_count) {
+    try {
+      await expect(schedule_two_columns[0].locator('> *')).toHaveCount(matching_btn_els_orig_count, {timeout: 17 * 1000});
+      // Okay, well sometimes the time_start_els column is a little slower to load?
+      // Let's wait to see if it finishes loading.
+    } catch (error) {
+      await schedule_two_columns[0].ariaSnapshot().then(function(val) { console.warn(val); } );
+      /*
+      <div style="height: 0px;"></div><div class="acss-15qz5nd acss-1rw8q4s acss-if1fbc" style="height: 46px;">8:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">8:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">9:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">9:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">10:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">10:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">11:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">11:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">12:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">12:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">1:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">1:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">2:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">2:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">3:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">3:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">4:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">4:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">5:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">5:30 PM</div>
+      (but it should go to 7:30pm so something is wrong) vs.
+      <div style="height: 0px;"></div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-15n11k0" style="height: 46px;">None Available</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-15n11k0" style="height: 46px;">None Available</div>
+       */
+      console.log(':uarr ' + time_start_els.length + ' Hmm, is there no way to easily describe each reserve link with its timeslot? ' + matching_btn_els_orig_count + ' :darr'); // I guess maybe one of them didn't finish loading yet?
+      await schedule_two_columns[1].ariaSnapshot().then(function(val) { console.warn(val); } );
+      console.warn((await schedule_two_columns[0].innerHTML()) + "\r\n\r\n COMPARING: " + (await schedule_two_columns[0].locator('> *').count()));
+      throw new Error(error.message + " I hope there is a reliable solution to this! .... \r\n\r\n" + (await schedule_two_columns[1].innerHTML()));
+      // if (error.message.includes('Timed out') && error.message.includes('toHaveCount')) {
+    }
+
+    time_start_els = await schedule_two_columns[0].locator('> *').allInnerTexts();
   }
+  // INVARIANT: If you get here, hopefully we see time_start_els with the same length as matching_btn_els
 
   let alreadybooked_els: BookingSlot[] = [];
   let reservable_els: Map<string, BookingSlot> = new Map<string, BookingSlot>();
-  for(var reserve_idx=0; reserve_idx < matching_btn_els.length; ++reserve_idx) {
+  for(var reserve_idx=0; reserve_idx < matching_btn_els_orig_count; ++reserve_idx) {
     let data_time: string = time_start_els[reserve_idx];
 
     let is_first : bool = (reserve_idx == 0);
     let is_blank : bool = (!data_time || data_time.trim().length == 0);
     if (is_first && is_blank) {
-      console.log("That's okay. The first element is a " + '"height: 0px;" element for some reason. Continue!');
+      console.log("That's okay. The first element is a " + '"height: 0px;" element for some reason. Continue ' + matching_btn_els.length + ':times ' + );
     } else {
-      let r_el : Locator = matching_btn_els[reserve_idx];
-      switch (await r_el.innerText()) {
+      let r_el : Locator = matching_btn_els.nth(reserve_idx);
+      console.warn('At ' + reserve_idx + ' ' + (await r_el.innerHTML()));
+      switch (await r_el.textContent()) {
         case 'Reserve':
-          reservable_els.set(data_time, {time_start_str: data_time, reserve_btn_el: r_el});
+          reservable_els.set(data_time, {time_start_str: data_time, reserve_btn_nth: reserve_idx});
           break;
         case 'None Available':
-          alreadybooked_els.push({time_start_str: data_time, reserve_btn_el: undefined});
+          alreadybooked_els.push({time_start_str: data_time, reserve_btn_nth: undefined});
           break;
         default:
           await r_el.ariaSnapshot().then(function(val) { console.warn(val); } );
@@ -611,7 +725,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
   var reserveTimesChronological: string[] = [];
   for (const [data_time, r_slot]: [string, BookingSlot] of reservable_els.entries()) {
-    let r_el : Locator = r_slot.reserve_btn_el;
+    let r_el : Locator = matching_btn_els.nth(r_slot.reserve_btn_nth);
 
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
@@ -640,7 +754,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
     const earliestSatisfactoryTime: string = reserveTimes.shift()!; // assuming we parse the DOM in chronological order (and why wouldn't we?)
 
-    let ready_to_book_el: Locator = reservable_els.get(earliestSatisfactoryTime).reserve_btn_el;
+    let ready_to_book_el: Locator = matching_btn_els.nth(reservable_els.get(earliestSatisfactoryTime).reserve_btn_nth);
     try {
       await ready_to_book_el.click({timeout: abort_after_ms});
       // SUCCESS!
@@ -830,13 +944,32 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
   //   div.ant-modal-footer
   //     div[data-testid=reservation-mobile-footer]
 
-  let booking_form_el: Locator = p.getByTestId('reservation-create-page').getByRole('form').getByTestId('reservation-card');
-  await booking_form_el.getByText('Order Summary').waitFor({state: 'visible'});
-
-  await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+  let booking_system_el: Locator = p.getByTestId('reservation-create-page');
+  await booking_system_el.getByText('Order Summary').waitFor({state: 'visible'});
+  // console.log('Reservation card: READY? ' + (await booking_system_el.getAttribute('class')));
+  // await booking_system_el.ariaSnapshot().then(function(val) { console.log(val); } );
   /*
-
+- text: Monday 8:00 AM – 8:30 AM Recreational Play - Pickleball Pickleball Duration
+- combobox: 30 minutes
+- text: Players (1)
+- table:
+  - rowgroup:
+    - row "# Name":
+      - columnheader "#"
+      - columnheader "Name"
+  - rowgroup:
+    - row "1 Yuzisee Playwright":
+      - cell "1"
+      - cell "Yuzisee Playwright"
+- text: Court Reservations Payment is due upon check-in (at the ti ...
+- button "View"
+- checkbox "I agree to the terms above"
+- text: Order Summary
    */
+  console.log('Reservation card: containing form ' + (await booking_system_el.locator('form').getAttribute('class')));
+  let booking_form_el: Locator = booking_system_el.locator('form').getByTestId('reservation-card');
+  console.log('Reservation card: order summary ' + (await booking_form_el.getAttribute('class')));
+
 
   let disclosure_agree_el: Locator = booking_form_el.getByTestId('reservation-section-disclosure');
   /*
@@ -855,6 +988,14 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
     throw new Error(unexpected_checkmark);
   }
 
+
+  let duration_combobox : Locator = booking_form_el.getByTestId('reservation-duration');
+  await duration_combobox.getByRole('combobox').click();
+  await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+  console.log(':uarr BEFORE // AFTER :darr');
+  await p.waitForTimeout(2.5 * 1000.0);
+  await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+
   const totalDueAmount: string | null = await booking_form_el.getByTestId('reservation-cost-summary').textContent();
 
   let booking_form_submit : Locator = p.getByTestId('reservation-mobile-footer').getByTestId('reservation-mobile-submit-btn');
@@ -868,12 +1009,14 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
     await p.screenshot({ path: 'immediately-after-save' + (new Date()).valueOf() + '.png', fullPage: true });
 // <div class="modal-header-container" data-testid="remove-or-withdraw-modal"><div class="modal-title"><span class="modal-title-span" data-testid="title">Book a reservation for 7/15/2026</span></div><div class="modal-title-buttons"><button type="reset" data-testid="close-btn-modal-header" class="btn btn-light " data-dismiss="modal">Close</button><button __playwright_target__="call@258" type="button" data-testid="save-btn" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 41px; outline: rgb(0, 106, 177) solid 2px; background-color: rgba(111, 168, 220, 0.498);"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div></div>
 // <div class="modal-title-buttons "><button type="reset" data-testid="Close" class="btn btn-light fn-reservation-create-close " data-dismiss="modal">Close</button><button data-testid="Save" type="button" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 38px;"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div>
+    /*
     console.log( await p.locator('div.modal-title-buttons').first().evaluate(el => el.innerHTML) );
     await p.locator('div.modal-title-buttons').first().ariaSnapshot().then(function(val) { console.log(val); } );
     console.log( ' ↕ ↕ ');
     console.log( ' ↕ ↕ ');
     await p.locator('div.modal-title-buttons').last().ariaSnapshot().then(function(val) { console.log(val); } );
     console.log( await p.locator('div.modal-title-buttons').last().evaluate(el => el.innerHTML) );
+   */
 
     let saveButtonSpinners : Locator = p.locator('div.modal-title-buttons button span.btn-active-spinner');
     if ((await saveButtonSpinners.count()) > 0) {
@@ -1469,7 +1612,7 @@ test('try booking pickleball', async ({ page }) => {
   // ====================================
 
   let need_login_btn: Locator = page.getByTestId('header-login-btn'); // locator('header[data-testid="portal-header"]').getByRole('link', {name: 'Log In', exact: true});
-  if (await locator_visible(need_login_btn, 3500)) { // Ever since they switched to ShellSkeleton or ant-skeleton or something, it got slower. Used to be 2000ms
+  if (await locator_visible(need_login_btn, 17000)) { // Ever since they switched to ShellSkeleton or ant-skeleton or something, it got slower. Used to be 2000ms
     await need_login_btn.click();
     await page.waitForURL('**/Online/Account/Login/**'); // by default, waitForURL does not timeout... https://playwright.dev/docs/test-timeouts#advanced-low-level-timeouts
     // e.g. https://app.courtreserve.com/Online/Account/Login/13233
