@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { test, expect, errors, type Page, type Locator } from '@playwright/test';
+import { test, expect, errors, type Page, type Locator, type Response } from '@playwright/test';
 
 const LAUNCH_MODE: string = 'prod';
 // const LAUNCH_MODE: string = 'dev';
@@ -321,7 +321,7 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
 
 - banner:
   - 'img "Lifetime Activities: Sunnyvale"'
-  - text: Events, Camps, And Classes  Reservations  Yuzisee Playwright 
+  - text: Events, Camps, And Classes  Reservations  Firstname Lastname 
 - main:
   - button "Today"
   - button "Previous day" [disabled]: 
@@ -514,16 +514,16 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
 
       let month_chooser_el: Locator = p.locator('div.ant-picker-header');
       let correct_month_shown: Locator = month_chooser_el.getByRole('button', {name: 'Choose a month'});
-      let month_shown : string = await correct_month_shown.textContent();
+      let month_shown : string | null = await correct_month_shown.textContent();
       //console.log("Current month: " + JSON.stringify(month_shown) + " vs. " + long_month + "/" + short_month);
       if ((month_shown != short_month) && (month_shown != long_month)) {
         // [INVARIANT]: A different month is showing than the one we want. Try to switch using the switcher.
 
-	let quickjump_day_el_disabled : boolean = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
+	let quickjump_day_el_disabled : boolean | undefined = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
         // await locator.evaluate(el => el.classList.contains('ant-picker-cell-disabled'));
 
 	// e.g. 'Monday, February 2, 2026'
-        if ((await quickjump_day_el.isVisible()) && !quickjump_day_el_disabled) {
+        if ((await quickjump_day_el.isVisible()) && (quickjump_day_el_disabled === false)) {
           // Quickly jump to the day we want, otherwise it could slow us down an extra second or two!
           await quickjump_day_el.click();
           return true;
@@ -540,8 +540,8 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
           // <button type="button" aria-label="Next month (PageDown)" tabindex="-1" class="ant-picker-header-next-btn"><span class="ant-picker-next-icon"></span></button>
 	  // <button type="button" aria-label="Next month (PageDown)" tabindex="-1" class="ant-picker-header-next-btn"><span class="ant-picker-next-icon"></span></button>
           await month_chooser_el.getByRole('button', {name: 'Next month', exact: false}).click();
-          let target_month : string = await correct_month_shown.textContent();
-          if ((target_month != short_month) && (month_shown != long_month)) {
+          let target_month : string | null = await correct_month_shown.textContent();
+          if ((target_month != short_month) && (target_month != long_month)) {
             await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
             console.log('Month ' + long_month + ' not yet selectable (did you wake from sleep too early?)... so refresh @ ' + (new Date().toISOString()) + ' UTC');
             await calendar_el.ariaSnapshot().then(function(val) { console.log(val); } );
@@ -562,8 +562,8 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
       // [INVARIANT]: OK good! We're should be on the correct month now.
       await expect(quickjump_day_el).toBeVisible();
 
-      let target_day_el_disabled : boolean = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
-      if ((await quickjump_day_el.isVisible()) && !target_day_el_disabled) {
+      let target_day_el_disabled : boolean | undefined = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
+      if ((await quickjump_day_el.isVisible()) && (target_day_el_disabled === false)) {
         await quickjump_day_el.click();
         if (await desktop_reservations.isVisible()) {
 	  await desktop_reservations.click(); // On mobile, the datepicker closes by itself. On desktop, this de-focuses the date-picker so it goes away.
@@ -654,30 +654,29 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
   await p.getByTestId('scheduler-refresh-btn').click();
   const slotsDataJsonObj : Response = await interceptSlotsData;
   console.log('What is the response type ' + slotsDataJsonObj);
-  console.log('What is the response content ' + (await slotsDataJsonObj.body()));
+  // console.log('What is the response content ' + (await slotsDataJsonObj.body()));
   const read_consolidated : ReadConsolidated = await slotsDataJsonObj.json();
-
-  const matching_btn_els_orig_count : number = read_consolidated.Data.length;
+  console.log('What is the response content ' + JSON.stringify(read_consolidated));
 
   let schedule_parent : Locator = p.getByTestId('scheduler-refresh-btn').locator('xpath=..').locator('xpath=..');
   let schedule_el : Locator = schedule_parent.locator('> :last-child'); // <div class="acss-1q66mfy" style="position: relative;">
 
-  let schedule_two_columns : [Locator, Locator] = await schedule_el.locator('> *').all(); // all children
+  let schedule_two_columns = await schedule_el.locator('> *').all() as [Locator, Locator]; // all children
   // e.g.
   // <div class="acss-1wvjhs3"> ... </div>
   // <div class="acss-5hxkkc" style="flex: 1 0 160px;"> ... </div>
 
   if (schedule_two_columns.length != 2) {
     await schedule_el.ariaSnapshot().then(function(val) { console.log(val); } );
-    throw new Error('Oh? So far we assume there are two columns: One for times and one for reserve buttons ' + (await schedule_two_columns.innerHTML()));
+    throw new Error('Oh? So far we assume there are two columns: One for times and one for reserve buttons ' + (await schedule_el.innerHTML()));
   }
   // console.log('schedule_parent: ' + (await schedule_parent.getAttribute('style')));
   // console.log('schedule_el: ' + (await schedule_el.getAttribute('class')) + " ... " + (await schedule_el.getAttribute('style')));
   // console.log('schedule_two_columns[0]: ' + (await schedule_two_columns[0].getAttribute('class')));
   // console.log('schedule_two_columns[1]: ' + (await schedule_two_columns[1].getAttribute('class')) + ' ... ' + (await schedule_two_columns[1].getAttribute('style')));
 
-  let time_start_els : string[] = await schedule_two_columns[0].locator('> *'); // all children
-  const matching_btn_els : Locator = await schedule_two_columns[1].locator('> *'); // all children
+  let time_start_els : Locator = schedule_two_columns[0].locator('> *'); // all children
+  const matching_btn_els : Locator = schedule_two_columns[1].locator('> *'); // all children
 /*
   const matching_btn_els_orig_count : number = await matching_btn_els.count();
 
@@ -712,9 +711,10 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
   let alreadybooked_num: number = 0;
   let all_times_chronological : string[] = [];
-  let reservable_slots: Map<string, BookingSlotData> = new Map<string, BookingSlotData>();
+  let reservable_slots: Map<string, BookingSlotPayload> = new Map<string, BookingSlotPayload>();
   // for(var reserve_idx=0; reserve_idx < matching_btn_els_orig_count; ++reserve_idx) {
-  for (const each_slot: BookingSlotData of read_consolidated.Data) {
+  for (const each_slot of read_consolidated.Data) {
+  // for (const each_slot: BookingSlotPayload of read_consolidated.Data) {
     let slot_time_display : string = (await localtime_slotstart(p, each_slot)).local_shortTime;
     if (each_slot.AvailableCourts == 0) {
       alreadybooked_num += 1;
@@ -728,7 +728,8 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
   console.log('READY: ' + (alreadybooked_num) + ' booked ↔ available ' + (reservable_slots.size));
 
   var reserveTimesChronological: string[] = [];
-  for (const [data_time, r_slot]: [string, BookingSlot] of reservable_slots.entries()) {
+  // for (const [data_time, r_slot]: [string, BookingSlot] of reservable_slots.entries()) {
+  for (const [data_time, r_slot] of reservable_slots.entries()) {
     let log_msg : string = r_slot.CourtType + '.' + r_slot.Id + ' | :times' + r_slot.AvailableCourts + ' @ ' + r_slot.Start + ' :rarr ' + r_slot.End;
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
@@ -761,7 +762,15 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
     const lefthand_match : Locator = time_start_els.getByText(earliestSatisfactoryTime);
     while (!(await lefthand_match.isVisible())) {
       let current_visible_timerows : string[] = await time_start_els.allTextContents();
-      let midpoint_visible_timerow : string = current_visible_timerows[Math.floor(current_visible_timerows.length / 2)];
+      let midpoint_visible_timerow : string | undefined = current_visible_timerows[Math.floor(current_visible_timerows.length / 2)];
+
+
+      if (current_visible_timerows.length <= 1) {
+        throw Error('Huh? No times along the left side? What are we meant to do then?');
+      }
+      if (midpoint_visible_timerow === undefined) {
+        throw Error('Huh? Missing times along the left side? Did the page fail to render? ' + (await time_start_els.innerHTML()));
+      }
 
       let target_visible_idx : number = all_times_chronological.indexOf(earliestSatisfactoryTime);
       let midpoint_visible_idx : number = all_times_chronological.indexOf(midpoint_visible_timerow);
@@ -769,12 +778,10 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
       console.warn('Scrolling until we can see ' + earliestSatisfactoryTime + " because so far it's only " + JSON.stringify(current_visible_timerows));
       console.log(midpoint_visible_timerow + ' is currently visible at roughly ' + midpoint_visible_idx + ' of ' + current_visible_timerows.length + ' but we would like to get to ' + target_visible_idx);
 
-      if (current_visible_timerows.length <= 1) {
-        throw Error('Huh? No times along the left side? What are we meant to do then?');
-      } else if (target_visible_idx < midpoint_visible_idx) {
+      if (target_visible_idx < midpoint_visible_idx) {
         throw Error('Scrolled too far??');
       } else if (midpoint_visible_idx < target_visible_idx) {
-        time_start_els.last().scrollIntoViewIfNeeded();
+        await time_start_els.last().scrollIntoViewIfNeeded();
       } else {
         // exact match? OKAY good!
 	break;
@@ -1003,9 +1010,9 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
       - columnheader "#"
       - columnheader "Name"
   - rowgroup:
-    - row "1 Yuzisee Playwright":
+    - row "1 Firstname Lastname":
       - cell "1"
-      - cell "Yuzisee Playwright"
+      - cell "Firstname Lastname"
 - text: Court Reservations Payment is due upon check-in (at the ti ...
 - button "View"
 - checkbox "I agree to the terms above"
@@ -1024,7 +1031,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
   */
    // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders an SVG checkbox
   let stupid_checkbox_el: Locator = disclosure_agree_el.getByRole('checkbox', {name: 'I agree to the terms above'});
-  let initial_checked : string = (await stupid_checkbox_el.getAttribute('aria-checked'));
+  let initial_checked : string | null = (await stupid_checkbox_el.getAttribute('aria-checked'));
   if (initial_checked == 'false') {
     await stupid_checkbox_el.click();
     await expect(stupid_checkbox_el).toHaveAttribute('aria-checked', 'true');
@@ -1052,9 +1059,9 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
       - columnheader "#"
       - columnheader "Name"
   - rowgroup:
-    - row "1 Yuzisee Playwright":
+    - row "1 Firstname Lastname":
       - cell "1"
-      - cell "Yuzisee Playwright"
+      - cell "Firstname Lastname"
 - text: Court Reservations Payment is due upon check-in (at the ti ...
 - button "View"
 - checkbox "I agree to the terms above" [checked]
@@ -1150,13 +1157,13 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
       console.log('No spinner appeared... Did we click the [Save] button? How long does it normally take for the spinner to appear?');
     }
 
+   */
     // IF the lottery is running, we need to keep the window open long enough to participate in it fully.
     if (await wait_for_lottery(p)) {
       console.log('Lottery done? It is now ' + (await localtime_datenow(p, undefined)).local_isoString);
     } else {
       console.log('No lottery needed?');
     }
-   */
 
     // let confirmation_popup : Locator = p.getByRole('alert').getByText('Reservation Confirmed');
     /*
