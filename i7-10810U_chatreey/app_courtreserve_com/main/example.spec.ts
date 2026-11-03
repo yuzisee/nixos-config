@@ -711,20 +711,24 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
   */
 
   let alreadybooked_num: number = 0;
+  let all_times_chronological : string[] = [];
   let reservable_slots: Map<string, BookingSlotData> = new Map<string, BookingSlotData>();
   // for(var reserve_idx=0; reserve_idx < matching_btn_els_orig_count; ++reserve_idx) {
   for (const each_slot: BookingSlotData of read_consolidated.Data) {
+    let slot_time_display : string = (await localtime_slotstart(p, each_slot)).local_shortTime;
     if (each_slot.AvailableCourts == 0) {
       alreadybooked_num += 1;
     } else {
-      reservable_slots.set((await localtime_slotstart(p, each_slot)).local_shortTime, each_slot);
+      reservable_slots.set(slot_time_display, each_slot);
     }
+
+    all_times_chronological.push(slot_time_display);
   } // end for each_slot
 
   console.log('READY: ' + (alreadybooked_num) + ' booked ↔ available ' + (reservable_slots.size));
 
   var reserveTimesChronological: string[] = [];
-  for (const [data_time, r_slot]: [string, BookingSlot] of reservable_els.entries()) {
+  for (const [data_time, r_slot]: [string, BookingSlot] of reservable_slots.entries()) {
     let log_msg : string = r_slot.CourtType + '.' + r_slot.Id + ' | :times' + r_slot.AvailableCourts + ' @ ' + r_slot.Start + ' :rarr ' + r_slot.End;
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
@@ -753,14 +757,47 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
     const earliestSatisfactoryTime: string = reserveTimes.shift()!; // assuming we parse the DOM in chronological order (and why wouldn't we?)
 
+
     const lefthand_match : Locator = time_start_els.getByText(earliestSatisfactoryTime);
     while (!(await lefthand_match.isVisible())) {
-      time_start_els.last().scrollIntoViewIfNeeded();
-    }
-    const visible_row_times : string[] = time_start_els.allTextContents();
+      let current_visible_timerows : string[] = await time_start_els.allTextContents();
+      let midpoint_visible_timerow : string = current_visible_timerows[Math.floor(current_visible_timerows.length / 2)];
+
+      let target_visible_idx : number = all_times_chronological.indexOf(earliestSatisfactoryTime);
+      let midpoint_visible_idx : number = all_times_chronological.indexOf(midpoint_visible_timerow);
+
+      console.warn('Scrolling until we can see ' + earliestSatisfactoryTime + " because so far it's only " + JSON.stringify(current_visible_timerows));
+      console.log(midpoint_visible_timerow + ' is currently visible at roughly ' + midpoint_visible_idx + ' of ' + current_visible_timerows.length + ' but we would like to get to ' + target_visible_idx);
+
+      if (current_visible_timerows.length <= 1) {
+        throw Error('Huh? No times along the left side? What are we meant to do then?');
+      } else if (target_visible_idx < midpoint_visible_idx) {
+        throw Error('Scrolled too far??');
+      } else if (midpoint_visible_idx < target_visible_idx) {
+        time_start_els.last().scrollIntoViewIfNeeded();
+      } else {
+        // exact match? OKAY good!
+	break;
+      }
+    } // end while
+
+    const visible_row_times : string[] = await time_start_els.allTextContents();
     const target_row_ordinal : number = visible_row_times.indexOf(earliestSatisfactoryTime);
 
     console.log('Found row containing ' + earliestSatisfactoryTime + ' currently rendered at n=' + target_row_ordinal);
+
+
+   /*
+    const scheduler_id_from_url : Url = new URL(p.url());
+    const scheduler_id : string = scheduler_id_from_url.searchParams.get('sId');
+
+    const manual_reserve_get: string = await p.evaluate(
+      // https://mobileapp.courtreserve.com/Online/ReservationsApi/CreateReservation/13233?isApiCall=true&start=2026-11-04T08%3A30%3A00&end=2026-11-04T09%3A00%3A00&courtType=Pickleball&customSchedulerId=16984&isConsolidated=true
+      // https://mobileapp.courtreserve.com/Online/ReservationsApi/CreateReservation/13233?isApiCall=true&start=2026-11-04T08:30:00&end=2026-11-04T09:00:00&courtType=Pickleball&customSchedulerId=16984&isConsolidated=true
+      HttpXMLRequest
+      scheduler_id_from_url
+    );
+   */
 
     const ready_to_book_el: Locator = matching_btn_els.nth(target_row_ordinal);
     try {
@@ -999,10 +1036,64 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
 
   let duration_combobox : Locator = booking_form_el.getByTestId('reservation-duration');
   await duration_combobox.getByRole('combobox').click();
-  await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
-  console.log(':uarr BEFORE // AFTER :darr');
-  await p.waitForTimeout(2.5 * 1000.0);
-  await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+  // Desktop:
+  /*
+- text: Monday 8:00 AM – 8:30 AM Recreational Play - Pickleball Pickleball Duration
+- combobox [expanded]: 30 minutes
+- listbox:
+  - option "30 minutes" [selected]
+  - option "1 hour"
+  - option "1 hour & 30 minutes"
+  - option "2 hours"
+- text: Players (1)
+- table:
+  - rowgroup:
+    - row "# Name":
+      - columnheader "#"
+      - columnheader "Name"
+  - rowgroup:
+    - row "1 Yuzisee Playwright":
+      - cell "1"
+      - cell "Yuzisee Playwright"
+- text: Court Reservations Payment is due upon check-in (at the ti ...
+- button "View"
+- checkbox "I agree to the terms above" [checked]
+- text: Order Summary
+   */
+  const desktop_duration : Locator = p.getByRole('listbox').getByRole('option', {name: '1 hour', exact: true});
+  // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+  // console.log(':uarr BEFORE // AFTER :darr');
+  // await p.waitForTimeout(2.5 * 1000.0);
+  // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+
+  // Mobile:
+  const mobile_duration : Locator = p.getByRole('dialog', {name: 'Duration'}).getByRole('button', {name: '1 hour', exact: true});
+  /*
+   <div class="ant-drawer-section" role="dialog" aria-labelledby="_r_p_" aria-modal="true" style="display: flex; flex-direction: column; height: auto; max-height: 70vh; background: var(--ant-color-bg-container);">
+     <div class="ant-drawer-header" style="background: transparent; border-bottom-width: medium; border-bottom-style: none; border-bottom-color: currentcolor; padding: 4px; flex-shrink: 0;">
+       <div class="ant-drawer-header-title">
+         <div class="ant-drawer-title" id="_r_p_"><div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-center ant-flex-justify-flex-start" style="padding-block: 8px; flex-direction: row; justify-self: center; max-width: 100%; width: 100%; padding-inline-start: var(--ant-padding); padding-inline-end: 44px; font-size: 14px;">Duration</div></div>
+       </div>
+       <div class="ant-drawer-extra">
+         <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-center ant-flex-justify-flex-end" style="flex-direction: row; position: absolute; right: 4px; top: 4px; gap: 8px;">
+	   <div class="acss-1d4vk4m ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-center ant-flex-justify-center" role="button" tabindex="0" style="flex-direction: row; border-radius: 6px; height: 36px; width: 36px; flex: 0 0 auto;"><span class="anticon" role="img" style="pointer-events: none;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></span></div>
+         </div>
+       </div>
+     </div>
+     <div class="ant-drawer-body" style="background: transparent; padding-block: 0px; padding-inline: 0px; overflow: hidden; display: flex; flex-direction: column; flex: 1 1 0%; min-height: 0px;">
+       <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-stretch ant-flex-vertical" style="flex-direction: column; justify-self: center; max-width: 100%; flex: 1 1 0%; min-height: 0px; overflow: auto; width: 100%; padding-block-end: var(--cr-safe-area-bottom, env(safe-area-inset-bottom, 0px));">
+         <div class=""><div class="acss-1vqir4">
+	   <button class="acss-1exicps" data-selected="true" type="button"><span class="acss-rimv92">30 minutes</span><span class="acss-17ami2x"><span class="anticon" role="img"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></span></button>
+	   <button class="acss-1y53bzn" type="button"><span class="acss-rimv92">1 hour</span></button>
+	   <button class="acss-1y53bzn" type="button"><span class="acss-rimv92">1 hour &amp; 30 minutes</span></button>
+	   <button class="acss-1y53bzn" type="button"><span class="acss-rimv92">2 hours</span></button>
+         </div></div>
+       </div>
+     </div>
+   </div>
+   */
+
+  await desktop_duration.or(mobile_duration).click();
 
   const totalDueAmount: string | null = await booking_form_el.getByTestId('reservation-cost-summary').textContent();
 
@@ -1026,6 +1117,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
     console.log( await p.locator('div.modal-title-buttons').last().evaluate(el => el.innerHTML) );
    */
 
+  /*
     let saveButtonSpinners : Locator = p.locator('div.modal-title-buttons button span.btn-active-spinner');
     if ((await saveButtonSpinners.count()) > 0) {
       // [!CAUTION]
@@ -1064,8 +1156,9 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
     } else {
       console.log('No lottery needed?');
     }
+   */
 
-    let confirmation_popup : Locator = p.getByRole('alert').getByText('Reservation Confirmed');
+    // let confirmation_popup : Locator = p.getByRole('alert').getByText('Reservation Confirmed');
     /*
 - generic [ref=e1]:
   - text:   
@@ -1178,6 +1271,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
     - text: "!"
     - button "OK" [active] [ref=e182] [cursor=pointer]
     */
+   /*
     let weird_lottery_confirmation_message : Locator = p.getByRole('dialog').getByText('You have been assigned to Pickleball').and(
       p.getByRole('dialog').getByText('being no longer available')
     );
@@ -1202,10 +1296,13 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
       console.log('SUCCESS at ' + (await localtime_datenow(p, undefined)).local_isoString);
       return true;
     }
+   */
+    return true; // TODO(from joseph): Detect whether booking succeeded or failed.
   } else {
+    // INVARIANT: I guess `LAUNCH_MODE == 'dev'`
     console.log(
      '↳ ' + totalDueAmount + ' READY TO BOOK ' +
-     (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
+     (await booking_form_submit.first().ariaSnapshot())
     );
 
     await p.screenshot({ path: 'ready.png', fullPage: true });
@@ -1682,9 +1779,9 @@ test('try booking pickleball', async ({ page }) => {
   } else {
     console.log('Debug mode: running at ' + (await localtime_datenow(page, undefined)).local_isoString);
     // At 768px width and smaller, we'll get the mobile view instead
-    await page.setViewportSize( { width: 768, height: 720 }); // :larr Mobile
+    //await page.setViewportSize( { width: 768, height: 720 }); // :larr Mobile
     // At 769px width and larger, we get the desktop view
-    //await page.setViewportSize( { width: 769, height: 720 }); // :larr Desktop
+    await page.setViewportSize( { width: 769, height: 720 }); // :larr Desktop
   }
 
   console.log('WAKEUP: ' + (new Date().toISOString()) + ' UTC');
