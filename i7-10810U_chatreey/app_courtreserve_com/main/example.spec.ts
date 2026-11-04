@@ -19,11 +19,14 @@ const FAVOURITE_TIMES_BEST_FIRST: Record<'AM' | 'PM', string[]> = {
 // [!NOTE]
 // Only ONE of the FAVOURITE_TIMES_BEST_FIRST lists will be considered, based on the value of `preset_ampm` in https://github.com/yuzisee/nixos-config/blob/8b133175f158cecd1a55d5cc74fe878ffc7d45bd/.github/workflows/bookit.yml#L40-L49
 
-// const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
-const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
-// const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
-const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
+const HOME_URL: string = 'https://mobileapp.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
+// const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
+//// const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
+//// const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
+// const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
 const HOME_TIMEZONE: string = 'America/Los_Angeles';
+
+const GENERIC_SPINNER: string = 'div.ant-spin > span.ant-spin-dot-holder > span.ant-spin-dot';
 
 // Playwright documentation complains that if you call `isVisible()` directly that the results will be flaky...
 // So, we'll need this helper function to check if a certain element becomes visible after the page finishes loading (Playwright auto-wait)
@@ -46,6 +49,7 @@ async function locator_visible(pw_locator: Locator, timeout_ms: number): Promise
 
 interface SerializedDate {
   local_isoString: string;
+  local_shortTime: string;
   local_generalString: string;
   local_hour: number;
   local_minute: number;
@@ -59,36 +63,40 @@ test.use({
   // https://playwright.dev/docs/api/class-testoptions#test-options-timezone-id
   timezoneId: HOME_TIMEZONE,
 });
-async function localtime_datenow(p: Page): Promise<SerializedDate> {
+
+async function localtime_datenow(p: Page, undefined_means_now: number | undefined): Promise<SerializedDate> {
   const date_in_playwright: SerializedDate = await p.evaluate(
-    function() {
-      var localtime_date = new Date();
+    function(captured_millis) {
+      function tzoffset_str(dt : Date) : string {
+         var tzoffset : number = dt.getTimezoneOffset(); // FYI: `getTimezoneOffset` is not the offset of the DATE value itself, but rather the offset of the browser AT THE TIME the date value represents
+         if (tzoffset == 0) {
+           return 'Z';
+         } else {
+           var tzoffset_hour : number = Math.floor(Math.abs(tzoffset) / 60.0);
+           var tzoffset_minute : number = (Math.abs(tzoffset) % 60);
+           // [!TIP]
+           // When you get tzoffset 480 that's actually UTC-8:00 (it's the negative direction)
+           var tzoffset_direction : string = ((tzoffset <= 0) ? '+' : '-');
+           // ^^^ Technically London is "+00:00" according to https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC
 
-      var tzoffset = localtime_date.getTimezoneOffset(); // FYI: `getTimezoneOffset` is not the offset of the DATE value itself, but rather the offset of the browser AT THE TIME the date value was instantiated.
-      var tzoffset_str = '';
-      if (tzoffset == 0) {
-        tzoffset_str = 'Z';
-      } else {
-        var tzoffset_hour = Math.floor(Math.abs(tzoffset) / 60.0);
-        var tzoffset_minute = (Math.abs(tzoffset) % 60);
-        // [!TIP]
-        // When you get tzoffset 480 that's actually UTC-8:00 (it's the negative direction)
-        var tzoffset_direction = ((tzoffset <= 0) ? '+' : '-');
-        // ^^^ Technically London is "+00:00" according to https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC
-
-        tzoffset_str = tzoffset_direction + tzoffset_hour.toString().padStart(2, '0') + ':' + tzoffset_minute.toString().padStart(2, '0');
+           return tzoffset_direction + tzoffset_hour.toString().padStart(2, '0') + ':' + tzoffset_minute.toString().padStart(2, '0');
+         }
       }
+      var localtime_date : Date = (captured_millis === undefined) ? (new Date()) : (new Date(captured_millis));
 
+      var localtime_monthnum : string = (localtime_date.getMonth() + 1).toString().padStart(2, '0');
+      var localtime_isodate : string = localtime_date.getFullYear() + '-' + localtime_monthnum + '-' + localtime_date.getDate().toString().padStart(2, '0');
+      var localtime_isotime : string = localtime_date.getHours().toString().padStart(2, '0') + ':' +
+                                       localtime_date.getMinutes().toString().padStart(2, '0') + ':' +
+                                       localtime_date.getSeconds().toString().padStart(2, '0');
 
-      var localtime_monthnum = (localtime_date.getMonth() + 1).toString().padStart(2, '0');
-      var localtime_isodate = localtime_date.getFullYear() + '-' + localtime_monthnum + '-' + localtime_date.getDate().toString().padStart(2, '0');
-      var localtime_isotime = localtime_date.getHours().toString().padStart(2, '0') + ':' +
-                              localtime_date.getMinutes().toString().padStart(2, '0') + ':' +
-                              localtime_date.getSeconds().toString().padStart(2, '0');
+      var localtime_ampm_hr: number = (localtime_date.getHours() == 0) ? 12 : ((localtime_date.getHours() < 13) ? localtime_date.getHours() : (localtime_date.getHours() - 12));
+      var localtime_shortstr : string = '' + localtime_ampm_hr + ':' + localtime_date.getMinutes().toString().padStart(2, '0');
 
       var localdate_serialized = {
         local_valueOf: localtime_date.valueOf(),
-        local_isoString: localtime_isodate + 'T' + localtime_isotime + tzoffset_str, // ugh, they give us toISOString() but that converts to UTC anyway?
+        local_shortTime: localtime_shortstr + ' ' + (localtime_date.getHours() >= 12 ? 'PM' : 'AM'),
+        local_isoString: localtime_isodate + 'T' + localtime_isotime + tzoffset_str(localtime_date), // ugh, they give us toISOString() but that converts to UTC anyway?
         local_generalString: localtime_date.toString(),
         local_hour: localtime_date.getHours(),
         local_minute: localtime_date.getMinutes(),
@@ -96,15 +104,22 @@ async function localtime_datenow(p: Page): Promise<SerializedDate> {
       };
 
       return localdate_serialized;
-    }
+    }, undefined_means_now
   );
 
   return date_in_playwright;
 }
+async function localtime_slotstart(p: Page, b: BookingSlotPayload): Promise<SerializedDate> {
+  const millis_str: string = b.Start.replace(/\D/g, "");
+  const millis_int: number = Number.parseInt(millis_str, 10);
+
+  return localtime_datenow(p, millis_int);
+}
+
 
 // Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again
 async function sleep_until_noon(p: Page): Promise<boolean> {
-  const countdown: SerializedDate = await localtime_datenow(p);
+  const countdown: SerializedDate = await localtime_datenow(p, undefined);
   if ((countdown.local_hour > 12) || (countdown.local_hour < 10)) {
     // 10am or earlier?
     // 1pm or later?
@@ -151,11 +166,13 @@ async function sleep_until_noon(p: Page): Promise<boolean> {
 
 // Goal: Keep refreshing the page until the target date is visible... and then select the target date.
 // Return: `true` if the date is available, `false` if we needed to refresh the page
-async function refresh_until_date_available(p: Page, _year_num: number, _month_zerobased: number, long_month: string, short_month: string, day_num: number): Promise<boolean> {
+async function refresh_until_date_available(p: Page, year_num: number, month_zerobased: number, long_month: string, short_month: string, day_num: number): Promise<boolean> {
   const short_date: string = short_month + ' ' + day_num;
+  const long_date: string = long_month + ' ' + day_num;
+  const yyyy_mm_dd: string = year_num + '-' + ((month_zerobased < 9) ? '0': '') + (month_zerobased + 1) + '-' + ((day_num < 10) ? '0' : '') + day_num;
 
-   console.log('SEARCHING FOR ' + short_date);
-
+   console.log('SEARCHING FOR ' + short_date + ' or ' + long_date);
+   console.log('Quickjump if possible to ' + yyyy_mm_dd);
  /*
 
 - banner:
@@ -304,44 +321,67 @@ async function refresh_until_date_available(p: Page, _year_num: number, _month_z
     }
 }
 
-async function get_to_pickleball_reservations(p: Page): Promise<Locator> {
-
-  // [!CAUTION]
-  // Here id="respMenu" gives the desktop dropdown (which you can hover) above 992px
-  //  and id="fn-nav-clone" gives the mobile dropdown (which you would toggle)
-  let mobile_detect_el : Locator = p.locator('nav ul#respMenu a#menu-bar-container-web');
-  if (await mobile_detect_el.isVisible()) {
-    console.log('Traversing mmenu...');
-
-    // ...but the desktop one is finnicky (it appears to use `ace-responsive-menu` which relies on Javascript's onMouseenter & onMouseleave rather than onHover), so let's rely on the mobile one for now
-    await p.setViewportSize( { width: 800, height: 720 });
-    // https://github.com/microsoft/playwright/blob/37d58bd440ea06966c98508714854563db46df0a/packages/playwright/src/index.ts#L146
-    await mobile_detect_el.click();
-    // await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-    let all_reservations_mobile_el: Locator = p.locator('div#mobile-menu-container').getByRole('listitem').getByRole('link', { name: 'Reservations'});
-
-    // await mobile_main_menu_el.filter( {has: all_reservations_mobile_el} ).getByRole('link', { name: 'Open submenu' }).click();
-    // https://playwright.dev/docs/other-locators#parent-element-locator
-    await all_reservations_mobile_el.locator('xpath=..').getByRole('link', { name: 'Open submenu' }).click();
-
-    // p.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByText('Pickleball Reservations')
-    return p.locator('div#mobile-menu-container ~ div').getByRole('listitem').getByRole('link', { name: 'Pickleball Reservations'});
-  } else {
-    let hover_el : Locator = p.locator('nav ul#respMenu a.parent-header-link').getByText('Reservations', { exact: true });
-    console.log('Hovering ace-responsive-menu...');
-    await p.screenshot({ path: 'get_to_pickleball_reservations-' + (new Date()).valueOf() + '.png', fullPage: true });
-    await hover_el.hover();
-    await p.waitForTimeout(200);
-    // ^^^ wait for Javascript animation
-    //     * The default https://github.com/samsono/Ace-Responsive-Menu/blob/2b6f89aa60c13976ea3be8d87293936bc93af948/js/ace-responsive-menu.js#L15 uses 'fast'
-    //     * According to https://api.jquery.com/slideUp/ the 'fast' keyword makes it 200ms
-
-    let submenu_parent_loc : Locator = p.getByRole('navigation').getByRole('listitem')
-    // await expect(hover_el).toBeVisible();
-    // await p.locator('div#render-body-container').ariaSnapshot().then(function(val) { console.log(val); } );
-    // await expect(pickleball_reservations_el1).toBeVisible();
-    return submenu_parent_loc.getByRole('listitem').getByRole('link', { name: 'Pickleball Reservations'} );
-  }
+interface BookingSlotPayload {
+  Id: string;
+  Title: null;
+  Description: null;
+  IsAllDay: false;
+  Start: string;
+  End: string;
+  StartTimezone: null;
+  EndTimezone: null;
+  RecurrenceRule: null;
+  RecurrenceException: null;
+  CourtType: "Pickleball";
+  AvailableCourts: number;
+  IsClosed: boolean;
+  IsInPast: boolean;
+  IsWaitListSlot: false;
+  ShowWaitList: false;
+  WaitListCount: number | null;
+  IsAvailableTemplate: false;
+  IsCourtAssignmentHiddenOnPortal: false;
+  MemberIds: number[];
+  AvailableCourtIds: number[];
+  QueuedMembers: number[];
+  ShowCourtWaitlistOrderNumber: false;
+  CourtTypeId: number;
+  /*
+            "Id": "Pickleball11/04/2026 16:00:00",
+            "Title": null,
+            "Description": null,
+            "IsAllDay": false,
+            "Start": "\/Date(1793808000000)\/",
+            "End": "\/Date(1793809800000)\/",
+            "StartTimezone": null,
+            "EndTimezone": null,
+            "RecurrenceRule": null,
+            "RecurrenceException": null,
+            "CourtType": "Pickleball",
+            "AvailableCourts": 3,
+            "IsClosed": false,
+            "IsInPast": false,
+            "IsWaitListSlot": false,
+            "ShowWaitList": false,
+            "WaitListCount": null,
+            "IsAvailableTemplate": false,
+            "IsCourtAssignmentHiddenOnPortal": false,
+            "MemberIds": [],
+            "AvailableCourtIds": [
+                52038,
+                52039,
+                52055
+            ],
+            "QueuedMembers": [],
+            "ShowCourtWaitlistOrderNumber": false,
+            "CourtTypeId": 9
+       */
+}
+interface ReadConsolidated {
+  Data: Array<BookingSlotPayload>;
+  Total: number;
+  AggregateResults: null;
+  Errors: null;
 }
 
 async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string> {
@@ -414,7 +454,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
 async function sleep_until_end_of_first_minute(p: Page, or_until_locator_gone : Locator | null) : Promise<number> {
   console.log('Hello there')
-  const minute_checker: SerializedDate = await localtime_datenow(p);
+  const minute_checker: SerializedDate = await localtime_datenow(p, undefined);
   console.log('I am about to start sleep_until_end_of_first_minute ' + minute_checker.local_generalString)
   if (minute_checker.local_minute == 0) {
     console.log('→ Lottery minute NOW')
@@ -668,7 +708,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
 
     // IF the lottery is running, we need to keep the window open long enough to participate in it fully.
     if (await wait_for_lottery(p)) {
-      console.log('Lottery done? It is now ' + (await localtime_datenow(p)).local_isoString);
+      console.log('Lottery done? It is now ' + (await localtime_datenow(p, undefined)).local_isoString);
     } else {
       console.log('No lottery needed?');
     }
@@ -807,7 +847,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
       return true;
     } else {
       await expect(confirmation_popup).toHaveText('Reservation Confirmed');
-      console.log('SUCCESS at ' + (await localtime_datenow(p)).local_isoString);
+      console.log('SUCCESS at ' + (await localtime_datenow(p, undefined)).local_isoString);
       return true;
     }
   } else {
@@ -826,7 +866,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
 
 // "safe" version of .`valueOf` in the sense that we avoid daylight savings issues and/or midnight rollover issues.
 async function n_days_in_future_valueOf_safe(p: Page) : Promise<number> {
-  const local_scriptstart : SerializedDate = await localtime_datenow(p);
+  const local_scriptstart : SerializedDate = await localtime_datenow(p, undefined);
   const localnoon : string = local_scriptstart.local_isoString.split('T')[0] + 'T12:00:00Z'; // use "noon UTC" to avoid Daylight Savings problems when all we want to do is calculate a date (not a time)
   let n_days_from_script_launch : number = LOOK_N_DAYS_IN_FUTURE;
   if ((local_scriptstart.local_hour > 12) && (LAUNCH_MODE == 'prod')) {
@@ -909,7 +949,7 @@ async function login_username_password(p: Page, u_str: string, p_str: string) : 
 ...
  */
   if (
-    (await locator_visible(p.getByText('log in to access your account'), 4000))
+    (await locator_visible(p.getByText('log in to access your account'), 9000)) // It really takes a LONG time for some reason. Maybe it's loading the entire React single-page-app...?
   ) {
 /*
 <div class="w-100 ant-flex css-2vbf92 ant-flex-align-stretch ant-flex-vertical" style="gap: 16px;">
@@ -984,6 +1024,7 @@ async function login_but_also_report_waiver_expiry(p: Page, u_str: string, p_str
   await login_username_password(p, u_str, p_str);
 
   if (await locator_visible(expected_destination_ok_locator, 6000)) {
+    // await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
     console.log('Login OK? ' + u_str.substring(0, 1) + '…');
     return true;
   } else {
@@ -1161,8 +1202,7 @@ function interpret_existing_booking(given_innertext : string, given_ariasnapshot
 // Overall strategy:
 // ================
 // PHASE 1: make sure you are logged in
-// (Phase 2, optional) only if somehow we get redirected onto the wrong page, use the selector to click through to the correct one...
-// Phase 3: Find the "Pickleball Reservations" link and click it.
+// Phase 3: Open the "Pickleball Reservations" page
 // Phase 4: Sleep the thread (up to ~23hrs) until we get very very close to noon
 // Phase 5: Quickly refresh the page until the date we want becomes visible, and then book!
 test('try booking pickleball', async ({ page }) => {
@@ -1250,178 +1290,12 @@ test('try booking pickleball', async ({ page }) => {
     }
   }
 
-
-  // ========
-  // Phase 2: In case you end up at https://app.courtreserve.com/Online/MyProfile/MyClubs/13233 navigate to the `HOME_CLUB`'s page as quickly as possible
-  // ========
-
-  if (page.url().indexOf('Online/MyProfile/MyClubs') != -1) {
-    // [INVARIANT] If you get here, we are on ...Online/MyProfile/MyClubs...
-    //             ^^^ but that should be seemingly impossible because we haven't used that in HOME_URL for a long time. These days we will skip this block entirely
-    let target_club: Locator = page.getByRole('heading', { name: HOME_CLUB });
-    await expect(target_club).toBeVisible();
-
-    await page.getByRole('region', { name: 'breadcrumb' }).ariaSnapshot().then(function(val) { console.log(val); } );
-/*
-- banner:
-  - navigation:
-    - 'link "Lifetime Activities: Sunnyvale"':
-      - /url: /Online/Portal/Index/13233
-      - 'img "Lifetime Activities: Sunnyvale"'
-    - list:
-      - listitem:
-        - link "Events, Camps, And Classes ":
-          - /url: "#"
-      - listitem:
-        - link "Reservations ":
-          - /url: "#"
-      - listitem:
-        - link "Announcements":
-          - /url: /Online/Announcement/Index/13233
-⋮
-      - listitem
-- listitem:
-  - link "Events, Camps, And Classes ":
-    - /url: "#"
-- listitem:
-  - link "Reservations ":
-    - /url: "#"
-- listitem:
-  - link "Announcements":
-    - /url: /Online/Announcement/Index/13233
-⋮
-- listitem:
-  - link:
-    - /url: "#menu"
-- listitem
-- region "breadcrumb":
-  - heading "My Clubs" [level=4]
-- link "Join Another Organization":
-  - /url: /Online/MyProfile/JoinClub/13233
-- 'img "Lifetime Activities: Sunnyvale"'
-- 'heading "Lifetime Activities: Sunnyvale" [level=4]'
-- text: Organization Hours of Operation
-- grid:
-  - rowgroup:
-    - row "Day Open Time Close Time":
-      - gridcell "Day"
-      - gridcell "Open Time"
-      - gridcell "Close Time"
-  - rowgroup:
-    - row "Monday 8:00 AM 10:00 PM":
-      - gridcell "Monday"
-      - gridcell "8:00 AM"
-      - gridcell "10:00 PM"
-    - row "Tuesday 8:00 AM 10:00 PM":
-      - gridcell "Tuesday"
-      - gridcell "8:00 AM"
-      - gridcell "10:00 PM"
-    - row "Wednesday 8:00 AM 10:00 PM":
-      - gridcell "Wednesday"
-      - gridcell "8:00 AM"
-      - gridcell "10:00 PM"
-    - row "Thursday 8:00 AM 10:00 PM":
-      - gridcell "Thursday"
-      - gridcell "8:00 AM"
-      - gridcell "10:00 PM"
-    - row "Friday 8:00 AM 10:00 PM":
-      - gridcell "Friday"
-      - gridcell "8:00 AM"
-      - gridcell "10:00 PM"
-    - row "Saturday 8:00 AM 10:00 PM":
-      - gridcell "Saturday"
-      - gridcell "8:00 AM"
-      - gridcell "10:00 PM"
-    - row "Sunday 8:00 AM 8:00 PM":
-      - gridcell "Sunday"
-      - gridcell "8:00 AM"
-      - gridcell "8:00 PM"
-- paragraph
-- paragraph:
-  - link "VIEW":
-    - /url: /Online/Portal/Index/13233
-- paragraph: © 2026 Powered by CourtReserve
-- list
-
-*/
-    await target_club.locator('~ div').getByRole('paragraph').getByRole('link', { name: 'VIEW' }).click();
-
-    await page.waitForURL('**/Online/Portal/Index**');
-  }
   console.log("Alright, let's book a slot " + page.url());
 
   // ========
-  // Phase 3: Find the "Pickleball Reservations" link and click it.
+  // Phase 3: Jump to "Pickleball Reservations"
   // ========
 
-  // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-  if (page.url().indexOf('Online/Portal/Index') != -1) {
-    if (await locator_visible(page.getByText('PROGRAM REGISTRATION'), 2000)) {
-/*
-
-- banner:
-  - navigation:
-    - 'link "Lifetime Activities: Sunnyvale"':
-      - /url: /Online/Portal/Index/13233
-      - 'img "Lifetime Activities: Sunnyvale"'
-    - list:
-      - listitem:
-        - link "Events, Camps, And Classes ":
-          - /url: "#"
-      - listitem:
-        - link "Reservations ":
-          - /url: "#"
-      - listitem:
-        - link "Announcements":
-          - /url: /Online/Announcement/Index/13233
-⋮
-      - listitem
-- listitem:
-  - link "Events, Camps, And Classes ":
-    - /url: "#"
-- listitem:
-  - link "Reservations ":
-    - /url: "#"
-- listitem:
-  - link "Announcements":
-    - /url: /Online/Announcement/Index/13233
-⋮
-- listitem:
-  - link:
-    - /url: "#menu"
-- listitem
-- img
-- img "footer-logo.png"
-⋮
-- list:
-  - listitem:
-    - link "":
-      - /url: https://www.lifetimeactivities.com
-  - listitem:
-    - link "":
-      - /url: https://www.instagram.com/lifetime.activities?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==
-- heading "Hours of Availability" [level=4]
-- list:
-  - listitem: Mon - Fri 8:00 AM - 10:00 PM
-  - listitem: Saturday 8:00 AM - 10:00 PM
-  - listitem: Sunday 8:00 AM - 8:00 PM
-- heading "Links" [level=4]
-- list:
-  - listitem:
-    - link "Looking for a different Lifetime Activities location? Click here!":
-      - /url: https://www.lifetimeactivities.com/wp-content/uploads/Lifetime-Activities-on-CourtReserve-Home-Page-Links.pdf
-- paragraph: © 2026 Powered by CourtReserve
-- list
- */
-
-      let pickleball_reservations_el : Locator = await get_to_pickleball_reservations(page);
-
-      await pickleball_reservations_el.hover();
-      await pickleball_reservations_el.click();
-    }
-  }
-
-  // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
   // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
   const N_DAYS_IN_FUTURE : Date = new Date(await n_days_in_future_valueOf_safe(page));
@@ -1447,14 +1321,17 @@ test('try booking pickleball', async ({ page }) => {
     // Giving us 2400px of height makes it easier to see all the bookable slots at a glance
 
     while(true) {
-      console.log('Wait until almost noon so we can grab ' + TARGET_MONTH.long_month + ' ' + TARGET_DAY + '… we are currently still ' + (await localtime_datenow(page)).local_isoString);
+      console.log('Wait until almost noon so we can grab ' + TARGET_MONTH.long_month + ' ' + TARGET_DAY + '… we are currently still ' + (await localtime_datenow(page, undefined)).local_isoString);
       if (await sleep_until_noon(page)) {
         break;
       }
     }
   } else {
-    console.log('Debug mode: running at ' + (await localtime_datenow(page)).local_isoString);
-    await page.setViewportSize( { width: 616, height: 720 });
+    console.log('Debug mode: running at ' + (await localtime_datenow(page, undefined)).local_isoString);
+    // At 768px width and smaller, we'll get the mobile view instead
+    //await page.setViewportSize( { width: 768, height: 720 }); // :larr Mobile
+    // At 769px width and larger, we get the desktop view
+    await page.setViewportSize( { width: 769, height: 720 }); // :larr Desktop
   }
 
   console.log('WAKEUP: ' + (new Date().toISOString()) + ' UTC');
@@ -1589,63 +1466,70 @@ test('read upcoming reservations', async ({ page }) => {
   test.setTimeout(120 * 1000); // Let's give it 2 minutes. Seems like the default value of 30s (https://playwright.dev/docs/test-timeouts) isn't quite enough to check 4 accounts
 
   // let login_ok_el: Locator = page.locator('h4').getByText('Hours of Availability');
-  let login_ok_el: Locator = page.getByRole('heading', {name: 'Hours of Availability'});
+  let login_ok_el: Locator = page.getByRole('main').getByRole('link', {name: 'BOOK A PICKLEBALL COURT'});
 	/*
-- banner:
-  - navigation:
-    - 'link "Lifetime Activities: Sunnyvale"':
-      - /url: /Online/Portal/Index/13233
-      - 'img "Lifetime Activities: Sunnyvale"'
-    - list:
-      - listitem:
-        - link "Events, Camps, And Classes ":
-          - /url: "#"
-      - listitem:
-        - link "Reservations ":
-          - /url: "#"
-...
-- listitem:
-  - link "Events, Camps, And Classes ":
-    - /url: "#"
-- listitem:
-  - link "Reservations ":
-    - /url: "#"
-...
-- listitem:
-  - link:
-    - /url: "#menu"
-- listitem
-- 'heading "Welcome to Lifetime Activities: Sunnyvale!" [level=1]'
-- heading "Summer Classes & Camps Are in Full Swing—Sign Up for Tennis or Pickleball Today!" [level=4]
-- link "BOOK A TENNIS COURT":
-  - /url: https://app.courtreserve.com/Online/Reservations/Bookings/13233
-- link "BOOK A PICKLEBALL COURT":
-  - /url: https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984
-- link "PROGRAM REGISTRATION":
-  - /url: https://app.courtreserve.com/Online/Events/List/13233
-- img "footer-logo.png"
-- paragraph: (408) 735-7285
-- paragraph: 755 S Mathilda Avenue
-- paragraph: Sunnyvale, California, 94087
-- list:
-  - listitem:
-    - link "":
-      - /url: https://www.lifetimeactivities.com
-  - listitem:
-    - link "":
-      - /url: https://www.instagram.com/lifetime.activities?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==
-- heading "Hours of Availability" [level=4]
-- list:
-  - listitem: Mon - Fri 8:00 AM - 10:00 PM
-  - listitem: Saturday 8:00 AM - 10:00 PM
-  - listitem: Sunday 8:00 AM - 8:00 PM
-- heading "Links" [level=4]
-- list:
-  - listitem:
-    - link "Looking for a different Lifetime Activities location? Click here!":
-      - /url: https://www.lifetimeactivities.com/wp-content/uploads/Lifetime-Activities-on-CourtReserve-Home-Page-Links.pdf
+- img
+- text: Log In to Access Your Account Don't have an account? Create Account Email
+- textbox "Enter Your Email"
+- text: Password
+- textbox "Enter Your Password"
+- img "eye"
+- checkbox "Remember Me"
+- text: Remember Me Forgot Password?
+- button "Continue"
+- separator: or
+- button "Request a Code"
+- button "Continue with Google":
+  - img
+  - text: Continue with Google
+- text: By logging in, you agree to CourtReserve's
+- link "Terms of Service":
+  - /url: https://courtreserve.com/terms-of-use
+- text: and
+- link "Privacy Policy":
+  - /url: https://courtreserve.com/privacy-policy
+- iframe
 - paragraph: © 2026 Powered by CourtReserve
 - list
+
+:darr :darr
+
+- banner:
+  - 'img "Lifetime Activities: Sunnyvale"'
+  - text: Events, Camps, And Classes  Reservations  ... 
+- main:
+  - 'heading "Welcome to Lifetime Activities: Sunnyvale!" [level=1]'
+  - heading "Fall programs are here—sign up for tennis or pickleball today!" [level=4]
+  - link "BOOK A TENNIS COURT":
+    - /url: https://app.courtreserve.com/Online/Reservations/Bookings/13233
+  - link "BOOK A PICKLEBALL COURT":
+    - /url: https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984
+  - link "PROGRAM REGISTRATION":
+    - /url: https://app.courtreserve.com/Online/Events/List/13233
+  - text:  Location & Hours  755 S Mathilda Avenue, Sunnyvale, California, 94087 
+  - link "(408) 735-7285":
+    - /url: tel:4087357285
+  - link "":
+    - /url: https://www.lifetimeactivities.com
+  - link "":
+    - /url: https://www.instagram.com/lifetime.activities?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==
+  - link " View on Google Maps ":
+    - /url: https://www.google.com/maps/search/?api=1&query=755%20S%20Mathilda%20Avenue%2C%20Sunnyvale%2C%20California%2C%2094087
+  - text: Monday - Saturday  8:00 AM - 10:00 PM Sunday  8:00 AM - 8:00 PM Open Now - closes 10:00 PM
+- contentinfo:
+  - link "Looking for a different Lifetime Activities location? Click here!":
+    - /url: https://www.lifetimeactivities.com/wp-content/uploads/Lifetime-Activities-on-CourtReserve-Home-Page-Links.pdf
+  - text: © 2026 Powered by
+  - link "CourtReserve":
+    - /url: https://courtreserve.com
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+Playwright logo
+Playwright
 	*/
 
   if(process.env['WAIVERCHECK_USERNAMES']) {
@@ -1682,10 +1566,58 @@ test('read upcoming reservations', async ({ page }) => {
         // "My Reservations"
         await page.goto('https://app.courtreserve.com/Online/Bookings/List/13233?type=1');
         /*
-<div class="booking-list ant-flex css-sfktup ant-flex-align-stretch ant-flex-vertical" data-testid="booking-list-active" style="width: 100%; height: 100%; gap: 12px;">
-  <div data-testid="booking-count" style="font-weight: 600; font-size: 24px; margin-bottom: 16px;">
-    1 Booking Found
+<div class="acss-12azmuq" data-testid="booking-list-active">
+ <div data-testid="booking-count" style="font-weight: 600; font-size: 24px; margin-bottom: 16px;">1 Booking Found</div>
+ <div data-testid="booking-card-wrapper-63656436">
+  <div class="booking-card-desktop booking-card-desktop-63656436 acss-1mn0lef" data-testid="booking-card" style="--border-color: #e1f2ae;">
+   <div class="booking-card-desktop-content ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-stretch ant-flex-vertical" data-testid="booking-card-content" style="flex-direction: column; gap: 16px;">
+    <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-center" data-testid="booking-card-header" style="flex-direction: row; gap: 16px;">
+     <div class="booking-card-desktop-header ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-center" style="flex-direction: row; gap: 8px;">
+
+      <div class="booking-card-desktop-header-indicator-wrapper" data-testid="type-indicator-wrapper">
+       <div class="booking-card-desktop-header-indicator" data-testid="type-indicator" style="background-color: rgb(225, 242, 174);"></div>
+      </div>
+      <h5 data-testid="type-name">Recreational Play - Pickleball</h5>
+     </div>
+     <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-center" data-testid="booking-card-badges" style="flex-direction: row; gap: 8px;"></div>
+    </div>
+    <div class="booking-card-desktop-content-list ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-stretch ant-flex-vertical" data-testid="content-list" style="flex-direction: column; gap: 8px;">
+     <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-wrap-wrap ant-flex-align-baseline" data-testid="row-date-and-times" style="flex-direction: row; font-size: 16px; gap: 8px;">
+      <i class="fa fa-light fa-calendar-clock"></i>
+      <div class="row-text ant-flex css-ry7cab css-var-_r_3_" style="flex-direction: row;">Sun, Nov 8th,  9:30 AM - 10:00 AM</div>
+     </div>
+     <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-wrap-wrap ant-flex-align-baseline" data-testid="row-members" style="flex-direction: row; font-size: 16px; gap: 8px;">
+      <i class="fa fa-light fa-user-group"></i>
+      <div class="row-text ant-flex css-ry7cab css-var-_r_3_" style="flex-direction: row;">
+       <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-wrap-wrap" data-testid="booking-tooltip" style="flex-direction: row;">
+        <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-wrap-wrap ant-flex-align-center" data-testid="booking-tooltip-group-0" style="flex-direction: row; margin-right: 4px;">
+	 <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-wrap-wrap ant-flex-align-center" data-testid="booking-tooltip-member-0-0" style="flex-direction: row; margin-right: 4px;">
+	  <div class="ant-flex css-ry7cab css-var-_r_3_" style="flex-direction: row; gap: 4px;"> ... <i class="fa-solid fa-circle-dollar" data-testid="booking-tooltip-unpaid-icon-0-0" id="base-ui-_r_10_" style="color: red; font-size: 20px; cursor: pointer; display: grid; place-items: center;"></i></div>
+         </div>
+	</div>
+       </div>
+      </div>
+     </div>
+     <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-wrap-wrap ant-flex-align-baseline" data-testid="row-courts" style="flex-direction: row; font-size: 16px; gap: 8px;">
+      <i class="fa fa-light fa-table-cells-large"></i>
+      <div class="row-text ant-flex css-ry7cab css-var-_r_3_" style="flex-direction: row;">Pickleball</div>
+     </div>
+    </div>
+
+   </div>
+   <div class="booking-card-desktop-actions ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-stretch ant-flex-justify-center ant-flex-vertical" data-testid="booking-card-actions" style="flex-direction: column; gap: 16px;">
+    <button data-testid="details-btn" type="button" class="ant-btn css-ry7cab css-var-_r_3_ ant-btn-default ant-btn-color-primary ant-btn-variant-outlined acss-kxblvm m-0 w-100" style="background-color: transparent;"><span>Edit Reservation</span></button>
+    <a href="/Online/MyBalance/PayMyBalance/13233?reservationId=63656436" data-testid="pay-btn" class="ant-btn css-ry7cab css-var-_r_3_ ant-btn-primary ant-btn-color-primary ant-btn-variant-solid acss-kxblvm m-0 w-100" tabindex="0" aria-disabled="false"><span>Pay</span></a>
+   </div>
   </div>
+ </div>
+</div>
+
+<!-- :uarr NEW ...just the payment button is different, and maybe a bit of styling -->
+<!-- OLD :darr -->
+
+<div class="booking-list ant-flex css-sfktup ant-flex-align-stretch ant-flex-vertical" data-testid="booking-list-active" style="width: 100%; height: 100%; gap: 12px;">
+  <div data-testid="booking-count" style="font-weight: 600; font-size: 24px; margin-bottom: 16px;">1 Booking Found</div>
   <div data-testid="booking-card-wrapper-58636963">
    <div class="booking-card-desktop booking-card-desktop-58636963" data-testid="booking-card" style="--border-color: #e1f2ae;">
     <div class="booking-card-desktop-content ant-flex css-sfktup ant-flex-align-stretch ant-flex-vertical" data-testid="booking-card-content" style="gap: 16px;">
@@ -1712,7 +1644,7 @@ test('read upcoming reservations', async ({ page }) => {
         <div class="ant-flex css-sfktup ant-flex-wrap-wrap" data-testid="booking-tooltip">
          <div class="ant-flex css-sfktup ant-flex-wrap-wrap ant-flex-align-center" data-testid="booking-tooltip-group-0" style="margin-right: 4px;">
           <div class="ant-flex css-sfktup ant-flex-wrap-wrap ant-flex-align-center" data-testid="booking-tooltip-member-0-0" style="margin-right: 4px;">
-           <div class="ant-flex css-sfktup" style="gap: 4px;">...<i class="fa-solid fa-circle-dollar" data-testid="booking-tooltip-unpaid-icon-0-0" aria-describedby="_r_2_" style="color: red; font-size: 20px; cursor: pointer; display: grid; place-items: center;"></i></div>
+           <div class="ant-flex css-sfktup" style="gap: 4px;"> ... <i class="fa-solid fa-circle-dollar" data-testid="booking-tooltip-unpaid-icon-0-0" aria-describedby="_r_2_" style="color: red; font-size: 20px; cursor: pointer; display: grid; place-items: center;"></i></div>
           </div>
          </div>
         </div>
@@ -1735,21 +1667,7 @@ test('read upcoming reservations', async ({ page }) => {
   </div>
 </div>
         */
-        // <div class="ant-spin ant-spin-sm ant-spin-spinning css-sfktup" aria-live="polite" aria-busy="true"><span class="ant-spin-dot-holder"><span class="ant-spin-dot ant-spin-dot-spin"><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i></span></span></div>
-    let loadingSpinners : Locator = page.locator('div.ant-spin.ant-spin-spinning');
-    if ((await loadingSpinners.count()) > 0) {
-      // [!CAUTION]
-      // Apparently, `.isVisible()` and toBeHidden() etc. all consider a spinner hidden if it's DOM height & width are 0px
-      // Hopefully, `.count()` and `toHaveCount()` will behave better.
-      try {
-        // WAIT FOR THE spinner to finish...
-        await expect(loadingSpinners).toHaveCount(0, {timeout: 20 * 1000});
-      } catch (pw_error) {
-        console.log('20s and it is still loading or we failed to detect what is happening');
-      }
-    } else {
-      console.log('No spinner appeared... Did it load faster than normal or something?');
-    }
+        await expect(page.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 9 * 1000});
 
         // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
@@ -1778,7 +1696,7 @@ test('read upcoming reservations', async ({ page }) => {
 
       } // end for i
 
-      const write_timestamp: SerializedDate = await localtime_datenow(page);
+      const write_timestamp: SerializedDate = await localtime_datenow(page, undefined);
       all_bookings.push('This page was last refreshed on... ' + write_timestamp.local_isoString);
 
       console.log('FOUND: ' + all_bookings.join('\n'));
@@ -1824,10 +1742,38 @@ Pickleball`;
 
 test('timecheck', async ({ page }) => {
   console.log('Would target ' + new Date(await n_days_in_future_valueOf_safe(page)).toString() + ' for LAUNCH_MODE=' + LAUNCH_MODE);
+
+  const test_read_consolidated : ReadConsolidated = {
+    Data: [
+      {
+	Id: "Pickleball11/04/2026 16:00:00", Title: null, Description: null,
+	IsAllDay: false,
+        Start: "\/Date(1793808000000)\/", End: "\/Date(1793809800000)\/",
+        StartTimezone: null, EndTimezone: null, RecurrenceRule: null, RecurrenceException: null,
+	CourtType: "Pickleball",
+        AvailableCourts: 1,
+        IsClosed: false,
+        IsInPast: true,
+        IsWaitListSlot: false, ShowWaitList: false, WaitListCount: null,
+        IsAvailableTemplate: false, IsCourtAssignmentHiddenOnPortal: false,
+        MemberIds: [], AvailableCourtIds: [55555], QueuedMembers: [],
+        ShowCourtWaitlistOrderNumber: false,
+        CourtTypeId: 9
+      }
+    ],
+    Total: 1,
+    AggregateResults: null,
+    Errors: null
+  };
+  console.log('Testing ReadConsolidated parser: ' + (await localtime_slotstart(page, test_read_consolidated.Data[0]!)).local_shortTime);
 });
 
 
 // Try:
+//   cd app_courtreserve_com/
+//
 //   DEV_U=user@name.com DEV_P=passwd OVERRIDE_AMPM=AM npx playwright test --ui
+//   READ_USERNAMES=user@name.com READ_PASSWORDS=passwd WAIVERCHECK_USERNAMES=user@name.com WAIVERCHECK_PASSWORDS=passwd npx playwright test --ui
 //   U=user@name.com P=passwd OVERRIDE_AMPM=PM npx playwright test main/example.spec.ts
 //   npx playwright test --headed
+//   npx tsc --noEmit
