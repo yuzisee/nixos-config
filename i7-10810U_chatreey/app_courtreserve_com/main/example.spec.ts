@@ -728,16 +728,19 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
   console.log('FULL HOUR BOOKABLE, best first = ' + JSON.stringify(reserveTimes));
 
-  // let randomTimeForTest: string = reserveTimes[Math.floor(Math.random() * reserveTimes.length)];
-  // await p.getByRole('application').getByRole('button', { name: ' at ' + randomTimeForTest }).getByText('Reserve').click();
-  const abort_after_ms : number = 2999;
   while(reserveTimes.length > 0) {
-
     const earliestSatisfactoryTime: string = reserveTimes.shift()!; // assuming we parse the DOM in chronological order (and why wouldn't we?)
+    let target_visible_idx : number = all_times_chronological.indexOf(earliestSatisfactoryTime);
 
-
+    let abort_after_n_lazyloads : number = 8;
+    let lazyload_dbg_history : string[] = [];
     const lefthand_match : Locator = time_start_els.getByText(earliestSatisfactoryTime);
     while (!(await lefthand_match.isVisible())) {
+
+      if (--abort_after_n_lazyloads <= 0) {
+          throw Error("Scrolling doesn't work? We scrolled past all of " + JSON.stringify(lazyload_dbg_history) + ' but we want #' + target_visible_idx);
+      }
+
       let current_visible_timerows : string[] = await time_start_els.allTextContents();
       let midpoint_visible_timerow : string | undefined = current_visible_timerows[Math.floor(current_visible_timerows.length / 2)];
 
@@ -749,21 +752,22 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
         throw Error('Huh? Missing times along the left side? Did the page fail to render? ' + (await time_start_els.innerHTML()));
       }
 
-      let target_visible_idx : number = all_times_chronological.indexOf(earliestSatisfactoryTime);
       let midpoint_visible_idx : number = all_times_chronological.indexOf(midpoint_visible_timerow);
 
       console.warn('Scrolling until we can see ' + earliestSatisfactoryTime + " because so far it's only " + JSON.stringify(current_visible_timerows));
       console.log(midpoint_visible_timerow + ' is currently visible at roughly ' + midpoint_visible_idx + ' of ' + current_visible_timerows.length + ' but we would like to get to ' + target_visible_idx);
 
+      lazyload_dbg_history.push(midpoint_visible_timerow + ' @ API Entry #' + midpoint_visible_idx);
+
       if (target_visible_idx < midpoint_visible_idx) {
-        throw Error('Scrolled too far?? We scrolled all the way to API Entry #' + midpoint_visible_idx + ' but want only #' + target_visible_idx);
+        await time_start_els.first().scrollIntoViewIfNeeded();
       } else if (midpoint_visible_idx < target_visible_idx) {
         await time_start_els.last().scrollIntoViewIfNeeded();
       } else {
         // exact match? OKAY good!
 	break;
       }
-    } // end while
+    } // end while (w.r.t. scrolling)
 
 
     const visible_row_times : string[] = await time_start_els.allTextContents();
@@ -819,7 +823,8 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
     );
    */
 
-    const ready_to_book_el: Locator = matching_btn_els.nth(target_row_ordinal);
+    const abort_after_ms : number = 2999;
+    const ready_to_book_el: Locator = matching_btn_els.nth(target_row_ordinal + 1); // +1 because there's always an empty div at the front
     try {
       await ready_to_book_el.click({timeout: abort_after_ms});
       // SUCCESS!
@@ -833,7 +838,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
       }
     }
 
-    // end while
+    // end while (w.r.t. reserveTimes)
   }
 
   // [INVARIANT] If you get here, nothing was bookable for a full hour
