@@ -19,10 +19,11 @@ const FAVOURITE_TIMES_BEST_FIRST: Record<'AM' | 'PM', string[]> = {
 // [!NOTE]
 // Only ONE of the FAVOURITE_TIMES_BEST_FIRST lists will be considered, based on the value of `preset_ampm` in https://github.com/yuzisee/nixos-config/blob/8b133175f158cecd1a55d5cc74fe878ffc7d45bd/.github/workflows/bookit.yml#L40-L49
 
-// const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
-const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
-// const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
-const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
+const HOME_URL: string = 'https://mobileapp.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
+// const HOME_URL: string = 'https://app.courtreserve.com/Online/Portal/Index/13233';
+//// const HOME_URL: string = 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984';
+//// const HOME_URL: string = 'https://app.courtreserve.com/Online/MyProfile/MyClubs/13233';
+// const HOME_CLUB: string = 'Lifetime Activities: Sunnyvale';
 const HOME_TIMEZONE: string = 'America/Los_Angeles';
 
 const GENERIC_SPINNER: string = 'div.ant-spin > span.ant-spin-dot-holder > span.ant-spin-dot';
@@ -205,7 +206,7 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
   const yyyy_mm_dd: string = year_num + '-' + ((month_zerobased < 9) ? '0': '') + (month_zerobased + 1) + '-' + ((day_num < 10) ? '0' : '') + day_num;
 
    console.log('SEARCHING FOR ' + short_date + ' or ' + long_date);
-
+   console.log('Quickjump if possible to ' + yyyy_mm_dd);
  /*
 
 - banner:
@@ -1775,6 +1776,30 @@ Pickleball`;
 
 test('timecheck', async ({ page }) => {
   console.log('Would target ' + new Date(await n_days_in_future_valueOf_safe(page)).toString() + ' for LAUNCH_MODE=' + LAUNCH_MODE);
+
+  const test_read_consolidated : ReadConsolidated = {
+    Data: [
+      {
+	Id: "Pickleball11/04/2026 16:00:00", Title: null, Description: null,
+	IsAllDay: false,
+        Start: "\/Date(1793808000000)\/", End: "\/Date(1793809800000)\/",
+        StartTimezone: null, EndTimezone: null, RecurrenceRule: null, RecurrenceException: null,
+	CourtType: "Pickleball",
+        AvailableCourts: 1,
+        IsClosed: false,
+        IsInPast: true,
+        IsWaitListSlot: false, ShowWaitList: false, WaitListCount: null,
+        IsAvailableTemplate: false, IsCourtAssignmentHiddenOnPortal: false,
+        MemberIds: [], AvailableCourtIds: [55555], QueuedMembers: [],
+        ShowCourtWaitlistOrderNumber: false,
+        CourtTypeId: 9
+      }
+    ],
+    Total: 1,
+    AggregateResults: null,
+    Errors: null
+  };
+  console.log('Testing ReadConsolidated parser: ' + localtime_slotstart(test_read_consolidated.Data[0]!).local_shortTime);
 });
 
 
