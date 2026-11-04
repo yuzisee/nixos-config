@@ -519,11 +519,17 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
       if ((month_shown != short_month) && (month_shown != long_month)) {
         // [INVARIANT]: A different month is showing than the one we want. Try to switch using the switcher.
 
-	let quickjump_day_el_disabled : boolean | undefined = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
+        const quickjump_visible : boolean = await quickjump_day_el.isVisible();
+	let quickjump_day_el_disabled : boolean | undefined;
+        if (quickjump_visible) {
+          quickjump_day_el_disabled = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
+        } else {
+          quickjump_day_el_disabled = undefined;
+        }
         // await locator.evaluate(el => el.classList.contains('ant-picker-cell-disabled'));
 
 	// e.g. 'Monday, February 2, 2026'
-        if ((await quickjump_day_el.isVisible()) && (quickjump_day_el_disabled === false)) {
+        if (quickjump_visible && (quickjump_day_el_disabled === false)) {
           // Quickly jump to the day we want, otherwise it could slow us down an extra second or two!
           await quickjump_day_el.click();
           return true;
