@@ -779,7 +779,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
       console.log(midpoint_visible_timerow + ' is currently visible at roughly ' + midpoint_visible_idx + ' of ' + current_visible_timerows.length + ' but we would like to get to ' + target_visible_idx);
 
       if (target_visible_idx < midpoint_visible_idx) {
-        throw Error('Scrolled too far??');
+        throw Error('Scrolled too far?? We scrolled all the way to API Entry #' + midpoint_visible_idx + ' but want only #' + target_visible_idx);
       } else if (midpoint_visible_idx < target_visible_idx) {
         await time_start_els.last().scrollIntoViewIfNeeded();
       } else {
@@ -791,8 +791,11 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
     const visible_row_times : string[] = await time_start_els.allTextContents();
     const target_row_ordinal : number = visible_row_times.indexOf(earliestSatisfactoryTime);
 
-    console.log('Found row containing ' + earliestSatisfactoryTime + ' currently rendered at n=' + target_row_ordinal);
+    if (target_row_ordinal == -1) {
+      throw Error('Still not visible? Where did ' + earliestSatisfactoryTime + ' go? We just saw it! ' + JSON.stringify(visible_row_times));
+    }
 
+    console.log('Found row containing ' + earliestSatisfactoryTime + ' currently rendered at n=' + target_row_ordinal);
 
    /*
     const scheduler_id_from_url : Url = new URL(p.url());
