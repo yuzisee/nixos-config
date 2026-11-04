@@ -66,7 +66,7 @@ test.use({
 
 async function localtime_datenow(p: Page, undefined_means_now: number | undefined): Promise<SerializedDate> {
   const date_in_playwright: SerializedDate = await p.evaluate(
-    function() {
+    function(captured_millis) {
       function tzoffset_str(dt : Date) : string {
          var tzoffset : number = dt.getTimezoneOffset(); // FYI: `getTimezoneOffset` is not the offset of the DATE value itself, but rather the offset of the browser AT THE TIME the date value represents
          if (tzoffset == 0) {
@@ -82,7 +82,7 @@ async function localtime_datenow(p: Page, undefined_means_now: number | undefine
            return tzoffset_direction + tzoffset_hour.toString().padStart(2, '0') + ':' + tzoffset_minute.toString().padStart(2, '0');
          }
       }
-      var localtime_date : Date = new Date(undefined_means_now);
+      var localtime_date : Date = (captured_millis === undefined) ? (new Date()) : (new Date(captured_millis));
 
       var localtime_monthnum : string = (localtime_date.getMonth() + 1).toString().padStart(2, '0');
       var localtime_isodate : string = localtime_date.getFullYear() + '-' + localtime_monthnum + '-' + localtime_date.getDate().toString().padStart(2, '0');
@@ -104,16 +104,16 @@ async function localtime_datenow(p: Page, undefined_means_now: number | undefine
       };
 
       return localdate_serialized;
-    }
+    }, undefined_means_now
   );
 
   return date_in_playwright;
 }
-function localtime_slotstart(p: Page, b: BookingSlotPayload): SerializedDate {
+async function localtime_slotstart(p: Page, b: BookingSlotPayload): Promise<SerializedDate> {
   const millis_str: string = b.Start.replace(/\D/g, "");
   const millis_int: number = Number.parseInt(millis_str, 10);
 
-  return await localtime_datenow(p, millis_int);
+  return localtime_datenow(p, millis_int);
 }
 
 
@@ -1765,7 +1765,7 @@ test('timecheck', async ({ page }) => {
     AggregateResults: null,
     Errors: null
   };
-  console.log('Testing ReadConsolidated parser: ' + localtime_slotstart(page, test_read_consolidated.Data[0]!).local_shortTime);
+  console.log('Testing ReadConsolidated parser: ' + (await localtime_slotstart(page, test_read_consolidated.Data[0]!)).local_shortTime);
 });
 
 
