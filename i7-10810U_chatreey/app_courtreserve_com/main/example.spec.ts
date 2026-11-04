@@ -1024,7 +1024,7 @@ async function login_but_also_report_waiver_expiry(p: Page, u_str: string, p_str
   await login_username_password(p, u_str, p_str);
 
   if (await locator_visible(expected_destination_ok_locator, 6000)) {
-    await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+    // await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
     console.log('Login OK? ' + u_str.substring(0, 1) + '…');
     return true;
   } else {
