@@ -35,9 +35,18 @@ Run `openssl rand -hex 32` three times, for CREDS_KEY, JWT_SECRET, JWT_REFRESH_S
 Run `openssl rand -hex 16` one last time for ADMIN_PANEL_SESSION_SECRET
 
 Add ANTHROPIC_API_KEY + OPENAI_API_KEY
-e.g.https://www.librechat.ai/docs/configuration/pre_configured_ai/openai 
+
+https://www.librechat.ai/docs/configuration/pre_configured_ai/openai 
+- api.model.read, model.read,
+- api.responses.write, api.responses.read, api.model.chat_completions.request, api.model.embeddings.request 
+- TODO(from joseph): what about images?
+
+https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints/xai
+- only Chat and Models endpoint (even image parsing is sent by LibreChat over the Chat endpoint)
 
 Also, https://aistudio.google.com/api-keys for GOOGLE_KEY (which is different from the old way that created a Google Cloud Project in the background w/ Generative Language API in order to separately manage project quotas & billing tiers)
+
+Plus, Grok API
 
 # DNS
 
@@ -174,4 +183,5 @@ to librechat.yaml
 
 ### Billing
 
-TODO(from joseph): Add credit card to Serper, Firecrawl (Github), Jina.ai
+Jina.ai
+(Anthropic + Google + OpenAI + xAI)
