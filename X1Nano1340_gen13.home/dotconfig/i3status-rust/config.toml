@@ -1,0 +1,178 @@
+[theme]
+theme = "solarized-dark"
+[theme.overrides]
+separator_fg = '#000000'
+separator = " \ue0b2"
+[icons]
+icons = "awesome5"
+
+# NOTE We are now on https://docs.rs/i3status-rs/0.32.2/i3status_rs/blocks/index.html
+# https://github.com/greshake/i3status-rust/blob/a5d58997a7f40d92fffe032ea4ef697f8f1c8380/NEWS.md#i3status-rust-0300
+
+[[block]]
+block = "menu"
+text = "\u229eFlathub ↗"
+#text = "&plusb;\u2756Flathub"
+# ↗ (U+2197)
+# ⧉ (U+29C9
+# ⊞ ❖
+[[block.items]]
+display = "Zen Browser \u229a"
+cmd = "flatpak run app.zen_browser.zen"
+# display = "\u25ce Zen Browser"
+# ⊚ U+229A,
+#display = " -&gt;   Zen Browser   &lt;-"
+[[block.items]]
+display = "Epiphany (OOM friendly) \u15e2"
+# ☸ U+2638
+# ᗢ U+15E2
+cmd = "sh /home/joseph/quicklaunch/epiphany_oom_friendly.sh"
+[[block.items]]
+display = "Librewolf (OOM friendly) \u2446"
+cmd = "sh /home/joseph/quicklaunch/librewolf_oom_friendly.sh"
+# ⑆ U+2446
+[[block.items]]
+display = "Floorp (OOM friendly) \u25b6"
+cmd = "sh /home/joseph/quicklaunch/floorp_oom_friendly.sh"
+# ▶ U+25B6
+
+[[block]]
+block = "disk_space"
+path = "/boot"
+info_type = "available"
+# format = "⏻$percentage"
+# https://greshake.github.io/i3status-rust/i3status_rs/formatting/index.html
+# https://greshake.github.io/i3status-rust/i3status_rs/formatting/prefix/enum.Prefix.html
+format = "⏻$available.eng(prefix:Mi)"
+[[block.click]]
+button = 'left'
+cmd = 'swaynag --type warning --message "GB, not GiB" --background "#268bd2" --button-background "#ffffff" --border "#000000" --border-bottom-size 0'
+
+[[block]]
+block = "disk_space"
+path = "/opt"
+info_type = "available"
+format = "♬$available.eng(prefix:G)"
+# format = "$icon total = $total.eng(prefix:G) available = $available.eng(prefix:G) free = $free.eng(prefix:G) used = $used.eng(prefix:G)"
+[[block.click]]
+button = 'left'
+# ♫♬
+
+[[block]]
+block = "disk_space"
+path = "/"
+info_type = "available"
+format = "$icon$available.eng(prefix:G)"
+# format = "(not GiB) $icon$available.eng(prefix:G)"
+# format = "$icon total = $total.eng(prefix:G) available = $available.eng(prefix:G) free = $free.eng(prefix:G) used = $used.eng(prefix:G)"
+[[block.click]]
+button = 'left'
+# https://github.com/greshake/i3status-rust/blob/da03dfc43d7d820caa93549d883d43c64d05b50d/files/themes/solarized-dark.toml#L3
+
+[[block]]
+block = "disk_space"
+path = "/nix"
+info_type = "available"
+interval = 20
+warning = 20.0
+alert = 10.0
+# format = "✇ {available}"
+# format = "⚝ {available}"
+format = "❃$available.eng(prefix:G)"
+# ✡
+# ✱✲✶✽
+# ❄❅❆❃
+# ❇
+# ⛮
+# ¤⚛
+
+[[block]]
+block = "memory"
+format = "  $icon $mem_used_percents.eng(w:2)"
+# format = "  $icon $mem_total_used_percents.eng(w:2)"
+# format_alt =   "$icon_swap$swap_used_percents.eng(w:2)"
+
+[[block]]
+block = "cpu"
+interval = 1
+
+#[[block]]
+#block = "load"
+#interval = 1
+#format = "{1m}"
+
+[[block]]
+block = "battery"
+# if_command = "test -e /sys/class/power_supply/BAT0"
+driver = "upower"
+# https://github.com/greshake/i3status-rust/issues/305
+format = " $icon $percentage ($time)"
+full_format = "$icon"
+full_threshold = 99
+info = 79
+# https://github.com/greshake/i3status-rust/blob/v0.22.0/doc/blocks.md#battery
+[block.theme_overrides]
+idle_fg = '#ffffff'
+
+
+# === DESIGN CHOICE: Put all "read-only" blocks before this line ===
+# === DESIGN CHOICE: Put all "interactive" blocks after this line ===
+# only exception: date/time goes last
+
+# https://github.com/greshake/i3status-rust/blob/v0.21.10/doc/blocks.md#backlight
+[[block]]
+block = "backlight"
+minimum = 0
+maximum = 100
+step_width = 1
+# cycle = [62, 6]
+cycle = [20, 6]
+invert_icons = true
+
+# https://github.com/greshake/i3status-rust/blob/v0.21.10/doc/blocks.md#net
+[[block]]
+block = "net"
+device = "wlp0s20f3"
+# format = "{speed_down;K*b} {speed_up;K*b}"
+# format = "{frequency;G*Hz} {signal_strength}"
+format = "  $icon$frequency.eng(prefix:G,w:5) $signal_strength"
+[[block.click]]
+button = "left"
+#on_click = "swaynag -m 'Edit Wi-Fi Connections' -z 'click to open nmtui' 'urxvt -e nmtui' -s 'run nmcli yourself'"
+cmd = "swaynag -m 'Edit Wi-Fi Connections' -z 'click to open nmtui' 'urxvt -e nmtui' -z 'turn on wifi' 'nmcli radio wifi on' -s 'run nmcli yourself'"
+
+# https://github.com/greshake/i3status-rust/blob/v0.21.10/doc/blocks.md#networkmanager
+# https://github.com/greshake/i3status-rust/blob/26763bc0e023808fb756601fd38a735dc391b825/NEWS.md?plain=1#L18
+#[[block]]
+#block = "networkmanager"
+#interface_name_include = ["wlp0s20f3"]
+##ap_format = "{strength} {freq*Hz}"
+#ap_format = "{strength}"
+#device_format = "{ap}"
+
+# TODO(from joseph): https://github.com/greshake/i3status-rust/blob/v0.21.10/doc/blocks.md#hueshift
+# https://gitlab.com/chinstrap/gammastep
+# https://github.com/MaxVerevkin/wl-gammarelay-rs
+# https://sr.ht/~kennylevinsen/wlsunset/
+# Choose whichever has the fewest dependencies I suppose
+
+# [[block]]
+# block = "hueshift"
+# hue_shifter = "wlsunset"
+# Manual run for now:
+# >>> wlsunset -l 37.40289347787221 -L -122.0818236182056
+# https://git.sr.ht/~kennylevinsen/wlsunset/tree/master/item/main.c
+
+
+[[block]]
+block = "time"
+# format = "%a %b %d, %R"
+format = " $icon $timestamp.datetime(f:'%a %b %d, %R')"
+
+[[block]]
+block = "sound"
+max_vol = 123
+
+# [[block]]
+# block = "bluetooth"
+# mac = "40:1C:83:77:66:8A"
