@@ -707,7 +707,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
   var reserveTimesChronological: string[] = [];
   // for (const [data_time, r_slot]: [string, BookingSlot] of reservable_slots.entries()) {
   for (const [data_time, r_slot] of reservable_slots.entries()) {
-    let log_msg : string = r_slot.CourtType + '.' + r_slot.Id + ' | :times' + r_slot.AvailableCourts + ' @ ' + r_slot.Start + ' :rarr ' + r_slot.End;
+    let log_msg : string = r_slot.CourtType + '.' + r_slot.Id + ' | ×' + r_slot.AvailableCourts + ' @ ' + r_slot.Start + ' → ' + r_slot.End;
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
     // *********************
@@ -791,7 +791,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
       // (but it should go to 7:30pm so something is wrong) vs.
       // <div style="height: 0px;"></div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-15n11k0" style="height: 46px;">None Available</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-15n11k0" style="height: 46px;">None Available</div>
 
-      console.log(':uarr ' + visible_now_times.length + ' Hmm, is there no way to easily describe each reserve link with its timeslot? ' + matching_btn_els_orig_count + ' :darr'); // I guess maybe one of them didn't finish loading yet?
+      console.log('↑ ' + visible_now_times.length + ' Hmm, is there no way to easily describe each reserve link with its timeslot? ' + matching_btn_els_orig_count + ' ↓'); // I guess maybe one of them didn't finish loading yet?
       await schedule_two_columns[1].ariaSnapshot().then(function(val) { console.warn(val); } );
       console.warn((await schedule_two_columns[0].innerHTML()) + "\r\n\r\n COMPARING: " + (await schedule_two_columns[0].locator('> *').count()));
       throw new Error(error.message + " I hope there is a reliable solution to this! .... \r\n\r\n" + (await schedule_two_columns[1].innerHTML()));
@@ -947,6 +947,49 @@ async function sleep_until_end_of_first_minute(p: Page, or_until_locator_gone : 
 </div>
 */
 async function wait_for_lottery(p: Page) : Promise<boolean> {
+    console.log('=== ↓ immediately_after_save ===')
+    await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
+    console.log( await p.locator('body').first().evaluate(el => el.innerHTML) );
+    await p.waitForTimeout(1.5 * 1000.0);
+    console.log('=== wait-for-lotteryA ===')
+    await p.screenshot({ path: 'wait-for-lotteryA' + (new Date()).valueOf() + '.png', fullPage: true });
+    await p.waitForTimeout(1.5 * 1000.0);
+    console.log('  ')
+    console.warn('===========================')
+    console.log('=== wait-for-lotteryB ↓ ===')
+    await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
+    await p.screenshot({ path: 'wait-for-lotteryB' + (new Date()).valueOf() + '.png', fullPage: true });
+    await p.waitForTimeout(1.5 * 1000.0);
+    console.log('=== wait-for-lotteryC ===')
+    await p.screenshot({ path: 'wait-for-lotteryC' + (new Date()).valueOf() + '.png', fullPage: true });
+    await p.waitForTimeout(1.5 * 1000.0);
+    console.log('  ')
+    console.warn('===========================')
+    console.log('=== wait-for-lotteryD ↓ ===')
+    console.warn('===========================')
+    console.log('  ')
+    await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
+    console.log( await p.locator('body').first().evaluate(el => el.innerHTML) );
+
+    // For now, we are debugging the lottery, which, in our experience can take up to 2mins, so let's do 4× 30sec snapshots
+    await p.waitForTimeout(30.0 * 1000.0);
+    console.log('=== wait_for_lotteryW ===')
+    await p.screenshot({ path: 'wait_for_lotteryW' + (new Date()).valueOf() + '.png', fullPage: true });
+
+    await p.waitForTimeout(30.0 * 1000.0);
+    console.log('=== wait_for_lotteryX ===')
+    await p.screenshot({ path: 'wait_for_lotteryX' + (new Date()).valueOf() + '.png', fullPage: true });
+
+    await p.waitForTimeout(30.0 * 1000.0);
+    console.log('=== wait_for_lotteryY ===')
+    await p.screenshot({ path: 'wait_for_lotteryY' + (new Date()).valueOf() + '.png', fullPage: true });
+
+    await p.waitForTimeout(30.0 * 1000.0);
+    console.log('=== wait_for_lotteryZ ===')
+    await p.screenshot({ path: 'wait_for_lotteryZ' + (new Date()).valueOf() + '.png', fullPage: true });
+    await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
+    console.log( await p.locator('body').first().evaluate(el => el.innerHTML) );
+
   var bLotteryDetected : boolean = false;
   while(true) {
     let lotteryEl1 : Locator = p.locator('form#createReservation-Form').getByText('Lottery in Progress');
@@ -1087,7 +1130,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
    */
   const desktop_duration : Locator = p.getByRole('listbox').getByRole('option', {name: '1 hour', exact: true});
   // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
-  // console.log(':uarr BEFORE // AFTER :darr');
+  // console.log('↑ BEFORE // AFTER ↓');
   // await p.waitForTimeout(2.5 * 1000.0);
   // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
 
@@ -1131,6 +1174,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
 
     await booking_form_submit.click();
     await p.screenshot({ path: 'immediately-after-save' + (new Date()).valueOf() + '.png', fullPage: true });
+
 // <div class="modal-header-container" data-testid="remove-or-withdraw-modal"><div class="modal-title"><span class="modal-title-span" data-testid="title">Book a reservation for 7/15/2026</span></div><div class="modal-title-buttons"><button type="reset" data-testid="close-btn-modal-header" class="btn btn-light " data-dismiss="modal">Close</button><button __playwright_target__="call@258" type="button" data-testid="save-btn" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 41px; outline: rgb(0, 106, 177) solid 2px; background-color: rgba(111, 168, 220, 0.498);"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div></div>
 // <div class="modal-title-buttons "><button type="reset" data-testid="Close" class="btn btn-light fn-reservation-create-close " data-dismiss="modal">Close</button><button data-testid="Save" type="button" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 38px;"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div>
     /*
@@ -1804,9 +1848,9 @@ test('try booking pickleball', async ({ page }) => {
   } else {
     console.log('Debug mode: running at ' + (await localtime_datenow(page, undefined)).local_isoString);
     // At 768px width and smaller, we'll get the mobile view instead
-    //await page.setViewportSize( { width: 768, height: 720 }); // :larr Mobile
+    //await page.setViewportSize( { width: 768, height: 720 }); // ← Mobile
     // At 769px width and larger, we get the desktop view
-    await page.setViewportSize( { width: 769, height: 720 }); // :larr Desktop
+    await page.setViewportSize( { width: 769, height: 720 }); // ← Desktop
   }
 
   console.log('WAKEUP: ' + (new Date().toISOString()) + ' UTC');
@@ -1967,7 +2011,7 @@ test('read upcoming reservations', async ({ page }) => {
 - paragraph: © 2026 Powered by CourtReserve
 - list
 
-:darr :darr
+↓ ↓
 
 - banner:
   - 'img "Lifetime Activities: Sunnyvale"'
@@ -2088,8 +2132,8 @@ Playwright
  </div>
 </div>
 
-<!-- :uarr NEW ...just the payment button is different, and maybe a bit of styling -->
-<!-- OLD :darr -->
+<!-- ↑ NEW ...just the payment button is different, and maybe a bit of styling -->
+<!-- OLD ↓ -->
 
 <div class="booking-list ant-flex css-sfktup ant-flex-align-stretch ant-flex-vertical" data-testid="booking-list-active" style="width: 100%; height: 100%; gap: 12px;">
   <div data-testid="booking-count" style="font-weight: 600; font-size: 24px; margin-bottom: 16px;">1 Booking Found</div>
