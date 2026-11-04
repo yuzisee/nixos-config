@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { test, expect, errors, type Page, type Locator } from '@playwright/test';
+import { test, expect, errors, type Page, type Locator, type Response } from '@playwright/test';
 
 const LAUNCH_MODE: string = 'prod';
 // const LAUNCH_MODE: string = 'dev';
@@ -116,7 +116,6 @@ async function localtime_slotstart(p: Page, b: BookingSlotPayload): Promise<Seri
   return localtime_datenow(p, millis_int);
 }
 
-
 // Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again
 async function sleep_until_noon(p: Page): Promise<boolean> {
   const countdown: SerializedDate = await localtime_datenow(p, undefined);
@@ -173,106 +172,364 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
 
    console.log('SEARCHING FOR ' + short_date + ' or ' + long_date);
    console.log('Quickjump if possible to ' + yyyy_mm_dd);
+
+   const mobile_reservations : Locator = p.getByRole('banner').getByText('Pickleball Reservations');
  /*
-
 - banner:
-  - navigation:
-    - 'link "Lifetime Activities: Sunnyvale"':
-      - /url: /Online/Portal/Index/13233
-      - 'img "Lifetime Activities: Sunnyvale"'
-    - list:
-      - listitem:
-        - link "Events, Camps, And Classes ":
-          - /url: "#"
-      - listitem:
-        - link "Reservations ":
-          - /url: "#"
-      - listitem:
-        - link "Announcements":
-          - /url: /Online/Announcement/Index/13233
-      - listitem:
-        - link:
-          - /url: "#menu"
-      - listitem
-- listitem:
-  - link "Events, Camps, And Classes ":
-    - /url: "#"
-- listitem:
-  - link "Reservations ":
-    - /url: "#"
-- listitem:
-  - link "Announcements":
-    - /url: /Online/Announcement/Index/13233
-- listitem:
-  - link "firstname lastname ":
-    - /url: "#"
-- listitem:
-  - link:
-    - /url: "#menu"
-- listitem
-- application:
-  - toolbar:
-    - button "Today"
-    - button "Previous": 
-    - button "Next": 
-    - button " Mon, Jan 19"
-    - text: Pickleball Reservations
-  - text: Pickleball 8:00 AM 8:30 AM 9:00 AM 9:30 AM 10:00 AM 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM 8:00 PM 8:30 PM 9:00 PM 9:30 PM
-  - alert: Loading...
-- paragraph: © 2026 Powered by CourtReserve
-- list
+  - button ""
+  - text: Scheduler
+- text: ↓
+- main
+- contentinfo:
+  - button "Home"
+  - button "Calendar"
+  - button "Select Action": +
+  - button "Alerts"
+  - button "More"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+*/
 
+   const desktop_reservations : Locator = p.getByTestId('scheduler-toolbar-title');
+   await mobile_reservations.or(desktop_reservations).waitFor({state: 'visible'});
+
+  /*
+  <div class="acss-oev34">
+    <div class="ant-spin ant-spin-sm ant-spin-spinning ant-spin-section css-ry7cab css-var-_r_3_" aria-live="polite" aria-busy="true">
+      <span class="ant-spin-dot-holder"><span class="ant-spin-dot ant-spin-dot-spin">
+        <i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i>
+      </span></span>
+    </div>
+  </div>
+
+  :vellip
+
+  <div class="acss-695egb">
+    <div class="ant-spin ant-spin-lg ant-spin-spinning ant-spin-section css-ry7cab css-var-_r_3_" aria-live="polite" aria-busy="true">
+      <span class="ant-spin-dot-holder"><span class="ant-spin-dot ant-spin-dot-spin">
+        <i class="ant-spin-dot-item"></i>
+	<i class="ant-spin-dot-item"></i>
+	<i class="ant-spin-dot-item"></i>
+	<i class="ant-spin-dot-item"></i>
+      </span></span>
+    </div>
+  </div>
   */
+   await expect(p.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 9 * 1000});
 
-   // k-scheduler-toolbar
-   await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: 'Today', exact: true}).waitFor({state: 'visible'});
+   // DESKTOP
+   /*
+- banner:
+  - 'img "Lifetime Activities: Sunnyvale"'
+  - text: Events, Camps, And Classes  Reservations  :hellip 
+- main:
+  - button "Today"
+  - button "Previous day" [disabled]: 
+  - button "Next day": 
+  - text:  Sunday, November 1
+  - textbox "Select date": 11/01/2026
+  - text: Pickleball Reservations
+  - button "Refresh scheduler": 
+  - text: Pickleball 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM
+  - button "Reserve"
+  - text: None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+  - text: None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+    */
+
+   // MOBILE
+   /*
+- banner:
+  - button ""
+  - text: Pickleball Reservations
+- text: ↓
+- main:
+  - button "Today"
+  - button "" [disabled]
+  - text:  Sun, Nov 1
+  - button ""
+  - button "Refresh scheduler": 
+  - text: Pickleball 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM
+  - button "Reserve"
+  - text: None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+  - text: None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+- contentinfo:
+  - button "Home"
+  - button "Calendar"
+  - button "Select Action": +
+  - button "Alerts"
+  - button "More"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+
+    */
+
+   // On Mobile it goes 'div[data-testid="scheduler-date-wrap"] > span[data-testid="scheduler-date-label"]' but
+   // ...on Desktop it's 'div[data-testid="scheduler-date-label-wrap"] > span[data-testid="scheduler-date-label"]'
+   const date_picker : Locator = p.getByTestId('scheduler-date-label');
+   // so 'scheduler-date-label' is the testid for both mobile & desktop view.
+   await date_picker.waitFor({state: 'visible'});
 
     // Case study: August 1, 2026 was on a Saturday, so it reads Sunday 2nd, Sunday 9th, Sunday 16th, Sunday 23nd, Sunday 30th... leaving Monday Aug 31 on the bottom row of the calendar.
     // Case study: The only worse scenario would be if the 1st was a Sunday and the month has 31 days. That would make Tuesday the 31st, and we'd only be able to access the first 5 days of next month in RISKY_BUT_FASTER mode.
     let RISKY_BUT_FASTER: boolean = ((day_num < 6) || (8 < day_num));
 
-    // k-sm-date-format
-    if (await p.getByRole('application').getByRole('toolbar').getByRole('button', {name: short_date, exact: false}).isVisible()) {
+    // Are we already on the correct date?
+    const mobile_date_format : Locator = date_picker.getByText(short_date, {exact: false});
+    const desktop_date_format : Locator = date_picker.getByText(long_date, {exact: false});
+    if (await (mobile_date_format.or(desktop_date_format).isVisible())) {
       // SUCCESS!
       return true;
-    } else {
-      // let visibleDate: string[] = await page.locator('span.k-icon.k-i-calendar ~ span').allInnerTexts();
-      // console.log(JSON.stringify(visibleDate));
+      // ^^^ EARLY RETURN
+      // ==============================================================
+    }
 
-      await p.locator('span.k-icon.k-i-calendar').click();
-      let calendar_el: Locator = p.locator('div[data-role=calendar]');
+
+      await date_picker.click();
+      let calendar_el: Locator = p.locator('table.ant-picker-content');
       await calendar_el.waitFor({state: 'visible'});
 
-      // TODO(from joseph): This seems like it should work, but if you hit right on the boundary I think something quirky happens with the loading... so revisit if we need to be faster
+      //console.log('MOBILE OR DESKTOP?');
+      //await p.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+      // DESKTOP
       /*
-      if (RISKY_BUT_FASTER) {
-        let force_date_data : string = year_num + '/' + month_zerobased + '/' + day_num;
-	let force_feed_commandeer : Locator = p.locator('td.k-calendar-td:not(.k-state-selected):not([aria-selected])').getByRole('link').first();
-        // await force_feed_commandeer.waitFor({state: 'visible'});
-        const force_feed_result : string = await force_feed_commandeer.evaluate(
-          function (force_el, new_data_val) {
-            force_el.dataset.value = new_data_val;
-	    var commandeer_result = force_el.outerHTML;
-	    force_el.click();
-            return commandeer_result;
-          }, force_date_data
-        );
-        console.log('Force feed ' + force_feed_result + ' at ' + (new Date().toISOString()) + ' UTC');
-        // await force_feed_commandeer.click();
-        return false;
-      }
-      */
 
-      let day_chooser_el: Locator = calendar_el.locator('div.k-calendar-monthview');
+- banner:
+  - 'img "Lifetime Activities: Sunnyvale"'
+  - text: Events, Camps, And Classes  Reservations  Firstname Lastname 
+- main:
+  - button "Today"
+  - button "Previous day" [disabled]: 
+  - button "Next day": 
+  - text:  Sunday, November 1
+  - textbox "Select date": 11/01/2026
+  - text: Pickleball Reservations
+  - button "Refresh scheduler": 
+  - text: Pickleball 8:00 AM 8:30 AM 9:00 AM 9:30 AM 10:00 AM 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- button "Last year (Control + left)"
+- button "Previous month (PageUp)"
+- button "Choose a month": Nov
+- button "Choose a year": "2026"
+- button "Next month (PageDown)"
+- button "Next year (Control + right)"
+- table:
+  - rowgroup:
+    - row "Su Mo Tu We Th Fr Sa":
+      - columnheader "Su"
+      - columnheader "Mo"
+      - columnheader "Tu"
+      - columnheader "We"
+      - columnheader "Th"
+      - columnheader "Fr"
+      - columnheader "Sa"
+  - rowgroup:
+    - row "1 2 3 4 5 6 7":
+      - cell "1"
+      - cell "2"
+      - cell "3"
+      - cell "4"
+      - cell "5"
+      - cell "6"
+      - cell "7"
+    - row "8 9 10 11 12 13 14":
+      - cell "8"
+      - cell "9"
+      - cell "10"
+      - cell "11"
+      - cell "12"
+      - cell "13"
+      - cell "14"
+    - row "15 16 17 18 19 20 21":
+      - cell "15"
+      - cell "16"
+      - cell "17"
+      - cell "18"
+      - cell "19"
+      - cell "20"
+      - cell "21"
+    - row "22 23 24 25 26 27 28":
+      - cell "22"
+      - cell "23"
+      - cell "24"
+      - cell "25"
+      - cell "26"
+      - cell "27"
+      - cell "28"
+    - row "29 30 1 2 3 4 5":
+      - cell "29"
+      - cell "30"
+      - cell "1"
+      - cell "2"
+      - cell "3"
+      - cell "4"
+      - cell "5"
+    - row "6 7 8 9 10 11 12":
+      - cell "6"
+      - cell "7"
+      - cell "8"
+      - cell "9"
+      - cell "10"
+      - cell "11"
+      - cell "12"
+- list:
+  - listitem: Today
 
-      let correct_month_shown: Locator = calendar_el.getByRole('button', {name: long_month, exact: false});
-      if (!(await correct_month_shown.isVisible())) {
+       */
+
+      // MOBILE
+      /*
+- banner:
+  - button ""
+  - text: Pickleball Reservations
+- text: ↓
+- main:
+  - button "Today"
+  - button "" [disabled]
+  - text:  Sun, Nov 1
+  - button ""
+  - button "Refresh scheduler": 
+  - text: Pickleball 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+  - text: None Available None Available
+  - button "Reserve"
+  - text: None Available
+  - button "Reserve"
+- contentinfo:
+  - button "Home"
+  - button "Calendar"
+  - button "Select Action": +
+  - button "Alerts"
+  - button "More"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- button "Last year (Control + left)"
+- button "Previous month (PageUp)"
+- button "Choose a month": Nov
+- button "Choose a year": "2026"
+- button "Next month (PageDown)"
+- button "Next year (Control + right)"
+- table:
+  - rowgroup:
+    - row "Su Mo Tu We Th Fr Sa":
+      - columnheader "Su"
+      - columnheader "Mo"
+      - columnheader "Tu"
+      - columnheader "We"
+      - columnheader "Th"
+      - columnheader "Fr"
+      - columnheader "Sa"
+  - rowgroup:
+    - row "1 2 3 4 5 6 7":
+      - cell "1"
+      - cell "2"
+      - cell "3"
+      - cell "4"
+      - cell "5"
+      - cell "6"
+      - cell "7"
+    - row "8 9 10 11 12 13 14":
+      - cell "8"
+      - cell "9"
+      - cell "10"
+      - cell "11"
+      - cell "12"
+      - cell "13"
+      - cell "14"
+    - row "15 16 17 18 19 20 21":
+      - cell "15"
+      - cell "16"
+      - cell "17"
+      - cell "18"
+      - cell "19"
+      - cell "20"
+      - cell "21"
+    - row "22 23 24 25 26 27 28":
+      - cell "22"
+      - cell "23"
+      - cell "24"
+      - cell "25"
+      - cell "26"
+      - cell "27"
+      - cell "28"
+    - row "29 30 1 2 3 4 5":
+      - cell "29"
+      - cell "30"
+      - cell "1"
+      - cell "2"
+      - cell "3"
+      - cell "4"
+      - cell "5"
+    - row "6 7 8 9 10 11 12":
+      - cell "6"
+      - cell "7"
+      - cell "8"
+      - cell "9"
+      - cell "10"
+      - cell "11"
+      - cell "12"
+- list:
+  - listitem: Today
+
+       */
+
+      let day_chooser_el: Locator = calendar_el.locator('tbody');
+      let quickjump_day_el : Locator = day_chooser_el.getByTitle(yyyy_mm_dd).first();
+
+      let month_chooser_el: Locator = p.locator('div.ant-picker-header');
+      let correct_month_shown: Locator = month_chooser_el.getByRole('button', {name: 'Choose a month'});
+      let month_shown : string | null = await correct_month_shown.textContent();
+      //console.log("Current month: " + JSON.stringify(month_shown) + " vs. " + long_month + "/" + short_month);
+      if ((month_shown != short_month) && (month_shown != long_month)) {
         // [INVARIANT]: A different month is showing than the one we want. Try to switch using the switcher.
 
-	let quickjump_day_el : Locator = day_chooser_el.getByRole('grid').locator('td.k-other-month[role=gridcell]').getByRole('link', {name: '' + day_num, exact: true});
-	let quickjump_htmltitle : string = long_month + ' ' + day_num + ',';
+        const quickjump_visible : boolean = await quickjump_day_el.isVisible();
+	let quickjump_day_el_disabled : boolean | undefined;
+        if (quickjump_visible) {
+          quickjump_day_el_disabled = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
+        } else {
+          quickjump_day_el_disabled = undefined;
+        }
+        // await locator.evaluate(el => el.classList.contains('ant-picker-cell-disabled'));
+
 	// e.g. 'Monday, February 2, 2026'
-        if ((await quickjump_day_el.isVisible()) && ((await quickjump_day_el.getAttribute('title'))!.indexOf(quickjump_htmltitle) != -1)) {
+        if (quickjump_visible && (quickjump_day_el_disabled === false)) {
           // Quickly jump to the day we want, otherwise it could slow us down an extra second or two!
           await quickjump_day_el.click();
           return true;
@@ -284,18 +541,16 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
             return false;
           }
 
-          // Switch months the slow way, then...
+          // Switch months the fragile way, then...
 
-          await calendar_el.locator('a[data-action=nav-up][role=button]').click(); // this can take ~300ms+ though
-          let month_chooser_el: Locator = calendar_el.locator('div.k-calendar-yearview');
-          await month_chooser_el.waitFor({state: 'visible'});
-          let target_month_el: Locator = month_chooser_el.getByRole('grid').getByRole('link', {name: short_month});
-          if (await target_month_el.isVisible()) {
-            // Okay, it's there!
-            await target_month_el.click(); // this can take +440ms though
-          } else {
-            console.log('Month ' + long_month + ' not yet selectable (did you wake from sleep too early?)... so refresh @ ' + (new Date().toISOString()) + ' UTC');
+          // <button type="button" aria-label="Next month (PageDown)" tabindex="-1" class="ant-picker-header-next-btn"><span class="ant-picker-next-icon"></span></button>
+	  // <button type="button" aria-label="Next month (PageDown)" tabindex="-1" class="ant-picker-header-next-btn"><span class="ant-picker-next-icon"></span></button>
+          await month_chooser_el.getByRole('button', {name: 'Next month', exact: false}).click();
+          let target_month : string | null = await correct_month_shown.textContent();
+          if ((target_month != short_month) && (target_month != long_month)) {
             await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
+            console.log('Month ' + long_month + ' not yet selectable (did you wake from sleep too early?)... so refresh @ ' + (new Date().toISOString()) + ' UTC');
+            await calendar_el.ariaSnapshot().then(function(val) { console.log(val); } );
             await p.reload();
             return false;
           }
@@ -304,21 +559,31 @@ async function refresh_until_date_available(p: Page, year_num: number, month_zer
 	// end if different month
       }
 
+      /*
+      console.log(
+        "Ready for " + yyyy_mm_dd + "\r\n\r\n" +
+        (await day_chooser_el.first().evaluate(el => el.innerHTML))
+      );
+     */
       // [INVARIANT]: OK good! We're should be on the correct month now.
-      await expect(correct_month_shown).toBeVisible(); // this sometimes waits ~900ms (or maybe longer??)
-      await expect(day_chooser_el).toBeVisible();
+      await expect(quickjump_day_el).toBeVisible();
 
-      let target_day_el: Locator = day_chooser_el.getByRole('grid').getByRole('link', {name: '' + day_num, exact: true});
-      if (await target_day_el.isVisible()) {
-        await target_day_el.click();
+      let target_day_el_disabled : boolean | undefined = (await quickjump_day_el.getAttribute('class'))?.split(' ').includes('ant-picker-cell-disabled');
+      if ((await quickjump_day_el.isVisible()) && (target_day_el_disabled === false)) {
+        await quickjump_day_el.click();
+        if (await desktop_reservations.isVisible()) {
+	  await desktop_reservations.click(); // On mobile, the datepicker closes by itself. On desktop, this de-focuses the date-picker so it goes away.
+	}
+        // await expect(calendar_el).toHaveCount(0, {timeout: 1.5 * 1000}); // Shouldn't take more than 1.5 seconds to close the date-picker?
         return true;
       } else {
+        await month_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
         console.log('Day ' + day_num + ' not yet selectable (did you wake from sleep too early?), refresh @ ' + (new Date().toISOString()) + ' UTC');
-        await day_chooser_el.ariaSnapshot().then(function(val) { console.log(val); } );
+        await calendar_el.ariaSnapshot().then(function(val) { console.log(val); } );
         await p.reload();
         return false;
       }
-    }
+
 }
 
 interface BookingSlotPayload {
@@ -386,33 +651,74 @@ interface ReadConsolidated {
 
 async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string> {
 
-  let alreadybooked_els: Locator = p.getByRole('presentation').getByRole('button').getByText('None Available');
-  let reservable_els: Locator = p.getByRole('application').getByRole('button').getByText('Reserve');
-  await alreadybooked_els.or(reservable_els).first().waitFor({ state: 'visible' });
-  console.log('READY: ' + (await alreadybooked_els.count()) + ' booked ↔ available ' + (await reservable_els.count()));
+  await expect(p.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 4 * 1000}); // Just make sure we aren't still loading. We need all the rows to be populated before we continue.
 
-  var reserveTimesChronological: string[] = [];
-  // for (let r_el: Locator of (await reservable_els.all())) {
-  for (let r_el of (await reservable_els.all())) {
-    let reserve_btn_el: Locator = r_el.locator('xpath=..');
-    const data_time: string | null = await reserve_btn_el.getAttribute('data-time');
-    const data_courttype: string | null = await reserve_btn_el.getAttribute('data-courttype');
+  const interceptSlotsData : Promise<Response> = p.waitForResponse(response =>
+    // https://mobileapp.courtreserve.com/Online/Reservations/ReadConsolidated/13233?page=1&pageSize=1000&take=1000&skip=0&jsonData={"orgId":13233,"timeZone":"America/Los_Angeles","browserTimeZone":"America/Vancouver","uiCulture":"en-US","costTypeId":141205,"customSchedulerId":16984,"reservationMinInterval":30,"selectedCourtIds":"52055,52038,52039,52051,52052,52033,52034,52056,52057,52041,52042,52049","selectedInstructorIds":"","memberIds":"","memberFamilyId":null,"embedCodeId":null,"isAdmin":false,"hideReservationDetailsOnMemberPortalScheduler":true,"openMatchesOnly":false,"requestData":"xuwoikBZZJqPUChS7Y2y4%2fkr8SExSV6J5Tsl7DiCX08aTtYL4kHc%2fPsTCemfz9KaXC0rCKGtuIEKfjEwqo4tixjft3qctZElQaeiZz29g4H%2fgxWocPJyy0WoEljrjxnVu1wTRmGztq5%2fzZXKC5ygEgC85wwyeiszSh6oCC7SCKpDq2K99GR0gXtcsyE3OrVHsV3ED%2bPCN3g%3d","shortDto":true,"kendoDate":{"year":2026,"month":11,"day":4}}
+    (response.url().indexOf('mobileapp.courtreserve.com/Online/Reservations/ReadConsolidated') != -1) && (response.status() === 200) && (response.request().method() === 'GET')
+  );
+  await p.getByTestId('scheduler-refresh-btn').click();
+  const slotsDataJsonObj : Response = await interceptSlotsData;
+  console.log('What is the response type ' + slotsDataJsonObj);
+  // console.log('What is the response content ' + (await slotsDataJsonObj.body()));
+  const read_consolidated : ReadConsolidated = await slotsDataJsonObj.json();
+  console.log('What is the response content ' + JSON.stringify(read_consolidated));
 
-    if (data_time === null) {
-      throw new Error("The website has changed, or we lost our connection to the internet. Either way, the script as-is won't be able to book... sorry!");
+  await expect(p.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 4 * 1000}); // Just make sure we aren't still loading. We need all the rows to be populated before we continue.
+
+  let schedule_parent : Locator = p.getByTestId('scheduler-refresh-btn').locator('xpath=..').locator('xpath=..');
+  let schedule_el : Locator = schedule_parent.locator('> :last-child'); // <div class="acss-1q66mfy" style="position: relative;">
+
+  let schedule_two_columns = await schedule_el.locator('> *').all() as [Locator, Locator]; // all children
+  // e.g.
+  // <div class="acss-1wvjhs3"> ... </div>
+  // <div class="acss-5hxkkc" style="flex: 1 0 160px;"> ... </div>
+
+  if (schedule_two_columns.length != 2) {
+    await schedule_el.ariaSnapshot().then(function(val) { console.log(val); } );
+    throw new Error('Oh? So far we assume there are two columns: One for times and one for reserve buttons ' + (await schedule_el.innerHTML()));
+  }
+  // console.log('schedule_parent: ' + (await schedule_parent.getAttribute('style')));
+  // console.log('schedule_el: ' + (await schedule_el.getAttribute('class')) + " ... " + (await schedule_el.getAttribute('style')));
+  // console.log('schedule_two_columns[0]: ' + (await schedule_two_columns[0].getAttribute('class')));
+  // console.log('schedule_two_columns[1]: ' + (await schedule_two_columns[1].getAttribute('class')) + ' ... ' + (await schedule_two_columns[1].getAttribute('style')));
+
+  let time_start_els : Locator = schedule_two_columns[0].locator('> *'); // all children
+  const matching_btn_els : Locator = schedule_two_columns[1].locator('> *'); // all children
+
+  let alreadybooked_num: number = 0;
+  let all_times_chronological : string[] = [];
+  let reservable_slots: Map<string, BookingSlotPayload> = new Map<string, BookingSlotPayload>();
+  // for(var reserve_idx=0; reserve_idx < matching_btn_els_orig_count; ++reserve_idx) {
+  for (const each_slot of read_consolidated.Data) {
+  // for (const each_slot: BookingSlotPayload of read_consolidated.Data) {
+    let slot_time_display : string = (await localtime_slotstart(p, each_slot)).local_shortTime;
+    if (each_slot.AvailableCourts == 0) {
+      alreadybooked_num += 1;
+    } else {
+      reservable_slots.set(slot_time_display, each_slot);
     }
 
+    all_times_chronological.push(slot_time_display);
+  } // end for each_slot
+
+  console.log('READY: ' + (alreadybooked_num) + ' booked ↔ available ' + (reservable_slots.size));
+
+  var reserveTimesChronological: string[] = [];
+  // for (const [data_time, r_slot]: [string, BookingSlot] of reservable_slots.entries()) {
+  for (const [data_time, r_slot] of reservable_slots.entries()) {
+    let log_msg : string = r_slot.CourtType + '.' + r_slot.Id + ' | :times' + r_slot.AvailableCourts + ' @ ' + r_slot.Start + ' :rarr ' + r_slot.End;
     // *********************
     // Choose specific times... e.g. the earliest timeslot available starting from 7pm or earlier
     // *********************
     if (data_time.indexOf(target_ampm) == -1) {
-      console.log(data_time + ' NOT OUR TARGET: ' + data_courttype);
+      console.log(data_time + ' NOT OUR TARGET: ' + log_msg);
     } else {
       const reserve_btn_hour: number = Number(data_time.split(':')[0]);
       if ((reserve_btn_hour == 12) || (reserve_btn_hour < EARLIEST_HOUR_TO_BOOK)) {
-        console.log(data_time + ' TOO EARLY: ' + data_courttype);
+        console.log(data_time + ' TOO EARLY: ' + log_msg);
       } else {
-        console.log(data_time + ' RESERVABLE: ' + data_courttype);
+        console.log(data_time + ' RESERVABLE: ' + log_msg);
         reserveTimesChronological.push(data_time);
       }
     }
@@ -422,14 +728,103 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
   console.log('FULL HOUR BOOKABLE, best first = ' + JSON.stringify(reserveTimes));
 
-  // let randomTimeForTest: string = reserveTimes[Math.floor(Math.random() * reserveTimes.length)];
-  // await p.getByRole('application').getByRole('button', { name: ' at ' + randomTimeForTest }).getByText('Reserve').click();
-  const abort_after_ms : number = 2999;
   while(reserveTimes.length > 0) {
-
     const earliestSatisfactoryTime: string = reserveTimes.shift()!; // assuming we parse the DOM in chronological order (and why wouldn't we?)
+    let target_visible_idx : number = all_times_chronological.indexOf(earliestSatisfactoryTime);
 
-    let ready_to_book_el: Locator = p.getByRole('application').getByRole('button', { name: ' at ' + earliestSatisfactoryTime }).getByText('Reserve');
+    let abort_after_n_lazyloads : number = 8;
+    let lazyload_dbg_history : string[] = [];
+    const lefthand_match : Locator = time_start_els.getByText(earliestSatisfactoryTime);
+    while (!(await lefthand_match.isVisible())) {
+
+      if (--abort_after_n_lazyloads <= 0) {
+          throw Error("Scrolling doesn't work? We scrolled past all of " + JSON.stringify(lazyload_dbg_history) + ' but we want #' + target_visible_idx);
+      }
+
+      let current_visible_timerows : string[] = await time_start_els.allTextContents();
+      let midpoint_visible_timerow : string | undefined = current_visible_timerows[Math.floor(current_visible_timerows.length / 2)];
+
+
+      if (current_visible_timerows.length <= 1) {
+        throw Error('Huh? No times along the left side? What are we meant to do then?');
+      }
+      if (midpoint_visible_timerow === undefined) {
+        throw Error('Huh? Missing times along the left side? Did the page fail to render? ' + (await time_start_els.innerHTML()));
+      }
+
+      let midpoint_visible_idx : number = all_times_chronological.indexOf(midpoint_visible_timerow);
+
+      console.warn('Scrolling until we can see ' + earliestSatisfactoryTime + " because so far it's only " + JSON.stringify(current_visible_timerows));
+      console.log(midpoint_visible_timerow + ' is currently visible at roughly ' + midpoint_visible_idx + ' of ' + current_visible_timerows.length + ' but we would like to get to ' + target_visible_idx);
+
+      lazyload_dbg_history.push(midpoint_visible_timerow + ' @ API Entry #' + midpoint_visible_idx);
+
+      if (target_visible_idx < midpoint_visible_idx) {
+        await time_start_els.first().scrollIntoViewIfNeeded();
+      } else if (midpoint_visible_idx < target_visible_idx) {
+        await time_start_els.last().scrollIntoViewIfNeeded();
+      } else {
+        // exact match? OKAY good!
+	break;
+      }
+    } // end while (w.r.t. scrolling)
+
+
+    const visible_row_times : string[] = await time_start_els.allTextContents();
+/*
+  const matching_btn_els_orig_count : number = await matching_btn_els.count();
+
+  // console.log('visible_now_times: ' + JSON.stringify(visible_now_times));
+  // console.log('matching_btn_els.length = ' + matching_btn_els_orig_count);
+
+  if (visible_now_times.length != matching_btn_els_orig_count) {
+    // Scroll in case the rows load lazily
+    await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    try {
+      await expect(schedule_two_columns[0].locator('> *')).toHaveCount(matching_btn_els_orig_count, {timeout: 17 * 1000});
+      // Okay, well sometimes the visible_now_times column is a little slower to load?
+      // Let's wait to see if it finishes loading.
+    } catch (error) {
+      await schedule_two_columns[0].ariaSnapshot().then(function(val) { console.warn(val); } );
+
+      // <div style="height: 0px;"></div><div class="acss-15qz5nd acss-1rw8q4s acss-if1fbc" style="height: 46px;">8:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">8:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">9:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">9:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">10:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">10:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">11:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">11:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">12:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">12:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">1:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">1:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">2:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">2:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">3:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">3:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">4:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">4:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">5:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">5:30 PM</div>
+      // (but it should go to 7:30pm so something is wrong) vs.
+      // <div style="height: 0px;"></div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-15n11k0" style="height: 46px;">None Available</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-15n11k0" style="height: 46px;">None Available</div>
+
+      console.log(':uarr ' + visible_now_times.length + ' Hmm, is there no way to easily describe each reserve link with its timeslot? ' + matching_btn_els_orig_count + ' :darr'); // I guess maybe one of them didn't finish loading yet?
+      await schedule_two_columns[1].ariaSnapshot().then(function(val) { console.warn(val); } );
+      console.warn((await schedule_two_columns[0].innerHTML()) + "\r\n\r\n COMPARING: " + (await schedule_two_columns[0].locator('> *').count()));
+      throw new Error(error.message + " I hope there is a reliable solution to this! .... \r\n\r\n" + (await schedule_two_columns[1].innerHTML()));
+      // if (error.message.includes('Timed out') && error.message.includes('toHaveCount')) {
+    }
+
+    visible_now_times = await schedule_two_columns[0].locator('> *').allInnerTexts();
+  }
+  // INVARIANT: If you get here, hopefully we see visible_now_times with the same length as (await matching_btn_els.count())
+  */
+
+    const target_row_ordinal : number = visible_row_times.indexOf(earliestSatisfactoryTime);
+
+    if (target_row_ordinal == -1) {
+      throw Error('Still not visible? Where did ' + earliestSatisfactoryTime + ' go? We just saw it! ' + JSON.stringify(visible_row_times));
+    }
+
+    console.log('Found row containing ' + earliestSatisfactoryTime + ' currently rendered at n=' + target_row_ordinal);
+
+   /*
+    const scheduler_id_from_url : Url = new URL(p.url());
+    const scheduler_id : string = scheduler_id_from_url.searchParams.get('sId');
+
+    const manual_reserve_get: string = await p.evaluate(
+      // https://mobileapp.courtreserve.com/Online/ReservationsApi/CreateReservation/13233?isApiCall=true&start=2026-11-04T08%3A30%3A00&end=2026-11-04T09%3A00%3A00&courtType=Pickleball&customSchedulerId=16984&isConsolidated=true
+      // https://mobileapp.courtreserve.com/Online/ReservationsApi/CreateReservation/13233?isApiCall=true&start=2026-11-04T08:30:00&end=2026-11-04T09:00:00&courtType=Pickleball&customSchedulerId=16984&isConsolidated=true
+      HttpXMLRequest
+      scheduler_id_from_url
+    );
+   */
+
+    const abort_after_ms : number = 2999;
+    const ready_to_book_el: Locator = matching_btn_els.nth(target_row_ordinal + 1); // +1 because there's always an empty div at the front
     try {
       await ready_to_book_el.click({timeout: abort_after_ms});
       // SUCCESS!
@@ -443,7 +838,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
       }
     }
 
-    // end while
+    // end while (w.r.t. reserveTimes)
   }
 
   // [INVARIANT] If you get here, nothing was bookable for a full hour
@@ -596,84 +991,158 @@ async function wait_for_lottery(p: Page) : Promise<boolean> {
 
 async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
 
-  let booking_form_el: Locator = p.locator('form#createReservation-Form');
-  await booking_form_el.getByText('End Time').waitFor({state: 'visible'});
-  // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
-  /*
-- text: Book a reservation for 1/27/2026
-- button "Close"
-- button "Save"
-- separator
-- text: Reservation Type *
-- listbox "Reservation Type *":
-  - option "Recreational Play - Pickleball" [selected]
-  - button "select": 
-- text: Start Time 8:30 AM Duration *
-- listbox "Duration *":
-  - option "1 hour" [selected]
-  - button "select": 
-- text: End Time
-- textbox "End Time" [disabled]: 9:30 AM
-- text: Player(s)
-- grid:
-  - rowgroup:
-    - row "# 1 Name firstname lastname Cost $7.00 Due $7.00":
-      - gridcell "# 1"
-      - gridcell "Name firstname lastname"
-      - gridcell "Cost $7.00"
-      - gridcell "Due $7.00"
-      - gridcell
-- text: "Total Due: $7.00 Court Reservations Payment is due upon check-in (at the time of your reservation.) Payment is not required at the time of booking. However, if you opt to prepay for your court time, any court reservation refunds due to cancelations will be returned as an account credit ... View More"
-- checkbox "Check to agree to above disclosure"
-- text:  Check to agree to above disclosure
-- separator
-- button "Close"
-- button "Save"
-   */
-  await expect(booking_form_el.getByRole('textbox', { name: 'End Time' })).toBeDisabled();
+  // On mobile, we have:
+  // div[data-testid=reservation-create-overlay]
+  //   div
+  //     div[data-testid=reservation-create-page]
+  //       div[data-testid=reservation-create-page-inner]
+  //         form[data-testid=reservation-form]
+  //           div[data-testid="reservation-card]
+  //   div
+  //     div[data-testid=reservation-mobile-footer]
 
-  let disclosure_agree_el: Locator = booking_form_el.getByRole('checkbox', { name: 'Check to agree to above disclosure' });
+  // On desktop, we have:
+  // div[role=dialog]
+  //   div.ant-modal-header
+  //     div.ant-modal-title
+  //   div.ant-modal-body
+  //     div
+  //       div[data-testid=reservation-create-page]
+  //         div[data-testid=reservation-create-page-inner]
+  //           form[data-testid=reservation-form]
+  //             div[data-testid="reservation-card]
+  //   div.ant-modal-footer
+  //     div[data-testid=reservation-mobile-footer]
+
+  let booking_system_el: Locator = p.getByTestId('reservation-create-page');
+  await booking_system_el.getByText('Order Summary').waitFor({state: 'visible'});
+  // console.log('Reservation card: READY? ' + (await booking_system_el.getAttribute('class')));
+  // await booking_system_el.ariaSnapshot().then(function(val) { console.log(val); } );
+  /*
+- text: Monday 8:00 AM – 8:30 AM Recreational Play - Pickleball Pickleball Duration
+- combobox: 30 minutes
+- text: Players (1)
+- table:
+  - rowgroup:
+    - row "# Name":
+      - columnheader "#"
+      - columnheader "Name"
+  - rowgroup:
+    - row "1 Firstname Lastname":
+      - cell "1"
+      - cell "Firstname Lastname"
+- text: Court Reservations Payment is due upon check-in (at the ti ...
+- button "View"
+- checkbox "I agree to the terms above"
+- text: Order Summary
+   */
+  console.log('Reservation card: containing form ' + (await booking_system_el.locator('form').getAttribute('class')));
+  let booking_form_el: Locator = booking_system_el.locator('form').getByTestId('reservation-card');
+  console.log('Reservation card: order summary ' + (await booking_form_el.getAttribute('class')));
+
+
+  let disclosure_agree_el: Locator = booking_form_el.getByTestId('reservation-section-disclosure');
   /*
   await disclosure_agree_el.waitFor( {state: 'visible'} );
   await expect(disclosure_agree_el).not.toBeChecked();
   await disclosure_agree_el.check();
   */
-   // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders '' (U+F0C4) Wingdings checkmark in a span
-  let stupid_checkbox_el: Locator = disclosure_agree_el.locator('~ span.check-box-helper');
-  // This works by accident thanks to JavaScript's type coercion ("0" == 0.0 is true)
-  if ((await stupid_checkbox_el.evaluate(el => window.getComputedStyle(el, '::after').opacity)) as any == 0.0) {
-    // Even useInnerText can't interpret opacity (which is what the page seems to use) because pseudo-elements are not part of the DOM tree
-    await disclosure_agree_el.locator('xpath=..').click();
-    await expect(async () => {
-      const checkmarkOpacity: number = await stupid_checkbox_el.evaluate(el => parseFloat(window.getComputedStyle(el, '::after').opacity));
-      expect(checkmarkOpacity).toBeGreaterThanOrEqual(1.0);
-    }).toPass();
-
+   // Ahhh... it's not a normal checkbox. It's a weird javascripty thing that renders an SVG checkbox
+  let stupid_checkbox_el: Locator = disclosure_agree_el.getByRole('checkbox', {name: 'I agree to the terms above'});
+  let initial_checked : string | null = (await stupid_checkbox_el.getAttribute('aria-checked'));
+  if (initial_checked == 'false') {
+    await stupid_checkbox_el.click();
+    await expect(stupid_checkbox_el).toHaveAttribute('aria-checked', 'true');
   } else {
-    const actual_style: CSSStyleDeclaration = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
-    // const actual_style: CSSStyleProperties = await stupid_checkbox_el.evaluate(el => getComputedStyle(el, '::after'));
-    const unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(actual_style);
+    const unexpected_checkmark: string = 'Really? It was already checked? ' + JSON.stringify(initial_checked);
     throw new Error(unexpected_checkmark);
   }
 
-  const totalDueAmount: string | null = await booking_form_el.locator('label.total-due-amount').textContent();
+
+  let duration_combobox : Locator = booking_form_el.getByTestId('reservation-duration');
+  await duration_combobox.getByRole('combobox').click();
+  // Desktop:
+  /*
+- text: Monday 8:00 AM – 8:30 AM Recreational Play - Pickleball Pickleball Duration
+- combobox [expanded]: 30 minutes
+- listbox:
+  - option "30 minutes" [selected]
+  - option "1 hour"
+  - option "1 hour & 30 minutes"
+  - option "2 hours"
+- text: Players (1)
+- table:
+  - rowgroup:
+    - row "# Name":
+      - columnheader "#"
+      - columnheader "Name"
+  - rowgroup:
+    - row "1 Firstname Lastname":
+      - cell "1"
+      - cell "Firstname Lastname"
+- text: Court Reservations Payment is due upon check-in (at the ti ...
+- button "View"
+- checkbox "I agree to the terms above" [checked]
+- text: Order Summary
+   */
+  const desktop_duration : Locator = p.getByRole('listbox').getByRole('option', {name: '1 hour', exact: true});
+  // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+  // console.log(':uarr BEFORE // AFTER :darr');
+  // await p.waitForTimeout(2.5 * 1000.0);
+  // await booking_form_el.ariaSnapshot().then(function(val) { console.log(val); } );
+
+  // Mobile:
+  const mobile_duration : Locator = p.getByRole('dialog', {name: 'Duration'}).getByRole('button', {name: '1 hour', exact: true});
+  /*
+   <div class="ant-drawer-section" role="dialog" aria-labelledby="_r_p_" aria-modal="true" style="display: flex; flex-direction: column; height: auto; max-height: 70vh; background: var(--ant-color-bg-container);">
+     <div class="ant-drawer-header" style="background: transparent; border-bottom-width: medium; border-bottom-style: none; border-bottom-color: currentcolor; padding: 4px; flex-shrink: 0;">
+       <div class="ant-drawer-header-title">
+         <div class="ant-drawer-title" id="_r_p_"><div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-center ant-flex-justify-flex-start" style="padding-block: 8px; flex-direction: row; justify-self: center; max-width: 100%; width: 100%; padding-inline-start: var(--ant-padding); padding-inline-end: 44px; font-size: 14px;">Duration</div></div>
+       </div>
+       <div class="ant-drawer-extra">
+         <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-center ant-flex-justify-flex-end" style="flex-direction: row; position: absolute; right: 4px; top: 4px; gap: 8px;">
+	   <div class="acss-1d4vk4m ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-center ant-flex-justify-center" role="button" tabindex="0" style="flex-direction: row; border-radius: 6px; height: 36px; width: 36px; flex: 0 0 auto;"><span class="anticon" role="img" style="pointer-events: none;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></span></div>
+         </div>
+       </div>
+     </div>
+     <div class="ant-drawer-body" style="background: transparent; padding-block: 0px; padding-inline: 0px; overflow: hidden; display: flex; flex-direction: column; flex: 1 1 0%; min-height: 0px;">
+       <div class="ant-flex css-ry7cab css-var-_r_3_ ant-flex-align-stretch ant-flex-vertical" style="flex-direction: column; justify-self: center; max-width: 100%; flex: 1 1 0%; min-height: 0px; overflow: auto; width: 100%; padding-block-end: var(--cr-safe-area-bottom, env(safe-area-inset-bottom, 0px));">
+         <div class=""><div class="acss-1vqir4">
+	   <button class="acss-1exicps" data-selected="true" type="button"><span class="acss-rimv92">30 minutes</span><span class="acss-17ami2x"><span class="anticon" role="img"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></span></button>
+	   <button class="acss-1y53bzn" type="button"><span class="acss-rimv92">1 hour</span></button>
+	   <button class="acss-1y53bzn" type="button"><span class="acss-rimv92">1 hour &amp; 30 minutes</span></button>
+	   <button class="acss-1y53bzn" type="button"><span class="acss-rimv92">2 hours</span></button>
+         </div></div>
+       </div>
+     </div>
+   </div>
+   */
+
+  await desktop_duration.or(mobile_duration).click();
+
+  const totalDueAmount: string | null = await booking_form_el.getByTestId('reservation-cost-summary').textContent();
+
+  let booking_form_submit : Locator = p.getByTestId('reservation-mobile-footer').getByTestId('reservation-mobile-submit-btn');
 
   if (LAUNCH_MODE == 'prod') {
     console.log(
-     '↳ ' + totalDueAmount + ' READY TO BOOK ' + (new Date().toISOString()) + ' UTC, ' + dbg_msg
+     '↳ ' + totalDueAmount + ' READY TO BOOK ' + (new Date().toISOString()) + ' UTC, ' + (await booking_form_submit.innerHTML()) + "\r\n\r\n" + dbg_msg
     );
 
-    await booking_form_el.getByRole('button', { name: 'Save' }).first().click();
+    await booking_form_submit.click();
     await p.screenshot({ path: 'immediately-after-save' + (new Date()).valueOf() + '.png', fullPage: true });
 // <div class="modal-header-container" data-testid="remove-or-withdraw-modal"><div class="modal-title"><span class="modal-title-span" data-testid="title">Book a reservation for 7/15/2026</span></div><div class="modal-title-buttons"><button type="reset" data-testid="close-btn-modal-header" class="btn btn-light " data-dismiss="modal">Close</button><button __playwright_target__="call@258" type="button" data-testid="save-btn" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 41px; outline: rgb(0, 106, 177) solid 2px; background-color: rgba(111, 168, 220, 0.498);"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div></div>
 // <div class="modal-title-buttons "><button type="reset" data-testid="Close" class="btn btn-light fn-reservation-create-close " data-dismiss="modal">Close</button><button data-testid="Save" type="button" class="btn btn-primary btn-submit fn-btn-disabled d-inline-flex d-flex-inherit" onclick="" disabled="" oldtext="Save" style="padding: 0px; width: 100px; height: 38px;"><span style="opacity:0;width:0px;">-</span><span class="btn-active-spinner"></span></button></div>
+    /*
     console.log( await p.locator('div.modal-title-buttons').first().evaluate(el => el.innerHTML) );
     await p.locator('div.modal-title-buttons').first().ariaSnapshot().then(function(val) { console.log(val); } );
     console.log( ' ↕ ↕ ');
     console.log( ' ↕ ↕ ');
     await p.locator('div.modal-title-buttons').last().ariaSnapshot().then(function(val) { console.log(val); } );
     console.log( await p.locator('div.modal-title-buttons').last().evaluate(el => el.innerHTML) );
+   */
 
+  /*
     let saveButtonSpinners : Locator = p.locator('div.modal-title-buttons button span.btn-active-spinner');
     if ((await saveButtonSpinners.count()) > 0) {
       // [!CAUTION]
@@ -706,6 +1175,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
       console.log('No spinner appeared... Did we click the [Save] button? How long does it normally take for the spinner to appear?');
     }
 
+   */
     // IF the lottery is running, we need to keep the window open long enough to participate in it fully.
     if (await wait_for_lottery(p)) {
       console.log('Lottery done? It is now ' + (await localtime_datenow(p, undefined)).local_isoString);
@@ -713,7 +1183,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
       console.log('No lottery needed?');
     }
 
-    let confirmation_popup : Locator = p.getByRole('alert').getByText('Reservation Confirmed');
+    // let confirmation_popup : Locator = p.getByRole('alert').getByText('Reservation Confirmed');
     /*
 - generic [ref=e1]:
   - text:   
@@ -826,6 +1296,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
     - text: "!"
     - button "OK" [active] [ref=e182] [cursor=pointer]
     */
+   /*
     let weird_lottery_confirmation_message : Locator = p.getByRole('dialog').getByText('You have been assigned to Pickleball').and(
       p.getByRole('dialog').getByText('being no longer available')
     );
@@ -850,10 +1321,13 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
       console.log('SUCCESS at ' + (await localtime_datenow(p, undefined)).local_isoString);
       return true;
     }
+   */
+    return true; // TODO(from joseph): Detect whether booking succeeded or failed.
   } else {
+    // INVARIANT: I guess `LAUNCH_MODE == 'dev'`
     console.log(
      '↳ ' + totalDueAmount + ' READY TO BOOK ' +
-     (await booking_form_el.getByRole('button', { name: 'Save' }).first().ariaSnapshot())
+     (await booking_form_submit.first().ariaSnapshot())
     );
 
     await p.screenshot({ path: 'ready.png', fullPage: true });
@@ -1267,11 +1741,11 @@ test('try booking pickleball', async ({ page }) => {
   // PHASE 1: make sure you are logged in
   // ====================================
 
-  let need_login_btn: Locator = page.locator('nav ul#respMenu').getByRole('listitem').getByRole('link', {name: 'LOG IN', exact: true});
-  if (await locator_visible(need_login_btn, 2000)) {
+  let need_login_btn: Locator = page.getByTestId('header-login-btn'); // locator('header[data-testid="portal-header"]').getByRole('link', {name: 'Log In', exact: true});
+  if (await locator_visible(need_login_btn, 17000)) { // Ever since they switched to ShellSkeleton or ant-skeleton or something, it got slower. Used to be 2000ms
     await need_login_btn.click();
-    await page.waitForURL('**Account/LogIn**');
-    // e.g. https://app.courtreserve.com/Online/Account/LogIn/13233
+    await page.waitForURL('**/Online/Account/Login/**'); // by default, waitForURL does not timeout... https://playwright.dev/docs/test-timeouts#advanced-low-level-timeouts
+    // e.g. https://app.courtreserve.com/Online/Account/Login/13233
   }
 
   await login_username_password(page, ready_u!, ready_p!);
@@ -1285,6 +1759,7 @@ test('try booking pickleball', async ({ page }) => {
       console.log("We didn't make it to → " + start_url + ' … so I guess we got redirected to ' + page.url());
       // Maybe we can force it now that we are logged in??
       await page.goto(start_url);
+      // TODO(from joseph): Is there a way to go straight to 'https://app.courtreserve.com/Online/Reservations/Bookings/13233?sId=16984' (it doesn't redirect properly if you aren't yet logged in...)
     } else {
       throw e;
     }
