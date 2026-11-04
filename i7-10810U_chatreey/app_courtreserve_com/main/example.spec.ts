@@ -63,22 +63,8 @@ test.use({
   // https://playwright.dev/docs/api/class-testoptions#test-options-timezone-id
   timezoneId: HOME_TIMEZONE,
 });
-      function tzoffset_str(dt : Date) : string {
-         var tzoffset : number = dt.getTimezoneOffset(); // FYI: `getTimezoneOffset` is not the offset of the DATE value itself, but rather the offset of the browser AT THE TIME the date value represents
-         if (tzoffset == 0) {
-           return 'Z';
-         } else {
-           var tzoffset_hour : number = Math.floor(Math.abs(tzoffset) / 60.0);
-           var tzoffset_minute : number = (Math.abs(tzoffset) % 60);
-           // [!TIP]
-           // When you get tzoffset 480 that's actually UTC-8:00 (it's the negative direction)
-           var tzoffset_direction : string = ((tzoffset <= 0) ? '+' : '-');
-           // ^^^ Technically London is "+00:00" according to https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC
 
-           return tzoffset_direction + tzoffset_hour.toString().padStart(2, '0') + ':' + tzoffset_minute.toString().padStart(2, '0');
-         }
-      }
-async function localtime_datenow(p: Page): Promise<SerializedDate> {
+async function localtime_datenow(p: Page, undefined_means_now: number | undefined): Promise<SerializedDate> {
   const date_in_playwright: SerializedDate = await p.evaluate(
     function() {
       function tzoffset_str(dt : Date) : string {
@@ -96,7 +82,7 @@ async function localtime_datenow(p: Page): Promise<SerializedDate> {
            return tzoffset_direction + tzoffset_hour.toString().padStart(2, '0') + ':' + tzoffset_minute.toString().padStart(2, '0');
          }
       }
-      var localtime_date : Date = new Date();
+      var localtime_date : Date = new Date(undefined_means_now);
 
       var localtime_monthnum : string = (localtime_date.getMonth() + 1).toString().padStart(2, '0');
       var localtime_isodate : string = localtime_date.getFullYear() + '-' + localtime_monthnum + '-' + localtime_date.getDate().toString().padStart(2, '0');
@@ -123,37 +109,17 @@ async function localtime_datenow(p: Page): Promise<SerializedDate> {
 
   return date_in_playwright;
 }
-
-function localtime_slotstart(b: BookingSlotPayload):  SerializedDate{
+function localtime_slotstart(p: Page, b: BookingSlotPayload): SerializedDate {
   const millis_str: string = b.Start.replace(/\D/g, "");
   const millis_int: number = Number.parseInt(millis_str, 10);
 
-  const localtime_datetime : Date = new Date(millis_int);
-  const localtime_monthnum : string = (localtime_datetime.getMonth() + 1).toString().padStart(2, '0');
-  const localtime_isodate : string = localtime_datetime.getFullYear() + '-' + localtime_monthnum + '-' + localtime_datetime.getDate().toString().padStart(2, '0');
-  const localtime_isotime: string = localtime_datetime.getHours().toString().padStart(2, '0') + ':' +
-                                    localtime_datetime.getMinutes().toString().padStart(2, '0') + ':' +
-                                    localtime_datetime.getSeconds().toString().padStart(2, '0');
-
-  const localtime_ampm_hr: number = (localtime_datetime.getHours() == 0) ? 12 : ((localtime_datetime.getHours() < 13) ? localtime_datetime.getHours() : (localtime_datetime.getHours() - 12));
-  const localtime_shortstr : string = '' + localtime_ampm_hr + ':' + localtime_datetime.getMinutes().toString().padStart(2, '0');
-
-  const localdate_serialized = {
-    local_valueOf: millis_int,
-    local_shortTime: localtime_shortstr + ' ' + (localtime_datetime.getHours() >= 12 ? 'PM' : 'AM'),
-    local_isoString: localtime_isodate + 'T' + localtime_isotime + tzoffset_str(localtime_datetime), // ugh, they give us toISOString() but that converts to UTC anyway?
-    local_generalString: localtime_datetime.toString(),
-    local_hour: localtime_datetime.getHours(),
-    local_minute: localtime_datetime.getMinutes(),
-    local_second: localtime_datetime.getSeconds(),
-  };
-
-  return localdate_serialized;
+  return await localtime_datenow(p, millis_int);
 }
+
 
 // Return: `true` if we are close enough to noon that you should probably proceed, `false` if we did sleep some, but in order to be safe against daylight savings time changes we want you to sleep again
 async function sleep_until_noon(p: Page): Promise<boolean> {
-  const countdown: SerializedDate = await localtime_datenow(p);
+  const countdown: SerializedDate = await localtime_datenow(p, undefined);
   if ((countdown.local_hour > 12) || (countdown.local_hour < 10)) {
     // 10am or earlier?
     // 1pm or later?
@@ -488,7 +454,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
 async function sleep_until_end_of_first_minute(p: Page, or_until_locator_gone : Locator | null) : Promise<number> {
   console.log('Hello there')
-  const minute_checker: SerializedDate = await localtime_datenow(p);
+  const minute_checker: SerializedDate = await localtime_datenow(p, undefined);
   console.log('I am about to start sleep_until_end_of_first_minute ' + minute_checker.local_generalString)
   if (minute_checker.local_minute == 0) {
     console.log('→ Lottery minute NOW')
@@ -742,7 +708,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
 
     // IF the lottery is running, we need to keep the window open long enough to participate in it fully.
     if (await wait_for_lottery(p)) {
-      console.log('Lottery done? It is now ' + (await localtime_datenow(p)).local_isoString);
+      console.log('Lottery done? It is now ' + (await localtime_datenow(p, undefined)).local_isoString);
     } else {
       console.log('No lottery needed?');
     }
@@ -881,7 +847,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
       return true;
     } else {
       await expect(confirmation_popup).toHaveText('Reservation Confirmed');
-      console.log('SUCCESS at ' + (await localtime_datenow(p)).local_isoString);
+      console.log('SUCCESS at ' + (await localtime_datenow(p, undefined)).local_isoString);
       return true;
     }
   } else {
@@ -900,7 +866,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
 
 // "safe" version of .`valueOf` in the sense that we avoid daylight savings issues and/or midnight rollover issues.
 async function n_days_in_future_valueOf_safe(p: Page) : Promise<number> {
-  const local_scriptstart : SerializedDate = await localtime_datenow(p);
+  const local_scriptstart : SerializedDate = await localtime_datenow(p, undefined);
   const localnoon : string = local_scriptstart.local_isoString.split('T')[0] + 'T12:00:00Z'; // use "noon UTC" to avoid Daylight Savings problems when all we want to do is calculate a date (not a time)
   let n_days_from_script_launch : number = LOOK_N_DAYS_IN_FUTURE;
   if ((local_scriptstart.local_hour > 12) && (LAUNCH_MODE == 'prod')) {
@@ -1355,13 +1321,13 @@ test('try booking pickleball', async ({ page }) => {
     // Giving us 2400px of height makes it easier to see all the bookable slots at a glance
 
     while(true) {
-      console.log('Wait until almost noon so we can grab ' + TARGET_MONTH.long_month + ' ' + TARGET_DAY + '… we are currently still ' + (await localtime_datenow(page)).local_isoString);
+      console.log('Wait until almost noon so we can grab ' + TARGET_MONTH.long_month + ' ' + TARGET_DAY + '… we are currently still ' + (await localtime_datenow(page, undefined)).local_isoString);
       if (await sleep_until_noon(page)) {
         break;
       }
     }
   } else {
-    console.log('Debug mode: running at ' + (await localtime_datenow(page)).local_isoString);
+    console.log('Debug mode: running at ' + (await localtime_datenow(page, undefined)).local_isoString);
     // At 768px width and smaller, we'll get the mobile view instead
     //await page.setViewportSize( { width: 768, height: 720 }); // :larr Mobile
     // At 769px width and larger, we get the desktop view
@@ -1730,7 +1696,7 @@ Playwright
 
       } // end for i
 
-      const write_timestamp: SerializedDate = await localtime_datenow(page);
+      const write_timestamp: SerializedDate = await localtime_datenow(page, undefined);
       all_bookings.push('This page was last refreshed on... ' + write_timestamp.local_isoString);
 
       console.log('FOUND: ' + all_bookings.join('\n'));
@@ -1799,7 +1765,7 @@ test('timecheck', async ({ page }) => {
     AggregateResults: null,
     Errors: null
   };
-  console.log('Testing ReadConsolidated parser: ' + localtime_slotstart(test_read_consolidated.Data[0]!).local_shortTime);
+  console.log('Testing ReadConsolidated parser: ' + localtime_slotstart(page, test_read_consolidated.Data[0]!).local_shortTime);
 });
 
 
