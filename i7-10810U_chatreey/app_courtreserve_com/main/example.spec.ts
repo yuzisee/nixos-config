@@ -947,9 +947,12 @@ async function sleep_until_end_of_first_minute(p: Page, or_until_locator_gone : 
 </div>
 */
 async function wait_for_lottery(p: Page) : Promise<boolean> {
+   const is_lottery_time: SerializedDate = await localtime_datenow(p, undefined);
+
     console.log('=== ↓ immediately_after_save ===')
     await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
     console.log( await p.locator('body').first().evaluate(el => el.innerHTML) );
+   if (is_lottery_time.local_hour == 12) {
     await p.waitForTimeout(1.5 * 1000.0);
     console.log('=== wait-for-lotteryA ===')
     await p.screenshot({ path: 'wait-for-lotteryA' + (new Date()).valueOf() + '.png', fullPage: true });
@@ -989,6 +992,7 @@ async function wait_for_lottery(p: Page) : Promise<boolean> {
     await p.screenshot({ path: 'wait_for_lotteryZ' + (new Date()).valueOf() + '.png', fullPage: true });
     await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
     console.log( await p.locator('body').first().evaluate(el => el.innerHTML) );
+  }
 
   var bLotteryDetected : boolean = false;
   while(true) {
