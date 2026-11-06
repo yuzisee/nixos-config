@@ -769,47 +769,69 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
       }
     } // end while (w.r.t. scrolling)
 
+    // INVARIANT: If you get here, the target time **is** visible, at least on the left-hand side.
 
-    const visible_row_times : string[] = await time_start_els.allTextContents();
-/*
-  const matching_btn_els_orig_count : number = await matching_btn_els.count();
-
-  // console.log('visible_now_times: ' + JSON.stringify(visible_now_times));
-  // console.log('matching_btn_els.length = ' + matching_btn_els_orig_count);
-
-  if (visible_now_times.length != matching_btn_els_orig_count) {
-    // Scroll in case the rows load lazily
-    await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    try {
-      await expect(schedule_two_columns[0].locator('> *')).toHaveCount(matching_btn_els_orig_count, {timeout: 17 * 1000});
-      // Okay, well sometimes the visible_now_times column is a little slower to load?
-      // Let's wait to see if it finishes loading.
-    } catch (error) {
-      await schedule_two_columns[0].ariaSnapshot().then(function(val) { console.warn(val); } );
-
+    if ((await time_start_els.count()) != (await matching_btn_els.count())) {
       // <div style="height: 0px;"></div><div class="acss-15qz5nd acss-1rw8q4s acss-if1fbc" style="height: 46px;">8:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">8:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">9:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">9:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">10:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">10:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">11:00 AM</div><div class="acss-15qz5nd" style="height: 46px;">11:30 AM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">12:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">12:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">1:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">1:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">2:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">2:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">3:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">3:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">4:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">4:30 PM</div><div class="acss-15qz5nd acss-1rw8q4s" style="height: 46px;">5:00 PM</div><div class="acss-15qz5nd" style="height: 46px;">5:30 PM</div>
       // (but it should go to 7:30pm so something is wrong) vs.
       // <div style="height: 0px;"></div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-15n11k0" style="height: 46px;">None Available</div><div class="acss-kto64s" style="height: 46px;">None Available</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-rlrib0" role="button" tabindex="0" data-testid="consolidated-reserve-slot" style="height: 46px;">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-1j10ohc" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-rlrib0" style="height: 46px;" role="button" tabindex="0" data-testid="consolidated-reserve-slot">Reserve</div><div class="acss-15n11k0" style="height: 46px;">None Available</div>
+      console.warn('time_start_els: ' + (await time_start_els.count()));
+      console.warn('matching_btn_els: ' + (await matching_btn_els.count()));
 
-      console.log('↑ ' + visible_now_times.length + ' Hmm, is there no way to easily describe each reserve link with its timeslot? ' + matching_btn_els_orig_count + ' ↓'); // I guess maybe one of them didn't finish loading yet?
+      try {
+        // Let's wait to see if it finishes loading.
+        await expect.poll(async () => {
+          return ((await time_start_els.count()) == (await matching_btn_els.count()));
+        }, {timeout: 1.75 * 1000}).toBe(true);
+      } catch (e) {
+        // I guess maybe one of them didn't finish loading yet?
+        if (e instanceof Error) {
+          console.warn('Hmm, is there no way to easily describe each reserve link with its timeslot? ' + e.toString());
+        } else {
+          throw e;
+        }
+      }
+    } // end if time_start_els.count() != matching_btn_els.count()
+
+/*
+  const matching_btn_els_orig_count : number = await matching_btn_els.count();
+
+    try {
+      await expect(schedule_two_columns[0].locator('> *')).toHaveCount(matching_btn_els_orig_count, {timeout: 17 * 1000});
+    } catch (error) {
+      await schedule_two_columns[0].ariaSnapshot().then(function(val) { console.warn(val); } );
+
+      console.log('↑ ' + visible_now_times.length + '  ' + matching_btn_els_orig_count + ' ↓');
       await schedule_two_columns[1].ariaSnapshot().then(function(val) { console.warn(val); } );
       console.warn((await schedule_two_columns[0].innerHTML()) + "\r\n\r\n COMPARING: " + (await schedule_two_columns[0].locator('> *').count()));
       throw new Error(error.message + " I hope there is a reliable solution to this! .... \r\n\r\n" + (await schedule_two_columns[1].innerHTML()));
-      // if (error.message.includes('Timed out') && error.message.includes('toHaveCount')) {
     }
 
-    visible_now_times = await schedule_two_columns[0].locator('> *').allInnerTexts();
-  }
-  // INVARIANT: If you get here, hopefully we see visible_now_times with the same length as (await matching_btn_els.count())
   */
 
+    console.log('If you get here, hopefully we see time_start_els (length=' + (await time_start_els.count()) + ') with the same size as matching_btn_els (length=' + (await matching_btn_els.count()) + ')')
+
+    const visible_row_times : string[] = await time_start_els.allTextContents();
     const target_row_ordinal : number = visible_row_times.indexOf(earliestSatisfactoryTime);
 
     if (target_row_ordinal == -1) {
       throw Error('Still not visible? Where did ' + earliestSatisfactoryTime + ' go? We just saw it! ' + JSON.stringify(visible_row_times));
     }
 
-    console.log('Found row containing ' + earliestSatisfactoryTime + ' currently rendered at n=' + target_row_ordinal);
+    console.log('Found ' + earliestSatisfactoryTime + ' row containing ' + visible_row_times[target_row_ordinal] + ' expected to be rendered at n=' + target_row_ordinal + ' of ' + JSON.stringify(visible_row_times));
+
+    // target_row_ordinal searches through visible_row_times which ALSO has an empty element at the front!
+    // so `matching_btn_els.nth(0)` is the first row (which is a blank row, in fact) and so you'll hopefully never have `target_row_ordinal == 0`
+    // so `matching_btn_els.nth(1)` is what we would want if `target_row_ordinal == 1` since it's the first booking slot (i.e. "8:00 AM")
+    const ready_to_book_el: Locator = matching_btn_els.nth(target_row_ordinal);
+
+    await matching_btn_els.nth(0).evaluate( function(el) { el.style.backgroundColor = 'yellow'; });
+    await time_start_els.nth(0).evaluate( function(el) { el.style.backgroundColor = 'yellow'; });
+    await matching_btn_els.nth(1).evaluate( function(el) { el.style.backgroundColor = 'aqua'; });
+    await time_start_els.nth(1).evaluate( function(el) { el.style.backgroundColor = 'aqua'; });
+
+    await ready_to_book_el.evaluate( function(el) { el.style.backgroundColor = 'lime'; });
+    await time_start_els.nth(target_row_ordinal).evaluate( function(el) { el.style.backgroundColor = 'lime'; });
 
    /*
     const scheduler_id_from_url : Url = new URL(p.url());
@@ -822,9 +844,12 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
       scheduler_id_from_url
     );
    */
-
+    console.log(
+      'Just for the record, the corresponding row header is ' +
+      (await time_start_els.nth(target_row_ordinal).innerHTML())
+    );
+    await p.screenshot({ path: 'please-click-correctly_' + (new Date()).valueOf() + '.png', fullPage: true });
     const abort_after_ms : number = 2999;
-    const ready_to_book_el: Locator = matching_btn_els.nth(target_row_ordinal + 1); // +1 because there's always an empty div at the front
     try {
       await ready_to_book_el.click({timeout: abort_after_ms});
       // SUCCESS!
@@ -847,191 +872,72 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
   throw new Error('Nothing bookable on the target date. We are too late. There is nothing we can do at this point, sorry!');
 }
 
-async function sleep_until_end_of_first_minute(p: Page, or_until_locator_gone : Locator | null) : Promise<number> {
-  console.log('Hello there')
-  const minute_checker: SerializedDate = await localtime_datenow(p, undefined);
-  console.log('I am about to start sleep_until_end_of_first_minute ' + minute_checker.local_generalString)
-  if (minute_checker.local_minute == 0) {
-    console.log('→ Lottery minute NOW')
-    if (minute_checker.local_second < 59) {
-      console.log('→ Lottery second LIVE')
-      let sleep_range_millis : number = 0.5 * (60 - minute_checker.local_second) * 1000;
-      console.log('Sleep half the time between now and the end of the minute... starting from ' + minute_checker.local_generalString);
-      await p.waitForTimeout(sleep_range_millis);
-      return sleep_range_millis;
-    }
-    console.log('→ Lottery second passed?')
-  }
-
-  if (or_until_locator_gone === null) {
-    console.log('[INVARIANT] If you get here, the lottery was still running at ' + minute_checker.local_generalString + ' even though 12:01pm has been reached...?');
-    // const sleep_nominal_to_avoid_spam_millis : number = 200; // 0.2s
-    // await p.waitForTimeout(sleep_nominal_to_avoid_spam_millis);
-  } else {
-    // TODO(from joseph): Once you've entered the lottery, could you right away refresh the page and try booking other timeslots?
-    console.log('I guess just sleep until whatever Locator is no longer visible? ' + minute_checker.local_generalString);
-    try {
-      await or_until_locator_gone.waitFor({ state: 'hidden', timeout: 9_000, });
-      console.log('Oh, something happened!!!');
-    } catch (error) {
-      if (error instanceof errors.TimeoutError) {
-        return 9000;
-      } else {
-        throw error;
-      }
-    }
-  }
-  return 0;
-}
-
-/*
- <div class="modal-dialog modal-modal1" style="max-width: 576px;"><div class="modal-content" id="modal1-container">
-
-<style>
-    .mobile-html .modal-body .spinner-container.active {
-        height: 120% !important;
-    }
-
-    .mobile-html .error-inner {
-        padding-top: 50px;
-    }
-</style>
-<div id="create-res-modal" style="">
-
-
-
-<div class="modal-outer-container" id="main-reservation-container" data-testid="create-reservation">
-    <div class="modal-outer-inner-container">
-        <div class="container">
-            <div class="modal-page-inner">
-                <form action="https://reservations.courtreserve.com//Online/ReservationsApi/CreateReservation/13233?uiCulture=en-US" data-ajax="true" data-ajax-begin="disableButtonsByClass('btn-submit')" data-ajax-method="POST" data-ajax-success="reservationFunctionSuccess(data,this)" id="createReservation-Form" method="post" novalidate="novalidate" class="lottery-msg">*
-
-	       .
-	      .
-	     .
-
-<div class="w-100 active spinner-wrapper-full" style="position:absolute!important;top:0;border-radius:4px;height:100%;background:#fff;height:100%;">
-            <div class="loader-wrapper">
-                <div class="loader-icon mb-6"><i class="fa-light fa-bolt-lightning"></i></div>
-                <div class="loader-title mb-2">Lottery in Progress</div>
-                <div class="loader-description mb-6">Randomizing reservations...</div>
-                <div class="progress-loader mb-4" data-progress="92">
-                    <div class="progress-loader-bar" style="width: 92%;"></div>
-                </div>
-
-                <div class="loader-description-seconds mb-8">Less than 2 seconds remaining</div>
-
-                <hr class="loader-description-divider mb-8">
-
-                <div class="loader-description-request mb-6">
-                   <div class="loader-description-request-wrapper">
-                       <i class="fa-regular fa-circle-check" style="color:green"></i>
-                       <span> Reservation request submitted.</span>
-                   </div>
-                </div>
-
-                <span class="loader-description-window-wrapper">
-                    <div class="loader-description-window">
-                        <div class="loader-description-window-icon">
-                            <i class="fa-regular fa-clock"></i>
-                        </div>
-                        <div class="loader-description-window-texts">
-                            <b>Keep this window open</b>
-                            <div>
-                                Final results will be display here once the lottery is complete. Closing this window may prevent updates from appearing.
-                            </div>
-                        </div>
-                    </div>
-                </span>
-            </div>
-</div>
-*/
 async function wait_for_lottery(p: Page) : Promise<boolean> {
    const is_lottery_time: SerializedDate = await localtime_datenow(p, undefined);
 
     console.log('=== ↓ immediately_after_save ===')
     await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
     console.log( await p.locator('body').first().evaluate(el => el.innerHTML) );
+   // <button data-testid="reservation-mobile-submit-btn" type="button" class="ant-btn css-ry7cab css-var-_r_3_ ant-btn-primary ant-btn-color-primary ant-btn-variant-solid acss-kxblvm" style="flex: 1 1 0%; min-width: 286px; pointer-events: none;">
+   //   <span class="anticon acss-1joy8be" role="img">
+   //     <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+   //   </span>
+   // </button>
+   // :darr
+   // <button data-testid="reservation-mobile-submit-btn" type="button" class="ant-btn css-ry7cab css-var-_r_3_ ant-btn-primary ant-btn-color-primary ant-btn-variant-solid acss-kxblvm" style="flex: 1 1 0%;"><span>Confirm</span></button>
    if (is_lottery_time.local_hour == 12) {
-    await p.waitForTimeout(1.5 * 1000.0);
-    console.log('=== wait-for-lotteryA ===')
+/*
+<div class="acss-brho7t">
+ <div class="acss-1bt3qa0" data-testid="reservation-mobile-footer">
+  <div class="acss-1ic6cdh"><div class="acss-9iix5v">
+    <span class="acss-140twzd"> <span class="acss-efuyk3">Total Due</span> </span>
+    <span class="acss-x4fp6y" data-testid="reservation-mobile-total-due">$13.00</span>
+  </div></div>
+  <div class="acss-5ok49o">
+   <button data-testid="reservation-mobile-back-btn" type="button" class="ant-btn css-ry7cab css-var-_r_3_ ant-btn-default ant-btn-color-default ant-btn-variant-outlined acss-kxblvm" disabled="" style="flex: 1 1 0%;">
+    <span>Back</span>
+   </button>
+
+   <button data-testid="reservation-mobile-submit-btn" type="button" class="ant-btn css-ry7cab css-var-_r_3_ ant-btn-primary ant-btn-color-primary ant-btn-variant-solid acss-kxblvm" style="flex: 1 1 0%; min-width: 286px; pointer-events: none;">
+    <div style="position: absolute; left: 0px; top: 0px;">
+     <div class="ant-wave css-ry7cab wave-motion-appear wave-motion-appear-active wave-motion" style="left: -1px; top: -1px; width: 286px; height: 40px; border-radius: 8px; --ant-wave-color: rgb(0, 0, 0);"></div>
+    </div>
+    <span class="anticon acss-1joy8be" role="img">
+     <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-circle" aria-hidden="true"> <path d="M21 12a9 9 0 1 1-6.219-8.56"></path> </svg>
+    </span>
+   </button>
+
+  </div>
+ </div>
+</div>
+*/
+    await expect(p.getByTestId('reservation-mobile-submit-btn').getByRole('img')).toHaveCount(0, {timeout: 120.0 * 1000}); // Wait 2mins to be safe. We've seen the lottery take 1min45s before → https://github.com/yuzisee/nixos-config/pull/22#issue-5021658007
+    console.log('=== wait-for-lotteryA === ' + (await localtime_datenow(p, undefined)).local_isoString);
     await p.screenshot({ path: 'wait-for-lotteryA' + (new Date()).valueOf() + '.png', fullPage: true });
-    await p.waitForTimeout(1.5 * 1000.0);
-    console.log('  ')
-    console.warn('===========================')
-    console.log('=== wait-for-lotteryB ↓ ===')
-    await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
-    await p.screenshot({ path: 'wait-for-lotteryB' + (new Date()).valueOf() + '.png', fullPage: true });
-    await p.waitForTimeout(1.5 * 1000.0);
-    console.log('=== wait-for-lotteryC ===')
-    await p.screenshot({ path: 'wait-for-lotteryC' + (new Date()).valueOf() + '.png', fullPage: true });
-    await p.waitForTimeout(1.5 * 1000.0);
-    console.log('  ')
-    console.warn('===========================')
-    console.log('=== wait-for-lotteryD ↓ ===')
-    console.warn('===========================')
-    console.log('  ')
-    await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
-    console.log( await p.locator('body').first().evaluate(el => el.innerHTML) );
+    if (await p.getByTestId('reservation-mobile-submit-btn').isVisible()) {
+      await p.locator('body').first().ariaSnapshot().then(function(val) { console.warn("Still there? Did you lose the lottery?\r\n" + val); } );
 
-    // For now, we are debugging the lottery, which, in our experience can take up to 2mins, so let's do 4× 30sec snapshots
-    await p.waitForTimeout(30.0 * 1000.0);
-    console.log('=== wait_for_lotteryW ===')
-    await p.screenshot({ path: 'wait_for_lotteryW' + (new Date()).valueOf() + '.png', fullPage: true });
+      const mobile_reservation_dialog : Locator = p.getByTestId('reservation-create-overlay');
+      if (await mobile_reservation_dialog.isVisible()) {
+        console.warn(await mobile_reservation_dialog.first().evaluate(el => el.innerHTML));
+      }
+      const desktop_reservation_dialog : Locator = p.getByRole('dialog').filter({has: p.getByTestId('reservation-create-page')});
+      if (await desktop_reservation_dialog.isVisible()) {
+        console.warn(await desktop_reservation_dialog.first().evaluate(el => el.innerHTML));
+      }
 
-    await p.waitForTimeout(30.0 * 1000.0);
-    console.log('=== wait_for_lotteryX ===')
-    await p.screenshot({ path: 'wait_for_lotteryX' + (new Date()).valueOf() + '.png', fullPage: true });
+      await p.getByTestId('reservation-mobile-submit-btn').click();
+      console.log("=== Does it still show a spinner if there's no lottery? ===");
+      await p.screenshot({ path: 'wait-for-lotteryB' + (new Date()).valueOf() + '.png', fullPage: true });
+      await expect(p.getByTestId('reservation-mobile-submit-btn').getByRole('img')).toHaveCount(0, {timeout: 5.0 * 1000});
+      await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
 
-    await p.waitForTimeout(30.0 * 1000.0);
-    console.log('=== wait_for_lotteryY ===')
-    await p.screenshot({ path: 'wait_for_lotteryY' + (new Date()).valueOf() + '.png', fullPage: true });
+      return false;
+    }
+    return true;
 
-    await p.waitForTimeout(30.0 * 1000.0);
-    console.log('=== wait_for_lotteryZ ===')
-    await p.screenshot({ path: 'wait_for_lotteryZ' + (new Date()).valueOf() + '.png', fullPage: true });
-    await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
-    console.log( await p.locator('body').first().evaluate(el => el.innerHTML) );
   }
-
-  var bLotteryDetected : boolean = false;
-  while(true) {
-    let lotteryEl1 : Locator = p.locator('form#createReservation-Form').getByText('Lottery in Progress');
-    let lotteryCheck1 : boolean = await lotteryEl1.isVisible();
-    if (lotteryCheck1) {
-      console.log('Found "Lottery in Progress" message by Element ID');
-      await sleep_until_end_of_first_minute(p, lotteryEl1);
-    }
-    let lotteryEl2 : Locator = p.locator('form.lottery-msg').getByText('Lottery in Progress');
-    let lotteryCheck2 : boolean = await lotteryEl2.isVisible();
-    if (lotteryCheck2) {
-      console.log('Found "Lottery in Progress" message by HTML class');
-      await sleep_until_end_of_first_minute(p, lotteryEl2);
-    }
-
-    /*
-            <div class="loader-wrapper">
-                <div class="loader-icon"><i class="fa-regular fa-face-smile"></i></div>
-                <div class="loader-title">Hang Tight!</div>
-                <div class="loader-description">We are finalizing your booking. This may take a few more seconds during peak times.</div>
-                <div class="progress-loader" data-progress="98">
-                    <div class="progress-loader-bar" style="width: 98%;"></div>
-                </div>
-            </div>
-    */
-    let lotteryCheck3 : boolean = await p.locator('form#createReservation-Form > .createReservation-Form-container').getByText('Hang Tight!').isVisible();
-    if (lotteryCheck3) {
-      console.log('Found "Hang Tight!" message; does that mean booking succeeded?');
-      await sleep_until_end_of_first_minute(p, null);
-    }
-
-    if (lotteryCheck1 || lotteryCheck2 || lotteryCheck3) {
-      bLotteryDetected = true;
-      console.log('Lottery appears to be active...');
-    } else {
-      return bLotteryDetected
-    }
-  }
+  return false;
 
   // end wait_for_lottery
 }
@@ -1232,118 +1138,7 @@ async function fill_out_form(p: Page, dbg_msg: string) : Promise<boolean> {
     }
 
     // let confirmation_popup : Locator = p.getByRole('alert').getByText('Reservation Confirmed');
-    /*
-- generic [ref=e1]:
-  - text:   
-  - generic [ref=e5]:
-    - text:        
-    - generic [ref=e6]:
-      - generic [ref=e8]:
-        - link [ref=e9] [cursor=pointer]:
-          - /url: /Online/Portal/Index/13233
-          - img [ref=e12]
-        - link [ref=e13] [cursor=pointer]:
-          - /url: "#menu"
-          - generic [ref=e14]: 
-      - generic [ref=e16]:
-        - listitem [ref=e17]:
-          - link [ref=e18] [cursor=pointer]:
-            - /url: "#"
-            - text: Events, Camps, And Classes 
-        - listitem [ref=e19]:
-          - link [ref=e20] [cursor=pointer]:
-            - /url: "#"
-            - text: Reservations 
-        - listitem [ref=e21]:
-          - link [ref=e22] [cursor=pointer]:
-            - /url: "#"
-            - text: … 
-          - text:     
-        - listitem [ref=e23]:
-          - link [ref=e24] [cursor=pointer]:
-            - /url: "#menu"
-    - application [ref=e35] [cursor=pointer]:
-      - toolbar [ref=e36]:
-        - generic [ref=e37]:
-          - button [ref=e38]: Today
-          - button [ref=e39]:
-            - generic [ref=e40]: 
-          - button [ref=e41]:
-            - generic [ref=e42]: 
-        - button [ref=e43]:
-          - generic [ref=e44]: 
-          - generic [ref=e45]: Thu, Aug 6
-        - generic [ref=e47]: Pickleball Reservations
-        - text: 
-      - button [ref=e50]:
-        - generic [ref=e51]: 
-      - generic [ref=e53]: Pickleball
-      - generic [ref=e54]: 8:00 AM 8:30 AM 9:00 AM 9:30 AM 10:00 AM 10:30 AM 11:00 AM 11:30 AM 12:00 PM 12:30 PM 1:00 PM 1:30 PM 2:00 PM 2:30 PM 3:00 PM 3:30 PM 4:00 PM 4:30 PM 5:00 PM 5:30 PM 6:00 PM 6:30 PM 7:00 PM 7:30 PM 8:00 PM 8:30 PM 9:00 PM 9:30 PM
-      - generic [ref=e55]:
-        - button [ref=e56]:
-          - generic [ref=e59]: Reserve
-        - button [ref=e60]:
-          - generic [ref=e63]: Reserve
-        - button [ref=e64]:
-          - generic [ref=e67]: Reserve
-        - button [ref=e68]:
-          - generic [ref=e71]: Reserve
-        - button [ref=e72]:
-          - generic [ref=e75]: Reserve
-        - button [ref=e76]:
-          - generic [ref=e79]: None Available
-        - button [ref=e80]:
-          - generic [ref=e83]: Reserve
-        - button [ref=e84]:
-          - generic [ref=e87]: Reserve
-        - button [ref=e88]:
-          - generic [ref=e91]: Reserve
-        - button [ref=e92]:
-          - generic [ref=e95]: Reserve
-        - button [ref=e96]:
-          - generic [ref=e99]: Reserve
-        - button [ref=e100]:
-          - generic [ref=e103]: Reserve
-        - button [ref=e104]:
-          - generic [ref=e107]: Reserve
-        - button [ref=e108]:
-          - generic [ref=e111]: Reserve
-        - button [ref=e112]:
-          - generic [ref=e115]: Reserve
-        - button [ref=e116]:
-          - generic [ref=e119]: Reserve
-        - button [ref=e120]:
-          - generic [ref=e123]: Reserve
-        - button [ref=e124]:
-          - generic [ref=e127]: Reserve
-        - button [ref=e128]:
-          - generic [ref=e131]: Reserve
-        - button [ref=e132]:
-          - generic [ref=e135]: Reserve
-        - button [ref=e136]:
-          - generic [ref=e139]: Reserve
-        - button [ref=e140]:
-          - generic [ref=e143]: Reserve
-        - button [ref=e144]:
-          - generic [ref=e147]: Reserve
-        - button [ref=e148]:
-          - generic [ref=e151]: Reserve
-        - button [ref=e152]:
-          - generic [ref=e155]: Reserve
-        - button [ref=e156]:
-          - generic [ref=e159]: Reserve
-        - button [ref=e160]:
-          - generic [ref=e163]: Reserve
-        - button [ref=e164]:
-          - generic [ref=e167]: Reserve
-  - text: 
-  - paragraph [ref=e170]: © 2026 Powered by CourtReserve
-  - text:     
-  - dialog [ref=e172]:
-    - generic [ref=e180]: You have been assigned to Pickleball G due to Pickleball H being no longer available.
-    - text: "!"
-    - button "OK" [active] [ref=e182] [cursor=pointer]
-    */
+
    /*
     let weird_lottery_confirmation_message : Locator = p.getByRole('dialog').getByText('You have been assigned to Pickleball').and(
       p.getByRole('dialog').getByText('being no longer available')
