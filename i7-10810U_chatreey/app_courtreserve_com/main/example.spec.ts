@@ -2068,6 +2068,14 @@ Playwright
     }
   }
 
+  console.log('  ');
+  console.log('  ');
+  console.log('==============================');
+  console.log('=== WAIVER CHECK CONCLUDED ===');
+  console.log('==============================');
+  console.log('  ');
+  console.log('  ');
+
   if(process.env['READ_USERNAMES']) {
     if(process.env['READ_PASSWORDS']) {
       const u_array : string[] = process.env['READ_USERNAMES'].split(',');
@@ -2194,6 +2202,10 @@ Playwright
         await expect(page.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 9 * 1000});
         console.log('Finished waiting, no more spinners after ' + ((new Date()).valueOf() - page_loaded_at.valueOf()) + ' millis');
         await page.screenshot({ path: 'early_loading.' + cur_username.substring(0, 1) + i + '.png', fullPage: true });
+        await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+
+    await page.waitForTimeout(2.0 * 1000.0);
+    console.log( await page.locator('body').first().evaluate(el => el.innerHTML) );
         await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
         let activeBooking_els : Locator = page.locator('div.booking-card-desktop-content-list');
