@@ -831,7 +831,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
     await time_start_els.nth(1).evaluate( function(el) { el.style.backgroundColor = 'aqua'; });
 
     await ready_to_book_el.evaluate( function(el) { el.style.backgroundColor = 'lime'; });
-    await time_start_els.nth(target_row_ordinal + 1).evaluate( function(el) { el.style.backgroundColor = 'lime'; });
+    await time_start_els.nth(target_row_ordinal).evaluate( function(el) { el.style.backgroundColor = 'lime'; });
 
    /*
     const scheduler_id_from_url : Url = new URL(p.url());
@@ -846,7 +846,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
    */
     console.log(
       'Just for the record, the corresponding row header is ' +
-      (await time_start_els.nth(target_row_ordinal + 1).innerHTML())
+      (await time_start_els.nth(target_row_ordinal).innerHTML())
     );
     await p.screenshot({ path: 'please-click-correctly_' + (new Date()).valueOf() + '.png', fullPage: true });
     const abort_after_ms : number = 2999;
