@@ -2098,10 +2098,8 @@ Playwright
         await page.goto('https://app.courtreserve.com/Online/Bookings/List/13233?type=1');
         const page_loaded_at : Date = new Date();
 
-        await expect(page.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 9 * 1000});
         // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
-
-        console.log('Finished waiting, no more spinners after ' + ((new Date()).valueOf() - page_loaded_at.valueOf()) + ' millis');
+        await expect(page.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 9 * 1000});
         /*
 - banner:
   - 'img "Lifetime Activities: Sunnyvale"'
@@ -2114,8 +2112,7 @@ Playwright
 - region "Notifications"
 - region "Notifications"
 */
-
-        await expect(page.getByRole('main')).toContainText('View and manage your upcoming and past bookings');
+        console.log('Finished waiting, no more spinners after ' + ((new Date()).valueOf() - page_loaded_at.valueOf()) + ' millis');
 /*
 - banner:
   - 'img "Lifetime Activities: Sunnyvale"'
@@ -2152,12 +2149,8 @@ Playwright
 - region "Notifications"
 - region "Notifications"
 - region "Notifications"
-
 */
-        console.log( await page.getByRole('tabpanel', {name: 'Active'}).first().evaluate(el => el.innerHTML) );
-        console.log("\r\n\r\nFinished loading? Text is rendering now after total " + ((new Date()).valueOf() - page_loaded_at.valueOf()) + " millis\r\n\r\n");
-        await page.screenshot({ path: 'main_loading.' + cur_username.substring(0, 1) + i + '.png', fullPage: true });
-        await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+        await expect(page.getByRole('main')).toContainText('View and manage your upcoming and past bookings');
 /*
 - banner:
   - 'img "Lifetime Activities: Sunnyvale"'
@@ -2240,10 +2233,16 @@ Playwright
 - region "Notifications"
 - region "Notifications"
 */
+        const bookings_visible : Locator = page.getByText('No bookings found').or(page.getByRole('button', {name: "Edit Reservation"}));
+        await expect(bookings_visible).toBeVisible();
+        // console.log( await page.getByRole('tabpanel', {name: 'Active'}).first().evaluate(el => el.innerHTML) );
+        // console.log("\r\n\r\nFinished loading? Text is rendering now after total " + ((new Date()).valueOf() - page_loaded_at.valueOf()) + " millis\r\n\r\n");
+        // await page.screenshot({ path: 'main_loading.' + cur_username.substring(0, 1) + i + '.png', fullPage: true });
+        // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
         let activeBooking_els : Locator = page.locator('div.booking-card-desktop-content-list');
-        await page.waitForTimeout(2.0 * 1000.0);
-        console.log( await page.getByRole('tabpanel', {name: 'Active'}).first().evaluate(el => el.innerHTML) );
+        // await page.waitForTimeout(2.0 * 1000.0);
+        // console.log( await page.getByRole('tabpanel', {name: 'Active'}).first().evaluate(el => el.innerHTML) );
     // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
         // TODO(from joseph): If there's any funny business with how text is rendered, use `.allTextContents()` instead to grab the raw HTML text
