@@ -2116,7 +2116,46 @@ Playwright
 */
 
         await expect(page.getByRole('main')).toContainText('View and manage your upcoming and past bookings');
-        console.log('Finished loading? Text is rendering now after total ' + ((new Date()).valueOf() - page_loaded_at.valueOf()) + ' millis');
+/*
+- banner:
+  - 'img "Lifetime Activities: Sunnyvale"'
+  - text: Events, Camps, And Classes  Reservations  Yifei Luo 
+- main:
+  - complementary:
+    - navigation:
+      - link " Personal Information":
+        - /url: /Online/MyProfile/MyProfile/13233
+      - link " My Family":
+        - /url: /Online/MyFamily/Index/13233
+      - link " My Bookings":
+        - /url: /Online/Bookings/List/13233
+      - link " Calendar Feed":
+        - /url: /Online/MyProfile/MyCalendar/13233
+      - link " My Waivers":
+        - /url: /Online/MyWaivers/Index/13233
+      - button " Billing "
+      - link " Payment Profiles":
+        - /url: /Online/PaymentOptions/Index/13233
+      - link " Stringing Jobs":
+        - /url: /Online/StringingJob/Index/13233
+      - button " My Organizations "
+  - heading "My Bookings" [level=1]
+  - text: View and manage your upcoming and past bookings.
+  - button "Filter"
+  - tablist:
+    - tab "Active" [selected]
+    - tab "Cancelled"
+  - tabpanel "Active"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+- region "Notifications"
+
+*/
+        console.log( await page.getByRole('tabpanel', {name: 'Active'}).first().evaluate(el => el.innerHTML) );
+        console.log("\r\n\r\nFinished loading? Text is rendering now after total " + ((new Date()).valueOf() - page_loaded_at.valueOf()) + " millis\r\n\r\n");
         await page.screenshot({ path: 'main_loading.' + cur_username.substring(0, 1) + i + '.png', fullPage: true });
         await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 /*
@@ -2203,8 +2242,8 @@ Playwright
 */
 
         let activeBooking_els : Locator = page.locator('div.booking-card-desktop-content-list');
-    // await page.waitForTimeout(2.0 * 1000.0);
-    // console.log( await page.locator('body').first().evaluate(el => el.innerHTML) );
+        await page.waitForTimeout(2.0 * 1000.0);
+        console.log( await page.getByRole('tabpanel', {name: 'Active'}).first().evaluate(el => el.innerHTML) );
     // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
         // TODO(from joseph): If there's any funny business with how text is rendered, use `.allTextContents()` instead to grab the raw HTML text
