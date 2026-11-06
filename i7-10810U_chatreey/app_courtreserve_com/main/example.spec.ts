@@ -785,7 +785,11 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
         }, {timeout: 1.75 * 1000}).toBe(true);
       } catch (e) {
         // I guess maybe one of them didn't finish loading yet?
-        console.warn('Hmm, is there no way to easily describe each reserve link with its timeslot? ' + e.toString());
+        if (e instanceof Error) {
+          console.warn('Hmm, is there no way to easily describe each reserve link with its timeslot? ' + e.toString());
+        } else {
+          throw e;
+        }
       }
     } // end if time_start_els.count() != matching_btn_els.count()
 
@@ -867,43 +871,6 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
   throw new Error('Nothing bookable on the target date. We are too late. There is nothing we can do at this point, sorry!');
 }
 
-async function sleep_until_end_of_first_minute(p: Page, or_until_locator_gone : Locator | null) : Promise<number> {
-  console.log('Hello there')
-  const minute_checker: SerializedDate = await localtime_datenow(p, undefined);
-  console.log('I am about to start sleep_until_end_of_first_minute ' + minute_checker.local_generalString)
-  if (minute_checker.local_minute == 0) {
-    console.log('→ Lottery minute NOW')
-    if (minute_checker.local_second < 59) {
-      console.log('→ Lottery second LIVE')
-      let sleep_range_millis : number = 0.5 * (60 - minute_checker.local_second) * 1000;
-      console.log('Sleep half the time between now and the end of the minute... starting from ' + minute_checker.local_generalString);
-      await p.waitForTimeout(sleep_range_millis);
-      return sleep_range_millis;
-    }
-    console.log('→ Lottery second passed?')
-  }
-
-  if (or_until_locator_gone === null) {
-    console.log('[INVARIANT] If you get here, the lottery was still running at ' + minute_checker.local_generalString + ' even though 12:01pm has been reached...?');
-    // const sleep_nominal_to_avoid_spam_millis : number = 200; // 0.2s
-    // await p.waitForTimeout(sleep_nominal_to_avoid_spam_millis);
-  } else {
-    // TODO(from joseph): Once you've entered the lottery, could you right away refresh the page and try booking other timeslots?
-    console.log('I guess just sleep until whatever Locator is no longer visible? ' + minute_checker.local_generalString);
-    try {
-      await or_until_locator_gone.waitFor({ state: 'hidden', timeout: 9_000, });
-      console.log('Oh, something happened!!!');
-    } catch (error) {
-      if (error instanceof errors.TimeoutError) {
-        return 9000;
-      } else {
-        throw error;
-      }
-    }
-  }
-  return 0;
-}
-
 async function wait_for_lottery(p: Page) : Promise<boolean> {
    const is_lottery_time: SerializedDate = await localtime_datenow(p, undefined);
 
@@ -969,6 +936,7 @@ async function wait_for_lottery(p: Page) : Promise<boolean> {
     return true;
 
   }
+  return false;
 
   // end wait_for_lottery
 }
