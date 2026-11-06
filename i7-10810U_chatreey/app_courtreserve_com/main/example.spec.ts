@@ -2233,7 +2233,7 @@ Playwright
 - region "Notifications"
 - region "Notifications"
 */
-        const bookings_visible : Locator = page.getByText('No bookings found').or(page.getByRole('button', {name: "Edit Reservation"}));
+        const bookings_visible : Locator = page.getByText('No bookings found').or(page.getByRole('button', {name: "Edit Reservation"})).first();
         await expect(bookings_visible).toBeVisible();
         // console.log( await page.getByRole('tabpanel', {name: 'Active'}).first().evaluate(el => el.innerHTML) );
         console.log("\r\n\r\nFinished loading? Text is starting to appear after total " + ((new Date()).valueOf() - page_loaded_at.valueOf()) + " millis\r\n\r\n");
