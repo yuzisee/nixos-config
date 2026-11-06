@@ -185,3 +185,15 @@ to librechat.yaml
 
 Jina.ai
 (Anthropic + Google + OpenAI + xAI)
+
+# Updates
+
+https://www.librechat.ai/docs/local/docker
+```sh
+cd LibreChat
+/usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml down
+docker images -a | grep "librechat" | awk '{print $3}' | xargs docker rmi
+git pull
+docker compose -f ./deploy-compose.yml pull
+sudo docker compose -f ./deploy-compose.yml up -d
+```
