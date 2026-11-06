@@ -2088,6 +2088,7 @@ Playwright
 
         // "My Reservations"
         await page.goto('https://app.courtreserve.com/Online/Bookings/List/13233?type=1');
+        const page_loaded_at : Date = new Date();
         /*
 <div class="acss-12azmuq" data-testid="booking-list-active">
  <div data-testid="booking-count" style="font-weight: 600; font-size: 24px; margin-bottom: 16px;">1 Booking Found</div>
@@ -2191,8 +2192,9 @@ Playwright
 </div>
         */
         await expect(page.locator(GENERIC_SPINNER)).toHaveCount(0, {timeout: 9 * 1000});
-
-        // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+        console.log('Finished waiting, no more spinners after ' + ((new Date()).valueOf() - page_loaded_at.valueOf()) + ' millis');
+        await page.screenshot({ path: 'early_loading.' + cur_username.substring(0, 1) + i + '.png', fullPage: true });
+        await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
         let activeBooking_els : Locator = page.locator('div.booking-card-desktop-content-list');
         let activeBookings_default: string[] = await activeBooking_els.allInnerTexts();
