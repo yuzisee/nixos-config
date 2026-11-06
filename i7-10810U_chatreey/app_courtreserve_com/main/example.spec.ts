@@ -2103,7 +2103,7 @@ Playwright
         /*
 - banner:
   - 'img "Lifetime Activities: Sunnyvale"'
-  - text: Events, Camps, And Classes  Reservations  Yifei Luo 
+  - text: Events, Camps, And Classes  Reservations  … 
 - main
 - region "Notifications"
 - region "Notifications"
@@ -2116,7 +2116,7 @@ Playwright
 /*
 - banner:
   - 'img "Lifetime Activities: Sunnyvale"'
-  - text: Events, Camps, And Classes  Reservations  Yifei Luo 
+  - text: Events, Camps, And Classes  Reservations  … 
 - main:
   - complementary:
     - navigation:
@@ -2154,7 +2154,7 @@ Playwright
 /*
 - banner:
   - 'img "Lifetime Activities: Sunnyvale"'
-  - text: Events, Camps, And Classes  Reservations  Yifei Luo 
+  - text: Events, Camps, And Classes  Reservations  … 
 - main:
   - complementary:
     - navigation:
@@ -2183,7 +2183,7 @@ Playwright
   - tabpanel "Active"
   - text: 1 Booking Found
   - heading "Recreational Play - Pickleball" [level=5]
-  - text:  Fri, Nov 13th, 9:00 PM - 10:00 PM  Yifei Luo   Pickleball
+  - text:  Fri, Nov 13th, 9:00 PM - 10:00 PM  …   Pickleball
   - button "Edit Reservation"
   - link "Pay":
     - /url: /Online/MyBalance/PayMyBalance/13233?reservationId=63752759
@@ -2198,7 +2198,7 @@ Playwright
 
 - banner:
   - 'img "Lifetime Activities: Sunnyvale"'
-  - text: Events, Camps, And Classes  Reservations  Raymond Hsu 
+  - text: Events, Camps, And Classes  Reservations  … 
 - main:
   - complementary:
     - navigation:
