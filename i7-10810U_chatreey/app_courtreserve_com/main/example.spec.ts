@@ -2236,9 +2236,9 @@ Playwright
         const bookings_visible : Locator = page.getByText('No bookings found').or(page.getByRole('button', {name: "Edit Reservation"}));
         await expect(bookings_visible).toBeVisible();
         // console.log( await page.getByRole('tabpanel', {name: 'Active'}).first().evaluate(el => el.innerHTML) );
-        // console.log("\r\n\r\nFinished loading? Text is rendering now after total " + ((new Date()).valueOf() - page_loaded_at.valueOf()) + " millis\r\n\r\n");
-        // await page.screenshot({ path: 'main_loading.' + cur_username.substring(0, 1) + i + '.png', fullPage: true });
-        // await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
+        console.log("\r\n\r\nFinished loading? Text is starting to appear after total " + ((new Date()).valueOf() - page_loaded_at.valueOf()) + " millis\r\n\r\n");
+        await page.screenshot({ path: 'main_loading.' + cur_username.substring(0, 1) + i + '.png', fullPage: true });
+        await page.locator('body').ariaSnapshot().then(function(val) { console.log(val); } );
 
         let activeBooking_els : Locator = page.locator('div.booking-card-desktop-content-list');
         // await page.waitForTimeout(2.0 * 1000.0);
