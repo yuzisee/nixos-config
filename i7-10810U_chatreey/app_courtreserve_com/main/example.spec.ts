@@ -814,7 +814,7 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
       throw Error('Still not visible? Where did ' + earliestSatisfactoryTime + ' go? We just saw it! ' + JSON.stringify(visible_row_times));
     }
 
-    console.log('Found ' + earliestSatisfactoryTime + ' row containing ' + visible_row_times[target_row_ordinal] + ' expected to be rendered at n=' + target_row_ordinal ' of ' + JSON.stringify(visible_row_times));
+    console.log('Found ' + earliestSatisfactoryTime + ' row containing ' + visible_row_times[target_row_ordinal] + ' expected to be rendered at n=' + target_row_ordinal + ' of ' + JSON.stringify(visible_row_times));
 
     // so `matching_btn_els.nth(0)` is the first row (which is a blank row, in fact)
     // so `matching_btn_els.nth(1)` is what we would want if `target_row_ordinal == 0` since it's the first booking slot (i.e. "8:00 AM")
@@ -916,11 +916,6 @@ async function wait_for_lottery(p: Page) : Promise<boolean> {
    //   </span>
    // </button>
    // :darr
-   // <button class="acss-1exicps" type="button" data-selected="true">
-   //   <span class="acss-rimv92">1 hour</span>
-   //   <span class="acss-17ami2x"><span class="anticon" role="img"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span></span>
-   // </button>
-   // :darr
    // <button data-testid="reservation-mobile-submit-btn" type="button" class="ant-btn css-ry7cab css-var-_r_3_ ant-btn-primary ant-btn-color-primary ant-btn-variant-solid acss-kxblvm" style="flex: 1 1 0%;"><span>Confirm</span></button>
    if (is_lottery_time.local_hour == 12) {
 /*
@@ -964,7 +959,7 @@ async function wait_for_lottery(p: Page) : Promise<boolean> {
       }
 
       await p.getByTestId('reservation-mobile-submit-btn').click();
-      console.log('=== Does it still show a spinner if there's no lottery? ===');
+      console.log("=== Does it still show a spinner if there's no lottery? ===");
       await p.screenshot({ path: 'wait-for-lotteryB' + (new Date()).valueOf() + '.png', fullPage: true });
       await expect(p.getByTestId('reservation-mobile-submit-btn').getByRole('img')).toHaveCount(0, {timeout: 5.0 * 1000});
       await p.locator('body').first().ariaSnapshot().then(function(val) { console.log(val); } );
