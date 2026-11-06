@@ -820,9 +820,10 @@ async function book_best_slot(p: Page, target_ampm: 'AM' | 'PM'): Promise<string
 
     console.log('Found ' + earliestSatisfactoryTime + ' row containing ' + visible_row_times[target_row_ordinal] + ' expected to be rendered at n=' + target_row_ordinal + ' of ' + JSON.stringify(visible_row_times));
 
-    // so `matching_btn_els.nth(0)` is the first row (which is a blank row, in fact)
-    // so `matching_btn_els.nth(1)` is what we would want if `target_row_ordinal == 0` since it's the first booking slot (i.e. "8:00 AM")
-    const ready_to_book_el: Locator = matching_btn_els.nth(target_row_ordinal + 1); // +1 because there's always an empty div at the front
+    // target_row_ordinal searches through visible_row_times which ALSO has an empty element at the front!
+    // so `matching_btn_els.nth(0)` is the first row (which is a blank row, in fact) and so you'll hopefully never have `target_row_ordinal == 0`
+    // so `matching_btn_els.nth(1)` is what we would want if `target_row_ordinal == 1` since it's the first booking slot (i.e. "8:00 AM")
+    const ready_to_book_el: Locator = matching_btn_els.nth(target_row_ordinal);
 
     await matching_btn_els.nth(0).evaluate( function(el) { el.style.backgroundColor = 'yellow'; });
     await time_start_els.nth(0).evaluate( function(el) { el.style.backgroundColor = 'yellow'; });
