@@ -180,7 +180,21 @@ preset:
 ```
 
 to librechat.yaml
+## Zulip Chat MCP
 
+Organization Settings > Compose: Default general chat topic configuration for channels = "No general chat"
+↑↑ so you **must** make a new thread or reply to an existing thread in order to post any new message to a channel
+
+
+https://github.com/akougkas/zulipchat-mcp
+https://github.com/LibreChat-AI/LibreChat/blob/main/client/public/assets/logo.svg
+as 500×500px because https://zulip.readthedocs.io/en/10.4/subsystems/thumbnailing.html 
+
+`vi ~/.zuliprc`
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uvx zulipchat-mcp --zulip-config-file ~/.zuliprc
+
+vi /home/ubuntu/LibreChat/docker-compose.zuliprc.yml
 ### Billing
 
 Jina.ai
@@ -188,7 +202,8 @@ Jina.ai
 
 # Updates
 
-https://www.librechat.ai/docs/local/docker
+https://www.librechat.ai/docs/remote/docker_linux
+not https://www.librechat.ai/docs/local/docker ← that's for local development I think
 ```sh
 cd LibreChat
 /usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml down
