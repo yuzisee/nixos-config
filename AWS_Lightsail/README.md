@@ -180,6 +180,7 @@ preset:
 ```
 
 to librechat.yaml
+
 ## Zulip Chat MCP
 
 Organization Settings > Compose: Default general chat topic configuration for channels = "No general chat"
@@ -227,11 +228,13 @@ Open "/configuration?tab=mcp" in the admin portal
 
 Update `/etc/letsencrypt/renewal/huang.bot.conf` to include the new "-f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml" arguments
 
-## TODO: Scheduled tasks
+## Scheduled tasks
 
 Edit `.env` and set
 SCHEDULES_SINGLE_PROCESS=true
 so that it doesn't need Redis
+
+Although, be aware that https://www.librechat.ai/docs/configuration/scheduled_chats says "Scheduled Chats are experimental and off until you opt in."
 
 # Billing
 
