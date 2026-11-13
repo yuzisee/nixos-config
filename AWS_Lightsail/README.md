@@ -213,7 +213,7 @@ mcpServers:
   zulipchat:
     type: stdio
     command: uvx
-    args: ["zulipchat-mcp", "--with", "duckdb==1.3.2", "--zulip-config-file", "/app/.zuliprc"]
+    args: ["--with", "duckdb==1.3.2", "zulipchat-mcp", "--zulip-config-file", "/app/.zuliprc"]
     # "--with", "duckdb==1.3.2" because https://github.com/LibreChat-AI/LibreChat/blob/2e6b23cb08b99b2b682ad83d92148c64e40e53f7/Dockerfile#L4
     # optional: --tool-profile read-only, --extended-tools etc.
 ```
