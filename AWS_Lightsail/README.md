@@ -225,7 +225,13 @@ Open "/configuration?tab=mcp" in the admin portal
 /usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml -f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml exec api bash
 /usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml -f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml logs --tail=150 api
 
-### Billing
+## TODO: Scheduled tasks
+
+Edit `.env` and set
+SCHEDULES_SINGLE_PROCESS=true
+so that it doesn't need Redis
+
+# Billing
 
 Jina.ai
 (Anthropic + Google + OpenAI + xAI)
