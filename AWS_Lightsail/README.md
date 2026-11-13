@@ -225,6 +225,8 @@ Open "/configuration?tab=mcp" in the admin portal
 /usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml -f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml exec api bash
 /usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml -f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml logs --tail=150 api
 
+Update `/etc/letsencrypt/renewal/huang.bot.conf` to include the new "-f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml" arguments
+
 ## TODO: Scheduled tasks
 
 Edit `.env` and set
