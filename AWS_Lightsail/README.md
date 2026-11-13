@@ -36,9 +36,9 @@ Run `openssl rand -hex 16` one last time for ADMIN_PANEL_SESSION_SECRET
 
 Add ANTHROPIC_API_KEY + OPENAI_API_KEY
 
-https://www.librechat.ai/docs/configuration/pre_configured_ai/openai 
+https://www.librechat.ai/docs/configuration/pre_configured_ai/openai
 - api.model.read, model.read,
-- api.responses.write, api.responses.read, api.model.chat_completions.request, api.model.embeddings.request 
+- api.responses.write, api.responses.read, api.model.chat_completions.request, api.model.embeddings.request
 - TODO(from joseph): what about images?
 
 https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints/xai
@@ -64,7 +64,7 @@ Add the HTTPS port under "Networking" in AWS Lightsail
 - `sudo certbot certonly --standalone --cert-name huang.bot -d huang.bot -d admin.huang.bot --pre-hook "/usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml down" --post-hook "/usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml up -d"`
 - `sudo systemctl enable --now certbot.timer`
 - `systemctl list-timers --all 'certbot*'`
-- `vi client/nginx.conf` # comment out the non-SSL lines and uncomment the SSL lines 
+- `vi client/nginx.conf` # comment out the non-SSL lines and uncomment the SSL lines
 - `vi deploy-compose.yml` # Add `- /etc/letsencrypt:/etc/letsencrypt:ro` after services → client → volumes
 
 """
@@ -105,7 +105,7 @@ LibreChat-API  |     at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
 LibreChat-API  |     at Module.require (node:internal/modules/cjs/loader:1674:12)
 LibreChat-API  |     at require (node:internal/modules/helpers:157:16)
 LibreChat-API  |     at Object.<anonymous> (/app/api/server/index.js:1:1)
-LibreChat-API  | 
+LibreChat-API  |
 LibreChat-API  | Node.js v24.22.1
 LibreChat-API  | /app/packages/api/dist/credentials.cjs:169
 LibreChat-API  |                        throw new Error(`[credentials] ${name} must be exactly ${bytes * 2} hexadecimal characters (${bytes} bytes). Refusing startup to prevent weak encryption or late crypto failures. Restore the original credential if it protects existing data; plan a controlled migration before rotating it.`);
@@ -188,13 +188,43 @@ Organization Settings > Compose: Default general chat topic configuration for ch
 
 https://github.com/akougkas/zulipchat-mcp
 https://github.com/LibreChat-AI/LibreChat/blob/main/client/public/assets/logo.svg
-as 500×500px because https://zulip.readthedocs.io/en/10.4/subsystems/thumbnailing.html 
+as 500×500px because https://zulip.readthedocs.io/en/10.4/subsystems/thumbnailing.html
 
-`vi ~/.zuliprc`
+`vi ~/.zuliprc # file downloaded from Zulip: Settings > Personal > Bots > Download zuliprc`
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uvx zulipchat-mcp --zulip-config-file ~/.zuliprc
 
-vi /home/ubuntu/LibreChat/docker-compose.zuliprc.yml
+
+`vi /home/ubuntu/LibreChat/docker-compose.zuliprc.yml`
+```yml
+services:
+  api:
+    volumes:
+      - type: bind
+        source: /home/ubuntu/.zuliprc
+        target: /app/.zuliprc
+        read_only: true
+```
+
+`cd LibreChat; vi librechat.yaml`
+
+```yaml
+mcpServers:
+  zulipchat:
+    type: stdio
+    command: uvx
+    args: ["zulipchat-mcp", "--with", "duckdb==1.3.2", "--zulip-config-file", "/app/.zuliprc"]
+    # "--with", "duckdb==1.3.2" because https://github.com/LibreChat-AI/LibreChat/blob/2e6b23cb08b99b2b682ad83d92148c64e40e53f7/Dockerfile#L4
+    # optional: --tool-profile read-only, --extended-tools etc.
+```
+
+https://www.librechat.ai/docs/features/mcp
+Open "/configuration?tab=mcp" in the admin portal
+
+
+/usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml -f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml exec api bash
+/usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml -f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml logs --tail=150 api
+
 ### Billing
 
 Jina.ai
@@ -206,9 +236,9 @@ https://www.librechat.ai/docs/remote/docker_linux
 not https://www.librechat.ai/docs/local/docker ← that's for local development I think
 ```sh
 cd LibreChat
-/usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml down
+/usr/bin/docker compose -f /home/ubuntu/LibreChat/deploy-compose.yml -f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml down
 docker images -a | grep "librechat" | awk '{print $3}' | xargs docker rmi
 git pull
-docker compose -f ./deploy-compose.yml pull
-sudo docker compose -f ./deploy-compose.yml up -d
+docker compose -f ./deploy-compose.yml -f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml pull
+sudo docker compose -f ./deploy-compose.yml -f /home/ubuntu/LibreChat/docker-compose.zuliprc.yml up -d
 ```
